@@ -50,7 +50,14 @@ export default function ProfilePage() {
       <div className="rounded-3xl bg-gradient-to-r from-[#0B1D3A] via-[#102A43] to-[#1E3E62] text-white p-6 sm:p-8 shadow-xl border border-[#1E3E62] relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-5">
           <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-[#F97316] to-[#FF8A00] text-white flex items-center justify-center font-bold text-2xl font-display shadow-2xl shrink-0">
-            BS
+            {salesProfile.name
+              ? salesProfile.name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .slice(0, 2)
+                  .toUpperCase()
+              : "SL"}
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-2">

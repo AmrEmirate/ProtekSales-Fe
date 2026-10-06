@@ -110,49 +110,60 @@ export default function CommissionHistoryPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium">
-              {withdrawals.map((item) => {
-                const gross = Math.abs(item.amount);
-                const tax = item.taxAmount;
-                const net = gross - tax;
+              {withdrawals.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-slate-400">
+                    <span className="material-symbols-outlined text-4xl block mb-2 text-slate-300">
+                      receipt_long
+                    </span>
+                    Belum ada riwayat pencairan dana tercatat
+                  </td>
+                </tr>
+              ) : (
+                withdrawals.map((item) => {
+                  const gross = Math.abs(item.amount);
+                  const tax = item.taxAmount;
+                  const net = gross - tax;
 
-                return (
-                  <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
-                    <td className="py-3 px-4">
-                      <div className="font-mono font-bold text-slate-900">{item.invoiceNo}</div>
-                      <div className="text-[11px] text-slate-400">{item.date}</div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="font-semibold text-slate-800">{item.outletName}</div>
-                      <div className="text-[10px] text-slate-400">BCA - Bebas Biaya</div>
-                    </td>
-                    <td className="py-3 px-4 tabular-nums font-bold text-slate-900">
-                      Rp {gross.toLocaleString("id-ID")}
-                    </td>
-                    <td className="py-3 px-4 tabular-nums text-red-600 font-semibold">
-                      - Rp {tax.toLocaleString("id-ID")}
-                    </td>
-                    <td className="py-3 px-4 tabular-nums font-bold text-emerald-700">
-                      Rp {net.toLocaleString("id-ID")}
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
-                        TRANSFER BERHASIL
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-right">
-                      <button
-                        type="button"
-                        onClick={() => alert(`Mengunduh Bukti Potong Pajak PPh 21 (${item.invoiceNo}.pdf)...`)}
-                        className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[#102A43] font-bold text-xs inline-flex items-center gap-1 transition-colors"
-                      >
-                        <span className="material-symbols-outlined text-[16px]">download</span>
-                        <span>PDF PPh 21</span>
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
+                  return (
+                    <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
+                      <td className="py-3 px-4">
+                        <div className="font-mono font-bold text-slate-900">{item.invoiceNo}</div>
+                        <div className="text-[11px] text-slate-400">{item.date}</div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="font-semibold text-slate-800">{item.outletName}</div>
+                        <div className="text-[10px] text-slate-400">BCA - Bebas Biaya</div>
+                      </td>
+                      <td className="py-3 px-4 tabular-nums font-bold text-slate-900">
+                        Rp {gross.toLocaleString("id-ID")}
+                      </td>
+                      <td className="py-3 px-4 tabular-nums text-red-600 font-semibold">
+                        - Rp {tax.toLocaleString("id-ID")}
+                      </td>
+                      <td className="py-3 px-4 tabular-nums font-bold text-emerald-700">
+                        Rp {net.toLocaleString("id-ID")}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                          TRANSFER BERHASIL
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <button
+                          type="button"
+                          onClick={() => alert(`Mengunduh Bukti Potong Pajak PPh 21 (${item.invoiceNo}.pdf)...`)}
+                          className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[#102A43] font-bold text-xs inline-flex items-center gap-1 transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">download</span>
+                          <span>PDF PPh 21</span>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>

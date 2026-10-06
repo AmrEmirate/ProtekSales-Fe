@@ -66,13 +66,13 @@ export default function AdminDashboardPage() {
 
   // Data States
   const [metrics, setMetrics] = useState({
-    totalSales: 12,
-    totalLeads: 48,
-    totalOutlets: 28,
-    activeLicenses: 25,
-    suspendedLicenses: 3,
-    unpaidAmount: 450000,
-    overdueAmount: 300000,
+    totalSales: 0,
+    totalLeads: 0,
+    totalOutlets: 0,
+    activeLicenses: 0,
+    suspendedLicenses: 0,
+    unpaidAmount: 0,
+    overdueAmount: 0,
   });
 
   const [invoices, setInvoices] = useState<InvoiceItem[]>([]);
@@ -80,6 +80,7 @@ export default function AdminDashboardPage() {
   const [withdrawals, setWithdrawals] = useState<WithdrawalItem[]>([]);
   const [licenses, setLicenses] = useState<LicenseItem[]>([]);
   const [salesList, setSalesList] = useState<any[]>([]);
+  const [leadsMap, setLeadsMap] = useState<any[]>([]);
 
   // Search & Filter
   const [searchQuery, setSearchQuery] = useState("");
@@ -94,13 +95,13 @@ export default function AdminDashboardPage() {
         const m = await api.getAdminMetrics();
         if (m) {
           setMetrics({
-            totalSales: m.totalSales || 12,
-            totalLeads: m.totalLeads || 48,
-            totalOutlets: m.totalOutlets || 28,
-            activeLicenses: m.licenses?.active || 25,
-            suspendedLicenses: m.licenses?.suspended || 3,
-            unpaidAmount: m.invoices?.unpaidAmount || 450000,
-            overdueAmount: m.invoices?.overdueAmount || 300000,
+            totalSales: m.totalSales ?? 0,
+            totalLeads: m.totalLeads ?? 0,
+            totalOutlets: m.totalOutlets ?? 0,
+            activeLicenses: m.licenses?.active ?? 0,
+            suspendedLicenses: m.licenses?.suspended ?? 0,
+            unpaidAmount: m.invoices?.unpaidAmount ?? 0,
+            overdueAmount: m.invoices?.overdueAmount ?? 0,
           });
         }
       } catch {}
@@ -193,6 +194,14 @@ export default function AdminDashboardPage() {
         const sls = await api.getAdminSales();
         if (Array.isArray(sls)) {
           setSalesList(sls);
+        }
+      } catch {}
+
+      // 7. Peta Sebaran Prospek Seluruh Sales
+      try {
+        const lm = await api.getAdminLeadsMap();
+        if (Array.isArray(lm)) {
+          setLeadsMap(lm);
         }
       } catch {}
     } finally {
@@ -448,15 +457,27 @@ export default function AdminDashboardPage() {
         </button>
 
         <button
-          onClick={() => setActiveTab("SALES_TEAM")}
+          onClick={() => setActiveTab("LEADS_MAP")}
           className={`px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 shrink-0 ${
-            activeTab === "SALES_TEAM"
+            activeTab === "LEADS_MAP"
               ? "bg-[#0284C7] text-white shadow-sm"
               : "bg-white text-slate-600 hover:bg-slate-100"
           }`}
         >
+          <span className="material-symbols-outlined text-[18px]">map</span>
+          <span>5. Peta Sebaran Prospek Seluruh Sales</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("SALES_TEAM")}
+          className={`px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 shrink-0 ${
+            activeTab === "SALES_TEAM"
+              ? "bg-[#102A43] text-white shadow-sm"
+              : "bg-white text-slate-600 hover:bg-slate-100"
+          }`}
+        >
           <span className="material-symbols-outlined text-[18px]">group</span>
-          <span>5. Manajemen Mitra Sales</span>
+          <span>6. Manajemen Mitra Sales</span>
         </button>
       </div>
 
@@ -912,7 +933,80 @@ export default function AdminDashboardPage() {
       )}
 
       {/* ============================================================== */}
-      {/* TAB 5: MANAJEMEN MITRA SALES                                   */}
+      {/* TAB 5: PETA SEBARAN PROSPEK SELURUH SALES (Blueprint 1.B.2)     */}
+      {/* ============================================================== */}
+      {activeTab === "LEADS_MAP" && (
+        <div className="space-y-4">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold font-display text-[#102A43]">
+                Peta Sebaran & Histori Kunjungan Prospek Seluruh Sales
+              </h2>
+              <p className="text-xs text-slate-500">
+                Pusat pengawasan wilayah proteksi toko dan riwayat kunjungan lapangan mitra sales
+              </p>
+            </div>
+            <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-800 text-xs font-bold border border-blue-200">
+              {leadsMap.length} Prospek Terdaftar
+            </span>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#102A43] text-white font-bold uppercase tracking-wider text-[10px]">
+                  <tr>
+                    <th className="py-3.5 px-4">Nama Toko & Alamat</th>
+                    <th className="py-3.5 px-4">Sales Pemegang Hak</th>
+                    <th className="py-3.5 px-4">Status Prospek</th>
+                    <th className="py-3.5 px-4">Masa Proteksi Hingga</th>
+                    <th className="py-3.5 px-4">Koordinat GPS</th>
+                    <th className="py-3.5 px-4">Kunjungan Terakhir</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium">
+                  {leadsMap.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-slate-400">
+                        Belum ada data prospek sales yang tercatat di sistem.
+                      </td>
+                    </tr>
+                  ) : (
+                    leadsMap.map((l) => (
+                      <tr key={l.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="py-3.5 px-4">
+                          <span className="font-bold text-slate-900 block text-sm">{l.storeName}</span>
+                          <span className="text-[11px] text-slate-500">{l.ownerName} • {l.address || "DKI Jakarta"}</span>
+                        </td>
+                        <td className="py-3.5 px-4 font-bold text-[#102A43]">
+                          {l.sales?.name || "Mitra Sales"}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">
+                            {l.status}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-slate-600">
+                          {l.protectedUntil ? new Date(l.protectedUntil).toLocaleDateString("id-ID") : "-"}
+                        </td>
+                        <td className="py-3.5 px-4 font-mono text-[11px] text-slate-600">
+                          {l.latitude && l.longitude ? `${l.latitude}, ${l.longitude}` : "Tervalidasi Area"}
+                        </td>
+                        <td className="py-3.5 px-4 text-slate-500">
+                          {l.visits?.[0]?.notes || "Check-in registrasi awal"}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* TAB 6: MANAJEMEN MITRA SALES                                   */}
       {/* ============================================================== */}
       {activeTab === "SALES_TEAM" && (
         <div className="space-y-4">
@@ -926,7 +1020,7 @@ export default function AdminDashboardPage() {
               </p>
             </div>
             <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-800 text-xs font-bold border border-blue-200">
-              {salesList.length || 1} Sales Terdaftar
+              {salesList.length} Sales Terdaftar
             </span>
           </div>
 
@@ -944,28 +1038,42 @@ export default function AdminDashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-medium">
-                  <tr className="hover:bg-slate-50 transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-slate-900">Budi Santoso</td>
-                    <td className="py-3.5 px-4 text-slate-600">
-                      <span>sales@protek.id</span>
-                      <span className="text-[11px] text-slate-400 block">+62 812-9876-1100</span>
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold text-[10px]">
-                        Gold Specialist
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 font-bold text-emerald-700">25.0% Recurring</td>
-                    <td className="py-3.5 px-4 text-slate-700">
-                      <span className="font-bold block">BCA (Bank Central Asia)</span>
-                      <span className="text-[11px] font-mono">8830912811 a.n Budi Santoso</span>
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                        AKTIF RESMI
-                      </span>
-                    </td>
-                  </tr>
+                  {salesList.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-slate-400">
+                        Belum ada mitra sales yang terdaftar di database.
+                      </td>
+                    </tr>
+                  ) : (
+                    salesList.map((sales) => (
+                      <tr key={sales.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="py-3.5 px-4 font-bold text-slate-900">{sales.name}</td>
+                        <td className="py-3.5 px-4 text-slate-600">
+                          <span>{sales.email}</span>
+                          <span className="text-[11px] text-slate-400 block">+{sales.phone}</span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold text-[10px]">
+                            {sales.tier || "Mitra Sales"}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 font-bold text-emerald-700">
+                          {(sales.commissionRate || 25).toFixed(1)}% Recurring
+                        </td>
+                        <td className="py-3.5 px-4 text-slate-700">
+                          <span className="font-bold block">{sales.bankName || "-"}</span>
+                          <span className="text-[11px] font-mono">
+                            {sales.bankAccountNumber || "-"} {sales.bankAccountHolder ? `a.n ${sales.bankAccountHolder}` : ""}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                            AKTIF RESMI
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

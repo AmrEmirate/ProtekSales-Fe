@@ -6,10 +6,10 @@ import Link from "next/link";
 export default function BastPage() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [hasSignature, setHasSignature] = useState(true);
+  const [hasSignature, setHasSignature] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  // Draw initial demo signature
+  // Setup canvas size and DPI scaling
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -25,14 +25,6 @@ export default function BastPage() {
     ctx.lineWidth = 2.5;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-
-    // Draw authentic cursive sample
-    ctx.beginPath();
-    ctx.moveTo(40, 70);
-    ctx.bezierCurveTo(70, 30, 90, 110, 120, 60);
-    ctx.bezierCurveTo(140, 20, 160, 90, 190, 65);
-    ctx.bezierCurveTo(210, 50, 230, 80, 260, 55);
-    ctx.stroke();
   }, []);
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {

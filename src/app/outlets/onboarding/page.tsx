@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api } from "@/services/api";
@@ -11,21 +11,37 @@ export default function OnboardingPage() {
   const { refreshData } = useApp();
 
   const [deviceType, setDeviceType] = useState<"sunmi" | "windows" | "tablet">("sunmi");
-  const [serialNumber, setSerialNumber] = useState("SUNMI-T2-JKT-09824");
-  const [outletName, setOutletName] = useState("Kopi Kenangan Senja");
+  const [serialNumber, setSerialNumber] = useState("");
+  const [outletName, setOutletName] = useState("");
+  const [ownerPhone, setOwnerPhone] = useState("");
+  const [leadId, setLeadId] = useState<string | undefined>(undefined);
   const [packageTier, setPackageTier] = useState("PRO_ENTERPRISE");
   const [billingCycle, setBillingCycle] = useState<"MONTHLY" | "ANNUAL">("ANNUAL");
   const [isActivating, setIsActivating] = useState(false);
   const [activatedSuccess, setActivatedSuccess] = useState(false);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const nameParam = params.get("name");
+      const phoneParam = params.get("phone");
+      const leadIdParam = params.get("leadId");
+      if (nameParam) setOutletName(nameParam);
+      if (phoneParam) setOwnerPhone(phoneParam);
+      if (leadIdParam) setLeadId(leadIdParam);
+    }
+  }, []);
+
   const handleActivate = async () => {
+    if (!outletName.trim()) return;
     setIsActivating(true);
     try {
       await api.onboardingPos({
+        leadId,
         name: outletName,
         ownerName: "Pemilik Outlet",
-        phone: "62812" + Math.floor(1000000 + Math.random() * 9000000),
-        address: "Alamat Operasional POS Jakarta",
+        phone: ownerPhone ? ownerPhone.replace(/[^0-9]/g, "") : "6281200000000",
+        address: "Alamat Operasional POS",
         monthlyFee: billingCycle === "ANNUAL" ? 120000 : 150000,
       });
       await refreshData();
@@ -211,7 +227,19 @@ export default function OnboardingPage() {
                   type="text"
                   value={outletName}
                   onChange={(e) => setOutletName(e.target.value)}
-                  className="w-full h-11 px-3.5 rounded-xl bg-slate-50 border border-[#CBD5E1] text-xs font-semibold text-[#102A43] outline-none"
+                  placeholder="Contoh: Kopi Kenangan Senja"
+                  className="w-full h-11 px-3.5 rounded-xl bg-slate-50 border border-[#CBD5E1] text-xs font-semibold text-[#102A43] outline-none focus:bg-white focus:border-[#F97316]"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-[#102A43]">Nomor WhatsApp Pemilik Outlet</label>
+                <input
+                  type="tel"
+                  value={ownerPhone}
+                  onChange={(e) => setOwnerPhone(e.target.value)}
+                  placeholder="62812xxxxxxxx"
+                  className="w-full h-11 px-3.5 rounded-xl bg-slate-50 border border-[#CBD5E1] text-xs font-semibold text-[#102A43] outline-none focus:bg-white focus:border-[#F97316]"
                 />
               </div>
 

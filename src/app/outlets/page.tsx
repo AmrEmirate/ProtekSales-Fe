@@ -132,7 +132,7 @@ export default function OutletsListPage() {
                 : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200 shadow-sm"
             }`}
           >
-            Semua (28)
+            Semua ({outlets.length})
           </button>
           <button
             onClick={() => setActiveFilter("LUNAS")}

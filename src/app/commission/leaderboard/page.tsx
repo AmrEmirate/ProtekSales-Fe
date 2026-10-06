@@ -53,11 +53,11 @@ export default function LeaderboardPage() {
           name: salesProfile.name,
           region: "DKI Jakarta",
           salesId: salesProfile.id,
-          outletsCount: 9,
-          revenue: 7850000,
-          mrrFormatted: "Rp 7.85 Jt",
+          outletsCount: 0,
+          revenue: 0,
+          mrrFormatted: "Rp 0",
           tier: salesProfile.tier,
-          bonus: 3500000,
+          bonus: 0,
           isCurrentUser: true,
         },
       ]);
@@ -67,32 +67,9 @@ export default function LeaderboardPage() {
 
   const topSales = salesList;
 
-  const rank1 = topSales[0] || {
-    rank: 1,
-    name: salesProfile.name || "Budi Santoso",
-    region: "DKI Jakarta",
-    outletsCount: 9,
-    mrrFormatted: "Rp 7.85 Jt",
-    avatarUrl: "",
-  };
-
-  const rank2 = topSales[1] || {
-    rank: 2,
-    name: "Rian Hidayat",
-    region: "Jakbar",
-    outletsCount: 7,
-    mrrFormatted: "Rp 6.2 Jt",
-    avatarUrl: "",
-  };
-
-  const rank3 = topSales[2] || {
-    rank: 3,
-    name: "Andi Pratama",
-    region: "Jakpus",
-    outletsCount: 5,
-    mrrFormatted: "Rp 4.5 Jt",
-    avatarUrl: "",
-  };
+  const rank1 = topSales[0] || null;
+  const rank2 = topSales[1] || null;
+  const rank3 = topSales[2] || null;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -153,17 +130,24 @@ export default function LeaderboardPage() {
         {/* Progress Bar Container */}
         <div className="mt-4 bg-[#1E3E62]/80 rounded-xl p-3.5 relative z-10 max-w-2xl">
           <div className="flex items-center justify-between text-xs mb-1.5 font-semibold">
-            <span className="text-[#d8eaff]">Progres Budi Santoso (Anda)</span>
-            <span className="font-bold text-[#F97316]">6 / 8 Outlet (75%)</span>
+            <span className="text-[#d8eaff]">Progres {salesProfile.name} (Anda)</span>
+            <span className="font-bold text-[#F97316]">
+              {Math.min(8, topSales.find((s) => s.isCurrentUser)?.outletsCount || 0)} / 8 Outlet (
+              {Math.min(100, Math.round(((topSales.find((s) => s.isCurrentUser)?.outletsCount || 0) / 8) * 100))}%)
+            </span>
           </div>
           <div className="w-full h-2.5 bg-[#0B1D3A] rounded-full overflow-hidden flex">
             <div
               className="bg-gradient-to-r from-[#FF8A00] to-[#F97316] h-full rounded-full transition-all duration-500"
-              style={{ width: "75%" }}
+              style={{
+                width: `${Math.min(100, Math.round(((topSales.find((s) => s.isCurrentUser)?.outletsCount || 0) / 8) * 100))}%`,
+              }}
             />
           </div>
           <div className="flex items-center justify-between mt-2 text-[11px] text-slate-300">
-            <span>Tersisa 2 outlet menuju target</span>
+            <span>
+              Tersisa {Math.max(0, 8 - (topSales.find((s) => s.isCurrentUser)?.outletsCount || 0))} outlet menuju target
+            </span>
             <span className="text-emerald-300 font-bold">Reward Unlock: Rp 2,5 Jt</span>
           </div>
         </div>
@@ -178,142 +162,163 @@ export default function LeaderboardPage() {
             </span>
             Podium Juara Utama
           </h2>
-          <span className="text-xs text-slate-500">Update Realtime (15:30 WIB)</span>
+          <span className="text-xs text-slate-500">Update Realtime Sistem</span>
         </div>
 
         <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-[#E2E8F0] pt-8">
           <div className="grid grid-cols-3 gap-3 sm:gap-6 items-end max-w-3xl mx-auto">
             {/* Rank 2 (Left - Silver) */}
             <div className="flex flex-col items-center text-center order-1">
-              <div className="relative mb-3">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden shadow-sm bg-slate-100 ring-4 ring-slate-200">
-                  {rank2.avatarUrl ? (
-                    <img
-                      src={rank2.avatarUrl}
-                      alt={rank2.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center font-bold text-slate-700 bg-slate-200 text-xs sm:text-sm">
-                      {rank2.name.slice(0, 2).toUpperCase()}
+              {rank2 ? (
+                <>
+                  <div className="relative mb-3">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden shadow-sm bg-slate-100 ring-4 ring-slate-200">
+                      {rank2.avatarUrl ? (
+                        <img src={rank2.avatarUrl} alt={rank2.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center font-bold text-slate-700 bg-slate-200 text-xs sm:text-sm">
+                          {rank2.name.slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#CBD5E1] text-[#0B1D3A] flex items-center justify-center font-bold text-xs shadow-md">
-                  2
-                </div>
-              </div>
-              <span className="text-xs sm:text-sm font-bold text-[#0B1D3A] truncate w-full font-display">
-                {rank2.name}
-              </span>
-              <span className="text-[11px] text-slate-500 mb-3">{rank2.region}</span>
+                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#CBD5E1] text-[#0B1D3A] flex items-center justify-center font-bold text-xs shadow-md">
+                      2
+                    </div>
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-[#0B1D3A] truncate w-full font-display">
+                    {rank2.name}
+                  </span>
+                  <span className="text-[11px] text-slate-500 mb-3">{rank2.region}</span>
 
-              {/* Stepped Podium Block */}
-              <div className="w-full bg-[#e3efff] rounded-t-2xl pt-4 pb-3 px-2 flex flex-col items-center h-32 sm:h-36 justify-between border-t-2 border-slate-300">
-                <div className="flex flex-col items-center">
-                  <span className="material-symbols-outlined text-slate-500 text-[20px]">
-                    emoji_events
-                  </span>
-                  <span className="text-base sm:text-lg font-bold font-display text-[#0B1D3A] mt-0.5">
-                    {rank2.outletsCount}
-                  </span>
-                  <span className="text-[10px] text-slate-600 uppercase font-semibold">Outlet</span>
+                  <div className="w-full bg-[#e3efff] rounded-t-2xl pt-4 pb-3 px-2 flex flex-col items-center h-32 sm:h-36 justify-between border-t-2 border-slate-300">
+                    <div className="flex flex-col items-center">
+                      <span className="material-symbols-outlined text-slate-500 text-[20px]">emoji_events</span>
+                      <span className="text-base sm:text-lg font-bold font-display text-[#0B1D3A] mt-0.5">
+                        {rank2.outletsCount}
+                      </span>
+                      <span className="text-[10px] text-slate-600 uppercase font-semibold">Outlet</span>
+                    </div>
+                    <span className="text-xs sm:text-sm font-bold text-[#102A43] font-display">
+                      {rank2.mrrFormatted}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <div className="w-full flex flex-col items-center opacity-40">
+                  <div className="w-16 h-16 rounded-full bg-slate-100 border border-dashed border-slate-300 flex items-center justify-center text-slate-400 text-xs mb-3">
+                    -
+                  </div>
+                  <span className="text-xs text-slate-400 mb-3">Slot Tersedia</span>
+                  <div className="w-full bg-slate-100 rounded-t-2xl h-28 border-t border-slate-200 flex items-center justify-center text-slate-400 text-xs">
+                    Peringkat 2
+                  </div>
                 </div>
-                <span className="text-xs sm:text-sm font-bold text-[#102A43] font-display">
-                  {rank2.mrrFormatted}
-                </span>
-              </div>
+              )}
             </div>
 
             {/* Rank 1 (Center - Gold Champion) */}
             <div className="flex flex-col items-center text-center order-2">
-              <div className="relative mb-3">
-                <span className="material-symbols-outlined text-[#FF8A00] text-[24px] mb-0.5 animate-bounce">
-                  workspace_premium
-                </span>
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden shadow-lg bg-orange-100 p-1 ring-4 ring-[#F97316]">
-                  <div className="w-full h-full rounded-full overflow-hidden">
-                    {rank1.avatarUrl ? (
-                      <img
-                        src={rank1.avatarUrl}
-                        alt={rank1.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center font-bold text-orange-800 bg-orange-200 text-sm sm:text-base">
-                        {rank1.name.slice(0, 2).toUpperCase()}
+              {rank1 ? (
+                <>
+                  <div className="relative mb-3">
+                    <span className="material-symbols-outlined text-[#FF8A00] text-[24px] mb-0.5 animate-bounce">
+                      workspace_premium
+                    </span>
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden shadow-lg bg-orange-100 p-1 ring-4 ring-[#F97316]">
+                      <div className="w-full h-full rounded-full overflow-hidden">
+                        {rank1.avatarUrl ? (
+                          <img src={rank1.avatarUrl} alt={rank1.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center font-bold text-orange-800 bg-orange-200 text-sm sm:text-base">
+                            {rank1.name.slice(0, 2).toUpperCase()}
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
+                    <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#F97316] text-white flex items-center justify-center font-bold text-xs shadow-md">
+                      1
+                    </div>
+                  </div>
+                  <span className="text-sm sm:text-base font-bold text-[#0B1D3A] truncate w-full font-display">
+                    {rank1.name}
+                  </span>
+                  <span className="text-[11px] font-bold text-[#F97316] mb-3">{rank1.region}</span>
+
+                  <div className="w-full bg-gradient-to-t from-[#FFF7ED] to-[#d8eaff] rounded-t-2xl pt-5 pb-3 px-2 flex flex-col items-center h-44 sm:h-48 justify-between shadow-sm border-t-4 border-[#F97316]">
+                    <div className="flex flex-col items-center">
+                      <span className="material-symbols-outlined text-[#F97316] text-[24px]">military_tech</span>
+                      <span className="text-lg sm:text-2xl font-bold font-display text-[#0B1D3A] mt-0.5">
+                        {rank1.outletsCount}
+                      </span>
+                      <span className="text-[10px] font-bold text-[#F97316] uppercase tracking-wide">
+                        Outlet Juara
+                      </span>
+                    </div>
+                    <span className="text-xs sm:text-sm font-bold text-[#0B1D3A] font-display bg-white px-3 py-1 rounded-full shadow-sm">
+                      {rank1.mrrFormatted}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <div className="w-full flex flex-col items-center opacity-40">
+                  <div className="w-20 h-20 rounded-full bg-slate-100 border border-dashed border-slate-300 flex items-center justify-center text-slate-400 text-sm mb-3">
+                    -
+                  </div>
+                  <span className="text-xs text-slate-400 mb-3">Slot Tersedia</span>
+                  <div className="w-full bg-slate-100 rounded-t-2xl h-36 border-t-2 border-slate-200 flex items-center justify-center text-slate-400 text-xs">
+                    Peringkat 1
                   </div>
                 </div>
-                <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#F97316] text-white flex items-center justify-center font-bold text-xs shadow-md">
-                  1
-                </div>
-              </div>
-              <span className="text-sm sm:text-base font-bold text-[#0B1D3A] truncate w-full font-display">
-                {rank1.name}
-              </span>
-              <span className="text-[11px] font-bold text-[#F97316] mb-3">{rank1.region}</span>
-
-              {/* Champion Stepped Podium Block */}
-              <div className="w-full bg-gradient-to-t from-[#FFF7ED] to-[#d8eaff] rounded-t-2xl pt-5 pb-3 px-2 flex flex-col items-center h-44 sm:h-48 justify-between shadow-sm border-t-4 border-[#F97316]">
-                <div className="flex flex-col items-center">
-                  <span className="material-symbols-outlined text-[#F97316] text-[24px]">
-                    military_tech
-                  </span>
-                  <span className="text-lg sm:text-2xl font-bold font-display text-[#0B1D3A] mt-0.5">
-                    {rank1.outletsCount}
-                  </span>
-                  <span className="text-[10px] font-bold text-[#F97316] uppercase tracking-wide">
-                    Outlet Juara
-                  </span>
-                </div>
-                <span className="text-xs sm:text-sm font-bold text-[#0B1D3A] font-display bg-white px-3 py-1 rounded-full shadow-sm">
-                  {rank1.mrrFormatted}
-                </span>
-              </div>
+              )}
             </div>
 
             {/* Rank 3 (Right - Bronze) */}
             <div className="flex flex-col items-center text-center order-3">
-              <div className="relative mb-3">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden shadow-sm bg-orange-50 ring-4 ring-amber-300">
-                  {rank3.avatarUrl ? (
-                    <img
-                      src={rank3.avatarUrl}
-                      alt={rank3.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center font-bold text-amber-900 bg-amber-200 text-xs sm:text-sm">
-                      {rank3.name.slice(0, 2).toUpperCase()}
+              {rank3 ? (
+                <>
+                  <div className="relative mb-3">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden shadow-sm bg-orange-50 ring-4 ring-amber-300">
+                      {rank3.avatarUrl ? (
+                        <img src={rank3.avatarUrl} alt={rank3.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center font-bold text-amber-900 bg-amber-200 text-xs sm:text-sm">
+                          {rank3.name.slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#9d4300] text-white flex items-center justify-center font-bold text-xs shadow-md">
-                  3
-                </div>
-              </div>
-              <span className="text-xs sm:text-sm font-bold text-[#0B1D3A] truncate w-full font-display">
-                {rank3.name}
-              </span>
-              <span className="text-[11px] font-bold text-[#9d4300] mb-3">{rank3.region}</span>
+                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#9d4300] text-white flex items-center justify-center font-bold text-xs shadow-md">
+                      3
+                    </div>
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-[#0B1D3A] truncate w-full font-display">
+                    {rank3.name}
+                  </span>
+                  <span className="text-[11px] font-bold text-[#9d4300] mb-3">{rank3.region}</span>
 
-              {/* Stepped Podium Block */}
-              <div className="w-full bg-[#edf4ff] rounded-t-2xl pt-4 pb-3 px-2 flex flex-col items-center h-28 sm:h-32 justify-between border-t-2 border-amber-300">
-                <div className="flex flex-col items-center">
-                  <span className="material-symbols-outlined text-[#9d4300] text-[20px]">
-                    military_tech
-                  </span>
-                  <span className="text-base sm:text-lg font-bold font-display text-[#0B1D3A] mt-0.5">
-                    {rank3.outletsCount}
-                  </span>
-                  <span className="text-[10px] text-slate-600 uppercase font-semibold">Outlet</span>
+                  <div className="w-full bg-[#edf4ff] rounded-t-2xl pt-4 pb-3 px-2 flex flex-col items-center h-28 sm:h-32 justify-between border-t-2 border-amber-300">
+                    <div className="flex flex-col items-center">
+                      <span className="material-symbols-outlined text-[#9d4300] text-[20px]">military_tech</span>
+                      <span className="text-base sm:text-lg font-bold font-display text-[#0B1D3A] mt-0.5">
+                        {rank3.outletsCount}
+                      </span>
+                      <span className="text-[10px] text-slate-600 uppercase font-semibold">Outlet</span>
+                    </div>
+                    <span className="text-xs sm:text-sm font-bold text-[#102A43] font-display">
+                      {rank3.mrrFormatted}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <div className="w-full flex flex-col items-center opacity-40">
+                  <div className="w-16 h-16 rounded-full bg-slate-100 border border-dashed border-slate-300 flex items-center justify-center text-slate-400 text-xs mb-3">
+                    -
+                  </div>
+                  <span className="text-xs text-slate-400 mb-3">Slot Tersedia</span>
+                  <div className="w-full bg-slate-100 rounded-t-2xl h-24 border-t border-slate-200 flex items-center justify-center text-slate-400 text-xs">
+                    Peringkat 3
+                  </div>
                 </div>
-                <span className="text-xs sm:text-sm font-bold text-[#102A43] font-display">
-                  {rank3.mrrFormatted}
-                </span>
-              </div>
+              )}
             </div>
           </div>
         </div>
@@ -362,45 +367,51 @@ export default function LeaderboardPage() {
           <span className="text-sm font-bold text-[#0B1D3A] font-display">
             Peringkat 4 - 10 Klasemen
           </span>
-          <span className="text-xs text-slate-500">52 Agen Aktif</span>
+          <span className="text-xs text-slate-500">{topSales.length} Agen Terdaftar</span>
         </div>
 
         <div className="space-y-2.5">
-          {topSales.slice(3).map((agent) => (
-            <div
-              key={agent.rank}
-              className="flex items-center justify-between p-3.5 bg-[#f7f9ff] hover:bg-[#edf4ff] rounded-xl transition-colors border border-slate-100"
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <span className="text-base font-bold font-display text-slate-500 w-6 text-center shrink-0">
-                  {agent.rank}
-                </span>
-                <div className="w-10 h-10 rounded-full bg-[#d8eaff] flex items-center justify-center shrink-0 text-[#102A43] font-bold text-xs">
-                  {agent.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
-                </div>
-                <div className="flex flex-col min-w-0">
-                  <span className="text-xs sm:text-sm font-bold text-[#0B1D3A] truncate font-display">
-                    {agent.name}
+          {topSales.slice(3).length === 0 ? (
+            <div className="p-8 text-center text-slate-400 text-xs">
+              Belum ada peringkat lanjutan (kurang dari 4 agen terdaftar)
+            </div>
+          ) : (
+            topSales.slice(3).map((agent) => (
+              <div
+                key={agent.rank}
+                className="flex items-center justify-between p-3.5 bg-[#f7f9ff] hover:bg-[#edf4ff] rounded-xl transition-colors border border-slate-100"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="text-base font-bold font-display text-slate-500 w-6 text-center shrink-0">
+                    {agent.rank}
                   </span>
-                  <div className="flex items-center gap-2 text-xs text-slate-500">
-                    <span>{agent.region}</span>
-                    <span className="w-1 h-1 rounded-full bg-slate-300" />
-                    <span className="font-bold text-emerald-700">{agent.outletsCount} Closing</span>
+                  <div className="w-10 h-10 rounded-full bg-[#d8eaff] flex items-center justify-center shrink-0 text-[#102A43] font-bold text-xs">
+                    {agent.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")}
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-xs sm:text-sm font-bold text-[#0B1D3A] truncate font-display">
+                      {agent.name}
+                    </span>
+                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                      <span>{agent.region}</span>
+                      <span className="w-1 h-1 rounded-full bg-slate-300" />
+                      <span className="font-bold text-emerald-700">{agent.outletsCount} Closing</span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="text-right shrink-0">
-                <span className="text-xs sm:text-sm font-bold text-[#0B1D3A] font-display block">
-                  {agent.mrrFormatted}
-                </span>
-                <span className="text-[10px] text-slate-500 uppercase">Est. MRR</span>
+                <div className="text-right shrink-0">
+                  <span className="text-xs sm:text-sm font-bold text-[#0B1D3A] font-display block">
+                    {agent.mrrFormatted}
+                  </span>
+                  <span className="text-[10px] text-slate-500 uppercase">Est. MRR</span>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>

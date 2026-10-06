@@ -15,45 +15,14 @@ interface SupportTicket {
 }
 
 export default function SupportTicketsPage() {
-  const [outletName, setOutletName] = useState("Toko Grosir Makmur");
+  const [outletName, setOutletName] = useState("");
   const [category, setCategory] = useState<"SUPPLY" | "HARDWARE_ERROR" | "REPLACEMENT">("SUPPLY");
   const [supplyType, setSupplyType] = useState("20 Roll Kertas Thermal 58mm");
-  const [priority, setPriority] = useState<"NORMAL" | "URGENT">("URGENT");
-  const [issueDesc, setIssueDesc] = useState("Stok kertas struk tersisa 1 roll. Mohon dikirimkan hari ini.");
+  const [priority, setPriority] = useState<"NORMAL" | "URGENT">("NORMAL");
+  const [issueDesc, setIssueDesc] = useState("");
   const [createdNotice, setCreatedNotice] = useState(false);
 
-  const [tickets, setTickets] = useState<SupportTicket[]>([
-    {
-      id: "TCK-8812",
-      outletName: "Resto Bakmi Nusantara",
-      issue: "Printer thermal bluetooth sering disconnect saat cetak struk",
-      category: "HARDWARE_ERROR",
-      priority: "URGENT",
-      status: "IN_PROGRESS",
-      date: "Hari ini, 09:15 WIB",
-      courierNotes: "Teknisi lapangan (Dimas) dalam perjalanan menuju lokasi.",
-    },
-    {
-      id: "TCK-8790",
-      outletName: "Toko Grosir Makmur",
-      issue: "Permintaan 20 Roll Kertas Thermal 80mm Premium",
-      category: "SUPPLY",
-      priority: "NORMAL",
-      status: "OPEN",
-      date: "Kemarin, 14:00 WIB",
-      courierNotes: "Paket sedang disiapkan di gudang logistik Jakarta Barat.",
-    },
-    {
-      id: "TCK-8601",
-      outletName: "Kafe Kopi Dua Jiwa",
-      issue: "Penggantian Barcode Scanner 2D QRIS (Kabel USB longgar)",
-      category: "REPLACEMENT",
-      priority: "NORMAL",
-      status: "RESOLVED",
-      date: "01 Okt 2026",
-      courierNotes: "Unit baru telah diganti & diuji coba normal.",
-    },
-  ]);
+  const [tickets, setTickets] = useState<SupportTicket[]>([]);
 
   const handleCreateTicket = (e: React.FormEvent) => {
     e.preventDefault();
@@ -222,11 +191,22 @@ export default function SupportTicketsPage() {
           </div>
 
           <div className="space-y-3.5">
-            {tickets.map((t) => (
-              <div
-                key={t.id}
-                className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-50 transition-all space-y-3"
-              >
+            {tickets.length === 0 ? (
+              <div className="p-8 text-center rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                <span className="material-symbols-outlined text-slate-400 text-[32px]">
+                  support_agent
+                </span>
+                <p className="text-xs font-bold text-slate-700">Belum ada tiket kendala atau permintaan suplai</p>
+                <p className="text-[11px] text-slate-400">
+                  Gunakan formulir di samping untuk mengajukan pengiriman kertas thermal atau bantuan teknis hardware POS.
+                </p>
+              </div>
+            ) : (
+              tickets.map((t) => (
+                <div
+                  key={t.id}
+                  className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-50 transition-all space-y-3"
+                >
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <div className="flex items-center gap-2">
@@ -281,7 +261,8 @@ export default function SupportTicketsPage() {
                   </a>
                 </div>
               </div>
-            ))}
+            ))
+          )}
           </div>
         </div>
       </div>

@@ -202,51 +202,65 @@ export default function CommissionWalletPage() {
 
             {/* Mutations List */}
             <div className="space-y-3">
-              {filteredMutations.map((mut) => (
-                <div
-                  key={mut.id}
-                  className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition-all flex items-center justify-between gap-3 text-xs"
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                        mut.amount > 0
-                          ? "bg-emerald-100 text-emerald-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      <span className="material-symbols-outlined text-[20px]">
-                        {mut.amount > 0 ? "arrow_downward" : "arrow_upward"}
-                      </span>
-                    </div>
+              {filteredMutations.length === 0 ? (
+                <div className="p-8 text-center rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                  <span className="material-symbols-outlined text-slate-300 text-3xl">
+                    payments
+                  </span>
+                  <p className="text-xs font-bold text-slate-600">Belum ada riwayat mutasi komisi</p>
+                  <p className="text-[11px] text-slate-400">
+                    Komisi berulang otomatis masuk saat outlet binaan Anda melakukan pembayaran invoice bulanan.
+                  </p>
+                </div>
+              ) : (
+                filteredMutations.map((mut) => (
+                  <div
+                    key={mut.id}
+                    className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition-all flex items-center justify-between gap-3 text-xs"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                          mut.amount > 0
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        <span className="material-symbols-outlined text-[20px]">
+                          {mut.amount > 0 ? "arrow_downward" : "arrow_upward"}
+                        </span>
+                      </div>
 
-                    <div>
-                      <div className="font-bold text-slate-900">{mut.outletName}</div>
-                      <div className="text-[11px] text-slate-400">
-                        {mut.invoiceNo} • {mut.date}
+                      <div>
+                        <div className="font-bold text-slate-900">{mut.outletName}</div>
+                        <div className="text-[11px] text-slate-400">
+                          {mut.invoiceNo} • {mut.date}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="text-right">
-                    <div
-                      className={`font-bold font-display text-sm tabular-nums ${
-                        mut.amount > 0 ? "text-emerald-600" : "text-slate-900"
-                      }`}
-                    >
-                      {mut.amount > 0 ? "+" : ""} Rp {Math.abs(mut.amount).toLocaleString("id-ID")}
+                    <div className="text-right">
+                      <div
+                        className={`font-bold font-display text-sm tabular-nums ${
+                          mut.amount > 0 ? "text-emerald-600" : "text-slate-900"
+                        }`}
+                      >
+                        {mut.amount > 0 ? "+" : ""} Rp {Math.abs(mut.amount).toLocaleString("id-ID")}
+                      </div>
+                      <span className="text-[10px] text-slate-400 block">
+                        Potongan PPh 21: Rp {mut.taxAmount.toLocaleString("id-ID")}
+                      </span>
                     </div>
-                    <span className="text-[10px] text-slate-400 block">
-                      Potongan PPh 21: Rp {mut.taxAmount.toLocaleString("id-ID")}
-                    </span>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
 
           <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-slate-400">Menampilkan 4 mutasi terkini</span>
+            <span className="text-slate-400">
+              Menampilkan {filteredMutations.length} mutasi terkini
+            </span>
             <Link
               href="/commission/history"
               className="font-bold text-[#F97316] hover:underline"

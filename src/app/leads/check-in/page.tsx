@@ -10,11 +10,11 @@ export default function CheckInPage() {
   const router = useRouter();
   const { addVisit, isOffline } = useApp();
 
-  const [outletName, setOutletName] = useState("Toko Rezeki Abadi");
+  const [outletName, setOutletName] = useState("");
   const [category, setCategory] = useState("Retail / Minimarket");
-  const [ownerName, setOwnerName] = useState("H. Syamsul Arifin");
-  const [waNumber, setWaNumber] = useState("81288921045");
-  const [notes, setNotes] = useState("Pemilik tertarik paket dual-screen untuk kasir utama dan display pelanggan.");
+  const [ownerName, setOwnerName] = useState("");
+  const [waNumber, setWaNumber] = useState("");
+  const [notes, setNotes] = useState("");
   const [outcome, setOutcome] = useState<"VERIFIED" | "DEAL">("VERIFIED");
   const [photoUploaded, setPhotoUploaded] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,18 +29,19 @@ export default function CheckInPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!outletName.trim() || !waNumber.trim()) return;
     setIsSubmitting(true);
 
     try {
       const sanitizedPhone = waNumber.replace(/[^0-9]/g, "");
       await api.checkInLead({
         storeName: outletName,
-        ownerName: ownerName,
+        ownerName: ownerName || "Pemilik Outlet",
         phone: sanitizedPhone,
-        address: "Alamat Terverifikasi GPS Cilandak",
+        address: "Lokasi Kunjungan Lapangan Terverifikasi GPS",
         latitude: -6.2918,
         longitude: 106.7972,
-        notes: `Kategori: ${category}. Catatan: ${notes}`,
+        notes: `Kategori: ${category}. Catatan: ${notes || "-"}`,
       });
       setSuccessNotice("Check-in & proteksi 30 hari berhasil dicatat di server!");
     } catch {

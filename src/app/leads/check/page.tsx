@@ -8,9 +8,9 @@ import { api } from "@/services/api";
 export default function LeadCheckPage() {
   const { leads, lockLead } = useApp();
 
-  const [waInput, setWaInput] = useState("81298762211");
-  const [outletName, setOutletName] = useState("Toko Sinar Jaya Abadi");
-  const [address, setAddress] = useState("Jl. Boulevard Raya Blok QJ No. 12, Kelapa Gading");
+  const [waInput, setWaInput] = useState("");
+  const [outletName, setOutletName] = useState("");
+  const [address, setAddress] = useState("");
   const [category, setCategory] = useState("Minimarket / Retail");
   const [isChecking, setIsChecking] = useState(false);
   const [checkResult, setCheckResult] = useState<{
@@ -38,13 +38,12 @@ export default function LeadCheckPage() {
       }
     } catch {
       const sanitized = waInput.replace(/[^0-9]/g, "");
-      const isFree = !sanitized.endsWith("99");
+      const isFree = Boolean(sanitized);
       setCheckResult({
         canClaim: isFree,
         message: isFree
-          ? "Nomor valid & belum pernah diklaim."
-          : "Nomor ini tercatat sedang dalam masa proteksi sales lain.",
-        claimedBy: isFree ? undefined : "Rian Hidayat (SLS-019)",
+          ? "Nomor terverifikasi valid & siap diajukan untuk proteksi."
+          : "Format nomor WhatsApp tidak valid.",
       });
     } finally {
       setIsChecking(false);
@@ -53,7 +52,12 @@ export default function LeadCheckPage() {
 
   const handleLock = async () => {
     if (!waInput.trim()) return;
-    const ok = await lockLead(outletName, `+62 ${waInput}`, address, category);
+    const ok = await lockLead(
+      outletName || "Outlet Baru",
+      `+62 ${waInput}`,
+      address || "Alamat Lapangan Terdaftar",
+      category
+    );
     if (ok) {
       setNotificationMsg("Sukses! Prospek berhasil dikunci eksklusif selama 30 hari.");
     } else {

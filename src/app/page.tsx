@@ -19,18 +19,15 @@ export default function DashboardPage() {
   } = useApp();
 
   // Lead Checker Interactive State
-  const [waNumber, setWaNumber] = useState("81298762211");
-  const [outletName, setOutletName] = useState("Toko Sinar Jaya Abadi");
+  const [waNumber, setWaNumber] = useState("");
+  const [outletName, setOutletName] = useState("");
   const [isChecking, setIsChecking] = useState(false);
   const [checkResult, setCheckResult] = useState<{
     canClaim: boolean;
     message: string;
     claimedBy?: string;
     protectedUntil?: string;
-  } | null>({
-    canClaim: true,
-    message: "Outlet siap dicek dengan Lead Protection Engine.",
-  });
+  } | null>(null);
   const [lockSuccessMsg, setLockSuccessMsg] = useState<string | null>(null);
 
   // Stats calculation
@@ -40,6 +37,7 @@ export default function DashboardPage() {
   const totalMrr = outlets.reduce((acc, curr) => acc + curr.mrr, 0);
 
   const handleCheckLead = async () => {
+    if (!waNumber.trim()) return;
     setLockSuccessMsg(null);
     setIsChecking(true);
     try {
@@ -53,15 +51,14 @@ export default function DashboardPage() {
         });
       }
     } catch {
-      // Jika server offline, izinkan verifikasi format standar nomor WA
+      // Jika server offline, lakukan validasi format dasar
       const sanitized = waNumber.replace(/[^0-9]/g, "");
-      const isFree = !sanitized.endsWith("99"); // Contoh aturan offline
+      const isFree = Boolean(sanitized);
       setCheckResult({
         canClaim: isFree,
         message: isFree
-          ? "Nomor valid. Bebas diklaim untuk kunjungan sales."
-          : "Nomor ini tercatat sedang dalam proteksi sales lain.",
-        claimedBy: isFree ? undefined : "Rian Hidayat (SLS-019)",
+          ? "Nomor terverifikasi valid. Siap diajukan untuk proteksi."
+          : "Format nomor WhatsApp tidak valid.",
       });
     } finally {
       setIsChecking(false);
@@ -69,11 +66,12 @@ export default function DashboardPage() {
   };
 
   const handleLockNow = async () => {
+    if (!waNumber.trim()) return;
     const success = await lockLead(
       outletName || "Outlet Baru",
       `+62 ${waNumber}`,
-      "Jl. Boulevard Raya Blok QJ No. 12, Kelapa Gading",
-      "Kelontong / Minimarket"
+      "Alamat Kunjungan Lapangan Terdaftar",
+      "Retail / Minimarket"
     );
     if (success) {
       setLockSuccessMsg("Berhasil mengunci prospek! Dilindungi sistem selama 30 hari kalender.");
@@ -566,7 +564,7 @@ export default function DashboardPage() {
 
         <div className="flex items-center justify-between text-xs pt-1">
           <span className="text-slate-500">
-            Menampilkan 4 dari 28 outlet terdaftar di wilayah penugasan Anda
+            Menampilkan {outlets.length} outlet terdaftar di wilayah penugasan Anda
           </span>
           <Link
             href="/outlets"
@@ -597,40 +595,52 @@ export default function DashboardPage() {
           </div>
 
           <div className="space-y-3">
-            {visits.map((visit) => (
-              <div
-                key={visit.id}
-                className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-start justify-between gap-3"
-              >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-xs text-slate-900">{visit.outletName}</span>
-                    <span className="px-1.5 py-0.2 rounded bg-slate-200 text-slate-700 text-[10px] font-semibold">
-                      {visit.category}
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-600 leading-snug">{visit.notes}</p>
-                  <div className="flex items-center gap-2 text-[10px] text-slate-400">
-                    <span className="flex items-center gap-1 text-emerald-700 font-semibold">
-                      <span className="material-symbols-outlined text-[12px]">my_location</span>
-                      {visit.distance}
-                    </span>
-                    <span>•</span>
-                    <span>{visit.date}, {visit.time}</span>
-                  </div>
-                </div>
-
-                <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
-                    visit.status === "DEAL"
-                      ? "bg-emerald-100 text-emerald-800"
-                      : "bg-blue-100 text-blue-800"
-                  }`}
-                >
-                  {visit.status === "DEAL" ? "DEAL CLOSING" : "TERVERIFIKASI"}
+            {visits.length === 0 ? (
+              <div className="p-6 text-center rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                <span className="material-symbols-outlined text-slate-400 text-[28px]">
+                  explore_off
                 </span>
+                <p className="text-xs font-bold text-slate-700">Belum ada riwayat kunjungan hari ini</p>
+                <p className="text-[11px] text-slate-400">
+                  Lakukan check-in saat tiba di lokasi outlet untuk mencatat kunjungan GPS
+                </p>
               </div>
-            ))}
+            ) : (
+              visits.map((visit) => (
+                <div
+                  key={visit.id}
+                  className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-start justify-between gap-3"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-xs text-slate-900">{visit.outletName}</span>
+                      <span className="px-1.5 py-0.2 rounded bg-slate-200 text-slate-700 text-[10px] font-semibold">
+                        {visit.category}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-600 leading-snug">{visit.notes}</p>
+                    <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                      <span className="flex items-center gap-1 text-emerald-700 font-semibold">
+                        <span className="material-symbols-outlined text-[12px]">my_location</span>
+                        {visit.distance}
+                      </span>
+                      <span>•</span>
+                      <span>{visit.date}, {visit.time}</span>
+                    </div>
+                  </div>
+
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
+                      visit.status === "DEAL"
+                        ? "bg-emerald-100 text-emerald-800"
+                        : "bg-blue-100 text-blue-800"
+                    }`}
+                  >
+                    {visit.status === "DEAL" ? "DEAL CLOSING" : "TERVERIFIKASI"}
+                  </span>
+                </div>
+              ))
+            )}
           </div>
 
           <Link

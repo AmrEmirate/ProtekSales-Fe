@@ -4,87 +4,56 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { api } from "@/services/api";
 
+interface RouteStop {
+  id: number;
+  name: string;
+  category: string;
+  address: string;
+  status: "ACTIVE" | "COMPLETED" | "FREE";
+  time: string;
+  distance: string;
+  notes?: string;
+  phone?: string;
+}
+
 export default function MapRoutePage() {
   const [activeTerritory, setActiveTerritory] = useState("Jaksel");
-  const [selectedPin, setSelectedPin] = useState<number>(5);
+  const [selectedPin, setSelectedPin] = useState<number>(1);
+  const [stops, setStops] = useState<RouteStop[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadRoutes() {
+      setIsLoading(true);
       try {
-        await api.getSalesRoutesMap();
-      } catch {}
+        const data = await api.getSalesRoutesMap();
+        if (Array.isArray(data) && data.length > 0) {
+          const mapped: RouteStop[] = data.map((item: any, idx: number) => ({
+            id: idx + 1,
+            name: item.storeName,
+            category: "Prospek Lapangan",
+            address: item.address || "DKI Jakarta",
+            status: item.status === "DEAL" ? "COMPLETED" : "ACTIVE",
+            time: "Target Kunjungan",
+            distance: item.latitude
+              ? `GPS: ${item.latitude.toFixed(2)}, ${item.longitude.toFixed(2)}`
+              : "Dalam Radius",
+            notes: item.visits?.[0]?.notes || "Check-in koordinat prospek.",
+            phone: item.phone,
+          }));
+          setStops(mapped);
+          setSelectedPin(1);
+        } else {
+          setStops([]);
+        }
+      } catch {
+        setStops([]);
+      } finally {
+        setIsLoading(false);
+      }
     }
     loadRoutes();
   }, []);
-
-  const stops = [
-    {
-      id: 1,
-      name: "Toko Sukses Makmur",
-      category: "Kelontong",
-      address: "Jl. Panglima Polim No. 12",
-      status: "COMPLETED",
-      time: "09:30 WIB",
-      distance: "0 km",
-    },
-    {
-      id: 2,
-      name: "Kopi Sudirman 88",
-      category: "Kafe",
-      address: "Jl. Gandaria I No. 4",
-      status: "COMPLETED",
-      time: "10:45 WIB",
-      distance: "+ 1.4 km",
-    },
-    {
-      id: 3,
-      name: "RM Padang Minang",
-      category: "Kuliner",
-      address: "Jl. Radio Dalam No. 19",
-      status: "COMPLETED",
-      time: "11:50 WIB",
-      distance: "+ 850 m",
-    },
-    {
-      id: 4,
-      name: "Toko Barokah Herbal",
-      category: "Kesehatan",
-      address: "Jl. Fatmawati No. 8",
-      status: "COMPLETED",
-      time: "13:15 WIB",
-      distance: "+ 1.1 km",
-    },
-    {
-      id: 5,
-      name: "Warung Kopi Nusantara",
-      category: "Kafe & Roti",
-      address: "Jl. Fatmawati Raya No. 42B",
-      status: "ACTIVE",
-      time: "Target 14:30 WIB (Sekarang)",
-      distance: "+ 1.2 km (8 menit)",
-      notes: "Demo POS kasir dual-screen & simulasi kalkulator ROI.",
-    },
-    {
-      id: 6,
-      name: "Apotek Sehat Prima",
-      category: "Farmasi",
-      address: "Jl. TB Simatupang No. 71",
-      status: "PENDING_H3",
-      time: "Target 15:45 WIB",
-      distance: "+ 2.3 km (15 menit)",
-      notes: "Penagihan invoice H-3 jatuh tempo & cek printer thermal.",
-    },
-    {
-      id: 7,
-      name: "Bake & Cake Cilandak",
-      category: "Bakery",
-      address: "Jl. Cilandak KKO No. 10",
-      status: "FREE",
-      time: "Target 16:40 WIB",
-      distance: "+ 1.8 km (12 menit)",
-      notes: "Prospek baru belum terkunci. Siap diklaim.",
-    },
-  ];
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -331,73 +300,85 @@ export default function MapRoutePage() {
                 <h2 className="text-base font-bold text-[#102A43] font-display">
                   Urutan Rute Teroptimasi
                 </h2>
-                <p className="text-xs text-slate-500">Hemat ~42 menit perjalanan harian</p>
+                <p className="text-xs text-slate-500">Perencanaan rute GPS wilayah kerja</p>
               </div>
               <span className="px-2.5 py-1 rounded-full bg-orange-50 text-[#F97316] text-xs font-bold border border-orange-200">
-                Stop 5 dari 7
+                Stop {stops.length > 0 ? selectedPin : 0} dari {stops.length}
               </span>
             </div>
 
             {/* List */}
             <div className="max-h-[380px] overflow-y-auto space-y-2.5 pr-1">
-              {stops.map((stop) => {
-                const isSelected = selectedPin === stop.id;
-                const isCurrent = stop.status === "ACTIVE";
-                const isCompleted = stop.status === "COMPLETED";
+              {stops.length === 0 ? (
+                <div className="p-8 text-center rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                  <span className="material-symbols-outlined text-slate-400 text-[32px]">
+                    location_off
+                  </span>
+                  <p className="text-xs font-bold text-slate-700">Belum ada titik prospek terdata</p>
+                  <p className="text-[11px] text-slate-400">
+                    Lakukan check-in kunjungan lapangan dengan GPS untuk menambahkan outlet ke rute harian Anda.
+                  </p>
+                </div>
+              ) : (
+                stops.map((stop) => {
+                  const isSelected = selectedPin === stop.id;
+                  const isCurrent = stop.status === "ACTIVE";
+                  const isCompleted = stop.status === "COMPLETED";
 
-                return (
-                  <div
-                    key={stop.id}
-                    onClick={() => setSelectedPin(stop.id)}
-                    className={`p-3 rounded-xl border transition-all cursor-pointer ${
-                      isCurrent
-                        ? "bg-orange-50/80 border-[#F97316] shadow-sm ring-1 ring-[#F97316]"
-                        : isSelected
-                        ? "bg-slate-100 border-slate-400"
-                        : isCompleted
-                        ? "bg-slate-50 border-slate-200 opacity-70"
-                        : "bg-white border-slate-200 hover:bg-slate-50"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
-                            isCompleted
-                              ? "bg-emerald-600 text-white"
-                              : isCurrent
-                              ? "bg-[#F97316] text-white"
-                              : "bg-slate-200 text-slate-700"
-                          }`}
-                        >
-                          {isCompleted ? (
-                            <span className="material-symbols-outlined text-[14px]">check</span>
-                          ) : (
-                            stop.id
-                          )}
+                  return (
+                    <div
+                      key={stop.id}
+                      onClick={() => setSelectedPin(stop.id)}
+                      className={`p-3 rounded-xl border transition-all cursor-pointer ${
+                        isCurrent
+                          ? "bg-orange-50/80 border-[#F97316] shadow-sm ring-1 ring-[#F97316]"
+                          : isSelected
+                          ? "bg-slate-100 border-slate-400"
+                          : isCompleted
+                          ? "bg-slate-50 border-slate-200 opacity-70"
+                          : "bg-white border-slate-200 hover:bg-slate-50"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
+                              isCompleted
+                                ? "bg-emerald-600 text-white"
+                                : isCurrent
+                                ? "bg-[#F97316] text-white"
+                                : "bg-slate-200 text-slate-700"
+                            }`}
+                          >
+                            {isCompleted ? (
+                              <span className="material-symbols-outlined text-[14px]">check</span>
+                            ) : (
+                              stop.id
+                            )}
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-bold text-[#102A43]">{stop.name}</h4>
+                            <p className="text-[11px] text-slate-500">{stop.address}</p>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="text-xs font-bold text-[#102A43]">{stop.name}</h4>
-                          <p className="text-[11px] text-slate-500">{stop.address}</p>
+
+                        <div className="text-right shrink-0">
+                          <span className="text-[10px] font-bold text-[#F97316] block">
+                            {stop.distance}
+                          </span>
+                          <span className="text-[10px] text-slate-400">{stop.time}</span>
                         </div>
                       </div>
 
-                      <div className="text-right shrink-0">
-                        <span className="text-[10px] font-bold text-[#F97316] block">
-                          {stop.distance}
-                        </span>
-                        <span className="text-[10px] text-slate-400">{stop.time}</span>
-                      </div>
+                      {stop.notes && (
+                        <div className="mt-2 pt-2 border-t border-slate-200/60 text-[11px] text-slate-600 italic">
+                          {stop.notes}
+                        </div>
+                      )}
                     </div>
-
-                    {stop.notes && (
-                      <div className="mt-2 pt-2 border-t border-slate-200/60 text-[11px] text-slate-600 italic">
-                        {stop.notes}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
 
@@ -408,17 +389,19 @@ export default function MapRoutePage() {
               className="flex-1 h-11 rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all"
             >
               <span className="material-symbols-outlined text-[18px]">add_location_alt</span>
-              <span>Check-in di Outlet #5</span>
+              <span>Check-in Kunjungan Baru</span>
             </Link>
-            <a
-              href="https://wa.me/6281298762211"
-              target="_blank"
-              rel="noreferrer"
-              className="h-11 px-4 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 font-bold text-xs flex items-center justify-center gap-1 transition-colors"
-            >
-              <span className="material-symbols-outlined text-[16px]">chat</span>
-              <span>WhatsApp</span>
-            </a>
+            {stops.length > 0 && stops.find((s) => s.id === selectedPin)?.phone && (
+              <a
+                href={`https://wa.me/${stops.find((s) => s.id === selectedPin)?.phone?.replace(/[^0-9]/g, "")}`}
+                target="_blank"
+                rel="noreferrer"
+                className="h-11 px-4 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 font-bold text-xs flex items-center justify-center gap-1 transition-colors"
+              >
+                <span className="material-symbols-outlined text-[16px]">chat</span>
+                <span>WhatsApp</span>
+              </a>
+            )}
           </div>
         </div>
       </div>

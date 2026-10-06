@@ -9,9 +9,9 @@ export default function WithdrawPage() {
   const router = useRouter();
   const { availableBalance, salesProfile, requestWithdrawal } = useApp();
 
-  const [amount, setAmount] = useState<number>(500000);
+  const [amount, setAmount] = useState<number>(0);
   const [selectedBank, setSelectedBank] = useState("BCA");
-  const [accountNumber, setAccountNumber] = useState(salesProfile.bankAccount);
+  const [accountNumber, setAccountNumber] = useState(salesProfile.bankAccount || "");
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorNotice, setErrorNotice] = useState<string | null>(null);
   const [successNotice, setSuccessNotice] = useState<string | null>(null);
