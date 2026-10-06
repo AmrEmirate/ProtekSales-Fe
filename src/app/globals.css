@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+@theme {
+  --color-navy-dark: #0B1D3A;
+  --color-navy-deep: #102A43;
+  --color-navy-surface: #1E3E62;
+  --color-primary: #00152a;
+  --color-primary-container: #102a43;
+  --color-on-primary: #ffffff;
+  --color-secondary: #9d4300;
+  --color-secondary-container: #fd761a;
+  --color-orange-vibrant: #F97316;
+  --color-orange-glow: #FF8A00;
+  --color-orange-subtle: #FFF7ED;
+  --color-status-active: #16A34A;
+  --color-status-active-subtle: #DCFCE7;
+  --color-status-pending: #D97706;
+  --color-status-pending-subtle: #FEF3C7;
+  --color-status-danger: #DC2626;
+  --color-status-danger-subtle: #FEE2E2;
+  --color-status-ready: #0284C7;
+  --color-status-ready-subtle: #E0F2FE;
+  --color-canvas-bg: #F8FAFC;
+  --color-surface: #f7f9ff;
+  --color-surface-card: #FFFFFF;
+  --color-surface-container: #e3efff;
+  --color-surface-container-low: #edf4ff;
+  --color-surface-container-high: #d8eaff;
+  --color-surface-container-lowest: #ffffff;
+  --color-border-subtle: #E2E8F0;
+  --color-border-medium: #CBD5E1;
+  --color-on-surface: #001d32;
+  --color-on-surface-variant: #43474d;
+
+  --font-display: var(--font-display), "Space Grotesk", sans-serif;
+  --font-sans: var(--font-sans), "Plus Jakarta Sans", sans-serif;
+}
+
+:root {
+  --font-sans: "Plus Jakarta Sans", sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #f7f9ff;
+  color: #001d32;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Material symbol baseline alignment */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.material-symbols-outlined.fill-1 {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
