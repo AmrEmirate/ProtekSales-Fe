@@ -1,15 +1,19 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { AppProvider } from "@/context/AppContext";
 import { AppShell } from "./AppShell";
-import { usePathname } from "next/navigation";
 
 export const ClientProviders: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const pathname = usePathname();
-  const isLoginPage = pathname === "/login";
+  const [isLoginPage, setIsLoginPage] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsLoginPage(window.location.pathname === "/login");
+    }
+  }, []);
 
   return (
     <AppProvider>
