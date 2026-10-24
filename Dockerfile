@@ -3,16 +3,15 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-ENV NODE_ENV=development
-
 COPY package*.json ./
-RUN npm install --include=dev
+RUN npm install
 
 COPY . .
 
 # Pass build args for client-side environment variables
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://api-proteksales.vimtk.cloud/api}
+ENV NODE_ENV=production
 
 RUN npm run build
 
