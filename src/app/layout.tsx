@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
 import "./globals.css";
+import { ClientProviders } from "@/components/ClientProviders";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-sans",
@@ -19,8 +20,6 @@ export const metadata: Metadata = {
   description: "Enterprise Lead Protection, POS License & Commission Platform",
 };
 
-import { ClientProviders } from "@/components/ClientProviders";
-
 export default function RootLayout({
   children,
 }: {
@@ -31,13 +30,11 @@ export default function RootLayout({
       lang="id"
       className={`${plusJakartaSans.variable} ${spaceGrotesk.variable} h-full antialiased`}
     >
-      <head>
+      <body className="min-h-full flex flex-col font-sans bg-[#f7f9ff] text-[#001d32]">
         <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
         />
-      </head>
-      <body className="min-h-full flex flex-col font-sans bg-[#f7f9ff] text-[#001d32]">
         <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
