@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api } from "@/services/api";
 
-type AdminTab = "BILLING" | "LEADS_MAP" | "DISPUTES" | "FINANCE" | "KILLSWITCH" | "SALES_TEAM";
+type AdminTab = "BILLING" | "LEADS_MAP" | "DISPUTES" | "FINANCE" | "KILLSWITCH" | "SALES_TEAM" | "CLOUDPOS_SYNC";
 
 interface InvoiceItem {
   id: string;
@@ -81,6 +81,12 @@ export default function AdminDashboardPage() {
   const [licenses, setLicenses] = useState<LicenseItem[]>([]);
   const [salesList, setSalesList] = useState<any[]>([]);
   const [leadsMap, setLeadsMap] = useState<any[]>([]);
+
+  // Cloud POS Integration States
+  const [cloudPosHealth, setCloudPosHealth] = useState<any>(null);
+  const [cloudTenants, setCloudTenants] = useState<any[]>([]);
+  const [cloudPosAnalytics, setCloudPosAnalytics] = useState<any>(null);
+  const [isSyncingCloud, setIsSyncingCloud] = useState(false);
 
   // Search & Filter
   const [searchQuery, setSearchQuery] = useState("");
@@ -204,6 +210,18 @@ export default function AdminDashboardPage() {
           setLeadsMap(lm);
         }
       } catch {}
+
+      // 8. Integrasi & Monitoring Cloud POS BE
+      try {
+        const [healthRes, tenantsRes, analyticsRes] = await Promise.allSettled([
+          api.getCloudPosHealth(),
+          api.getCloudPosTenants(),
+          api.getCloudPosAnalytics(),
+        ]);
+        if (healthRes.status === "fulfilled" && healthRes.value) setCloudPosHealth(healthRes.value);
+        if (tenantsRes.status === "fulfilled" && tenantsRes.value?.tenants) setCloudTenants(tenantsRes.value.tenants);
+        if (analyticsRes.status === "fulfilled" && analyticsRes.value) setCloudPosAnalytics(analyticsRes.value);
+      } catch {}
     } finally {
       setIsLoading(false);
     }
@@ -212,6 +230,20 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     loadAdminData();
   }, [loadAdminData]);
+
+  const handleSyncCloudTenants = async () => {
+    setIsSyncingCloud(true);
+    try {
+      const res = await api.syncCloudPosTenants();
+      setActionNotice(res.message || "Sinkronisasi tenant Cloud POS berhasil!");
+      await loadAdminData();
+    } catch (err: any) {
+      setActionNotice("Gagal sinkronisasi tenant: " + (err.message || "Server offline"));
+    } finally {
+      setIsSyncingCloud(false);
+      setTimeout(() => setActionNotice(null), 4000);
+    }
+  };
 
   // Actions
   const handleVerifyInvoice = async (invoiceId: string) => {
@@ -478,6 +510,18 @@ export default function AdminDashboardPage() {
         >
           <span className="material-symbols-outlined text-[18px]">group</span>
           <span>6. Manajemen Mitra Sales</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("CLOUDPOS_SYNC")}
+          className={`px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 shrink-0 ${
+            activeTab === "CLOUDPOS_SYNC"
+              ? "bg-indigo-700 text-white shadow-sm"
+              : "bg-white text-slate-600 hover:bg-slate-100"
+          }`}
+        >
+          <span className="material-symbols-outlined text-[18px]">cloud_sync</span>
+          <span>7. Integrasi Cloud POS Engine</span>
         </button>
       </div>
 
@@ -1070,6 +1114,211 @@ export default function AdminDashboardPage() {
                           <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
                             AKTIF RESMI
                           </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 7. Tab Integrasi Cloud POS Engine */}
+      {activeTab === "CLOUDPOS_SYNC" && (
+        <div className="space-y-6">
+          {/* Health Status Bar */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xl ${
+                  cloudPosHealth?.online
+                    ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
+                    : "bg-amber-50 text-amber-600 border border-amber-200"
+                }`}
+              >
+                <span className="material-symbols-outlined text-[26px]">
+                  {cloudPosHealth?.online ? "cloud_done" : "cloud_off"}
+                </span>
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-bold text-[#102A43] font-display">
+                    Cloud POS Backend Engine (Port 3000)
+                  </h3>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      cloudPosHealth?.online
+                        ? "bg-emerald-100 text-emerald-800"
+                        : "bg-amber-100 text-amber-800"
+                    }`}
+                  >
+                    {cloudPosHealth?.online ? "ONLINE & TERKONEKSI" : "SERVICE OFFLINE"}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 font-mono mt-0.5">
+                  Endpoint: {cloudPosHealth?.url || "http://localhost:3000/api/v1"}
+                  {cloudPosHealth?.latencyMs ? ` • Latensi: ${cloudPosHealth.latencyMs}ms` : ""}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5">
+              <button
+                onClick={handleSyncCloudTenants}
+                disabled={isSyncingCloud}
+                className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5"
+              >
+                <span className={`material-symbols-outlined text-[18px] ${isSyncingCloud ? "animate-spin" : ""}`}>
+                  sync
+                </span>
+                <span>{isSyncingCloud ? "Menyinkronkan..." : "Sinkronkan Tenant ke Protek"}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Quick Stats Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-white rounded-2xl p-4 shadow-sm border border-[#E2E8F0]">
+              <span className="text-[11px] font-bold text-slate-500 uppercase">Total Tenant Cloud POS</span>
+              <div className="text-2xl font-bold font-display text-[#102A43] mt-1 tabular-nums">
+                {cloudTenants.length} Toko
+              </div>
+              <span className="text-[10px] text-slate-400">Terdaftar di Central Engine</span>
+            </div>
+
+            <div className="bg-white rounded-2xl p-4 shadow-sm border border-[#E2E8F0]">
+              <span className="text-[11px] font-bold text-emerald-600 uppercase">Terhubung di Protek</span>
+              <div className="text-2xl font-bold font-display text-emerald-700 mt-1 tabular-nums">
+                {cloudTenants.filter((t) => t.isLinkedToProtek).length} Outlet
+              </div>
+              <span className="text-[10px] text-emerald-600">Terintegrasi dengan lisensi resmi</span>
+            </div>
+
+            <div className="bg-white rounded-2xl p-4 shadow-sm border border-[#E2E8F0]">
+              <span className="text-[11px] font-bold text-indigo-600 uppercase">Transaksi Cloud POS</span>
+              <div className="text-2xl font-bold font-display text-indigo-700 mt-1 tabular-nums">
+                {cloudPosAnalytics?.totalOrders || 0} Order
+              </div>
+              <span className="text-[10px] text-indigo-500">
+                Hari ini: {cloudPosAnalytics?.todayOrders || 0} order
+              </span>
+            </div>
+
+            <div className="bg-white rounded-2xl p-4 shadow-sm border border-[#E2E8F0]">
+              <span className="text-[11px] font-bold text-amber-600 uppercase">Total GMV Cloud POS</span>
+              <div className="text-2xl font-bold font-display text-amber-700 mt-1 tabular-nums">
+                Rp {(cloudPosAnalytics?.totalGmv || 0).toLocaleString("id-ID")}
+              </div>
+              <span className="text-[10px] text-amber-600">
+                Hari ini: Rp {(cloudPosAnalytics?.todayGmv || 0).toLocaleString("id-ID")}
+              </span>
+            </div>
+          </div>
+
+          {/* Tenants Table */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-[#E2E8F0] space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="text-base font-bold text-[#102A43] font-display">
+                  Daftar Tenant Toko yang Mengambil Data dari Cloud POS
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Data real-time tenant, omset kasir, dan status sinkronisasi lisensi antar-sistem
+                </p>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider">
+                    <th className="py-3 px-4">Nama Toko & Subdomain</th>
+                    <th className="py-3 px-4">License Key</th>
+                    <th className="py-3 px-4">Paket SaaS</th>
+                    <th className="py-3 px-4">Omset & Transaksi</th>
+                    <th className="py-3 px-4">Status POS</th>
+                    <th className="py-3 px-4">Status ProtekSales</th>
+                    <th className="py-3 px-4 text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {cloudTenants.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-8 text-center text-slate-400">
+                        {cloudPosHealth?.online
+                          ? "Belum ada tenant yang terdaftar di Cloud POS API."
+                          : "Cloud POS Backend API sedang offline. Pastikan server port 3000 sedang berjalan."}
+                      </td>
+                    </tr>
+                  ) : (
+                    cloudTenants.map((t: any) => (
+                      <tr key={t.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="py-3.5 px-4 font-bold text-slate-900">
+                          <div className="font-display text-sm">{t.name}</div>
+                          <a
+                            href={`http://${t.slug}.posmu.cloud`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[11px] font-mono text-indigo-600 hover:underline block"
+                          >
+                            {t.slug}.posmu.cloud
+                          </a>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="font-mono font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded text-[11px]">
+                            {t.licenseKey || "BELUM ADA LISENSI"}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="font-bold text-slate-800 block">{t.planName || t.plan}</span>
+                          <span className="text-[10px] text-slate-500">
+                            Rp {(t.pricePerOutlet || 100000).toLocaleString("id-ID")}/bln
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="font-bold text-slate-900 block">
+                            Rp {(t.totalGmv || 0).toLocaleString("id-ID")}
+                          </span>
+                          <span className="text-[10px] text-slate-500">
+                            {t.totalOrders || 0} order ({t.todayOrders || 0} hari ini)
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              t.status === "ACTIVE"
+                                ? "bg-emerald-100 text-emerald-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {t.status === "ACTIVE" ? "AKTIF" : "SUSPENDED"}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          {t.isLinkedToProtek ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                              Terhubung Binaan
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold text-[10px]">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
+                              Belum Masuk Protek
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-4 text-center">
+                          <a
+                            href={`http://${t.slug}.posmu.cloud`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] inline-flex items-center gap-1"
+                          >
+                            <span>Buka POS</span>
+                            <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+                          </a>
                         </td>
                       </tr>
                     ))

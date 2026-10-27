@@ -186,6 +186,7 @@ class ApiService {
     phone: string;
     address: string;
     monthlyFee?: number;
+    planCode?: string;
   }) {
     const res = await this.request<{ success: boolean; message: string; data: any }>("/outlets", {
       method: "POST",
@@ -383,6 +384,70 @@ class ApiService {
 
   async getAdminSales() {
     const res = await this.request<{ success: boolean; data: any[] }>("/admin/sales");
+    return res.data;
+  }
+
+  // ==========================================
+  // 8. CLOUD POS BACKEND INTEGRATION & TELEMETRY
+  // ==========================================
+  async getOutletCloudPosLive(outletId: string) {
+    const res = await this.request<{
+      success: boolean;
+      data: {
+        connected: boolean;
+        licenseKey: string | null;
+        data: any;
+      };
+    }>(`/outlets/${outletId}/cloudpos-live`);
+    return res.data;
+  }
+
+  async getCloudPosHealth() {
+    const res = await this.request<{
+      success: boolean;
+      data: {
+        online: boolean;
+        url: string;
+        latencyMs?: number;
+        message?: string;
+      };
+    }>("/admin/cloudpos/health");
+    return res.data;
+  }
+
+  async getCloudPosTenants() {
+    const res = await this.request<{
+      success: boolean;
+      data: {
+        total: number;
+        linkedCount: number;
+        unlinkedCount: number;
+        tenants: any[];
+      };
+    }>("/admin/cloudpos/tenants");
+    return res.data;
+  }
+
+  async syncCloudPosTenants() {
+    const res = await this.request<{
+      success: boolean;
+      message: string;
+      data: {
+        totalCloudTenants: number;
+        createdCount: number;
+        alreadyLinkedCount: number;
+      };
+    }>("/admin/cloudpos/sync-tenants", {
+      method: "POST",
+    });
+    return res;
+  }
+
+  async getCloudPosAnalytics() {
+    const res = await this.request<{
+      success: boolean;
+      data: any;
+    }>("/admin/cloudpos/analytics");
     return res.data;
   }
 }

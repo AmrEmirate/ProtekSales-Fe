@@ -15,7 +15,7 @@ export default function OnboardingPage() {
   const [outletName, setOutletName] = useState("");
   const [ownerPhone, setOwnerPhone] = useState("");
   const [leadId, setLeadId] = useState<string | undefined>(undefined);
-  const [packageTier, setPackageTier] = useState("PRO_ENTERPRISE");
+  const [packageTier, setPackageTier] = useState("PAKET_150K");
   const [billingCycle, setBillingCycle] = useState<"MONTHLY" | "ANNUAL">("ANNUAL");
   const [isActivating, setIsActivating] = useState(false);
   const [activatedSuccess, setActivatedSuccess] = useState(false);
@@ -32,9 +32,21 @@ export default function OnboardingPage() {
     }
   }, []);
 
+  const getPackageFee = (tier: string) => {
+    switch (tier) {
+      case "PAKET_100K": return 100000;
+      case "PAKET_150K": return 150000;
+      case "PAKET_200K": return 200000;
+      case "PAKET_250K": return 250000;
+      default: return 150000;
+    }
+  };
+
   const handleActivate = async () => {
     if (!outletName.trim()) return;
     setIsActivating(true);
+    const baseFee = getPackageFee(packageTier);
+    const finalMonthlyFee = billingCycle === "ANNUAL" ? Math.round(baseFee * 0.85) : baseFee;
     try {
       await api.onboardingPos({
         leadId,
@@ -42,7 +54,8 @@ export default function OnboardingPage() {
         ownerName: "Pemilik Outlet",
         phone: ownerPhone ? ownerPhone.replace(/[^0-9]/g, "") : "6281200000000",
         address: "Alamat Operasional POS",
-        monthlyFee: billingCycle === "ANNUAL" ? 120000 : 150000,
+        monthlyFee: finalMonthlyFee,
+        planCode: packageTier,
       });
       await refreshData();
     } catch {
@@ -245,15 +258,16 @@ export default function OnboardingPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-[#102A43]">Paket Software</label>
+                  <label className="text-xs font-bold text-[#102A43]">Paket Software SaaS</label>
                   <select
                     value={packageTier}
                     onChange={(e) => setPackageTier(e.target.value)}
                     className="w-full h-11 px-3 rounded-xl bg-slate-50 border border-[#CBD5E1] text-xs font-semibold text-[#102A43] outline-none"
                   >
-                    <option value="PRO_ENTERPRISE">Pro Enterprise Dual-Screen</option>
-                    <option value="PRO_STANDARD">Pro Standard POS</option>
-                    <option value="PRO_STARTER">Pro Starter Cloud</option>
+                    <option value="PAKET_100K">Paket 1: Rp 100.000 / bln (200 Tx/Hari - 6.000 tx/bln)</option>
+                    <option value="PAKET_150K">Paket 2: Rp 150.000 / bln (300 Tx/Hari - 9.000 tx/bln)</option>
+                    <option value="PAKET_200K">Paket 3: Rp 200.000 / bln (500 Tx/Hari - 15.000 tx/bln)</option>
+                    <option value="PAKET_250K">Paket 4: Rp 250.000 / bln (Unlimited - Tanpa Batas)</option>
                   </select>
                 </div>
 
