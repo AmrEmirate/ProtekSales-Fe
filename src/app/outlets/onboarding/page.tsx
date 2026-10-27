@@ -267,7 +267,7 @@ export default function OnboardingPage() {
                     <option value="PAKET_100K">Paket 1: Rp 100.000 / bln (200 Tx/Hari - 6.000 tx/bln)</option>
                     <option value="PAKET_150K">Paket 2: Rp 150.000 / bln (300 Tx/Hari - 9.000 tx/bln)</option>
                     <option value="PAKET_200K">Paket 3: Rp 200.000 / bln (500 Tx/Hari - 15.000 tx/bln)</option>
-                    <option value="PAKET_250K">Paket 4: Rp 250.000 / bln (Unlimited - Tanpa Batas)</option>
+                    <option value="PAKET_250K">Paket 4: Rp 250.000 / bln (Unlimited Transaksi Selama Sebulan)</option>
                   </select>
                 </div>
 
