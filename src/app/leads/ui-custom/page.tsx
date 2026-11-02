@@ -120,18 +120,18 @@ export default function UiCustomStudioPage() {
 
   const handleApproveDesign = async () => {
     if (!activeRequestId) return;
-    if (!confirm(`Konfirmasi: Anda yakin UMKM "${storeName}" telah menyetujui desain ini dan siap mengaktifkan sistem Cloud POS?`)) {
+    if (!confirm(`Konfirmasi Hak Otorisasi Sales:\n\nApakah klien UMKM "${storeName}" telah menyetujui desain ini dan sepakat berlangganan?\n\nSebagai Mitra Sales, tindakan APPROVE ini akan langsung:\n1. Membuat bundle Frontend kustom UMKM\n2. Menyambungkannya ke API Backend Cloud POS\n3. Menerbitkan kunci lisensi resmi\n4. Mencatat komisi penjualan ke dompet akun Sales Anda.`)) {
       return;
     }
 
     setIsApproving(true);
-    setStatusMessage("Antigravity Pipeline sedang memproses: Injeksi tema Stitch -> Provisioning ke Cloud POS API...");
+    setStatusMessage("Antigravity Pipeline sedang bekerja: Men-generate Frontend kustom -> Injeksi Tema Stitch -> Menyambungkan ke Backend Cloud POS API...");
 
     try {
       const res = await api.approveUiDesign(activeRequestId);
       if (res && res.data) {
         setApprovalResult(res.data);
-        setStatusMessage("Sistem POS berhasil diaktifkan dengan tema kustom!");
+        setStatusMessage("Frontend kasir berhasil dibuat dan tersambung penuh ke Cloud POS Backend!");
       }
     } catch (err: any) {
       console.error(err);
@@ -216,9 +216,9 @@ export default function UiCustomStudioPage() {
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs">
             <div className="p-3 rounded-xl bg-black/20 border border-white/10">
-              <span className="text-emerald-200 block text-[10px] uppercase font-bold">Subdomain Kasir</span>
+              <span className="text-emerald-200 block text-[10px] uppercase font-bold">Subdomain Kasir Live</span>
               <a
                 href={`https://${approvalResult.tenantSlug}.posmu.cloud`}
                 target="_blank"
@@ -231,9 +231,16 @@ export default function UiCustomStudioPage() {
             </div>
 
             <div className="p-3 rounded-xl bg-black/20 border border-white/10">
-              <span className="text-emerald-200 block text-[10px] uppercase font-bold">Kunci Lisensi Resmi</span>
+              <span className="text-emerald-200 block text-[10px] uppercase font-bold">Status FE & Koneksi BE</span>
+              <span className="text-white font-medium block mt-0.5 text-[11px]">
+                Bundle FE Generated &bull; Terkoneksi ke Cloud POS API
+              </span>
+            </div>
+
+            <div className="p-3 rounded-xl bg-black/20 border border-white/10">
+              <span className="text-emerald-200 block text-[10px] uppercase font-bold">Kunci Lisensi & Komisi</span>
               <span className="text-white font-mono font-bold block mt-0.5">
-                {approvalResult.licenseKey || "PROPOS-ACTIVE"}
+                {approvalResult.licenseKey || "PROPOS-ACTIVE"} &bull; Ditautkan ke Akun Sales
               </span>
             </div>
           </div>
@@ -498,29 +505,41 @@ export default function UiCustomStudioPage() {
                   </div>
                 )}
 
-                {/* Final Action Button: APPROVE & DEPLOY */}
+                {/* Final Action Button: APPROVE & DEPLOY (HAK SALES) */}
                 {!approvalResult && (
-                  <div className="pt-2">
+                  <div className="pt-2 space-y-2">
+                    <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900 flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[18px] text-amber-600">verified_user</span>
+                      <span>
+                        <strong>Hak Approval Khusus Mitra Sales:</strong> Setelah UMKM menyetujui mockup ini, klik tombol di bawah untuk membuat frontend dan menghubungkannya ke backend kasir.
+                      </span>
+                    </div>
+
                     <button
                       type="button"
                       disabled={isApproving}
                       onClick={handleApproveDesign}
-                      className="w-full h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg transition-transform active:scale-[0.98] disabled:opacity-50"
+                      className="w-full h-14 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-black text-sm flex flex-col items-center justify-center gap-0.5 shadow-lg transition-transform active:scale-[0.98] disabled:opacity-50 cursor-pointer"
                     >
                       {isApproving ? (
-                        <>
+                        <div className="flex items-center gap-2">
                           <span className="material-symbols-outlined text-[20px] animate-spin">refresh</span>
-                          <span>Menyambungkan Desain ke Cloud POS API...</span>
-                        </>
+                          <span>Membuat Frontend & Menyambungkan ke Backend API...</span>
+                        </div>
                       ) : (
                         <>
-                          <span className="material-symbols-outlined text-[20px]">verified</span>
-                          <span>SETUJUI DESAIN & AKTIFKAN CLOUD POS (APPROVE)</span>
+                          <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[20px]">assignment_turned_in</span>
+                            <span>SEPAKATI DEAL & APPROVE DESAIN (HAK SALES)</span>
+                          </div>
+                          <span className="text-[10px] text-emerald-200 font-normal">
+                            Otomatis buat Frontend, sambungkan ke API Cloud POS & catat komisi sales
+                          </span>
                         </>
                       )}
                     </button>
-                    <p className="text-[11px] text-center text-slate-400 mt-2">
-                      Saat disetujui, Antigravity akan menginjeksi tema ke backend dan men-deploy kasir UMKM dalam hitungan detik.
+                    <p className="text-[11px] text-center text-slate-400">
+                      Sistem Antigravity akan langsung menyusun file bundle FE, mengikat API menu, order, dan pembayaran kasir secara otomatis.
                     </p>
                   </div>
                 )}
