@@ -218,14 +218,14 @@ export default function UiCustomStudioPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs">
             <div className="p-3 rounded-xl bg-black/20 border border-white/10">
-              <span className="text-emerald-200 block text-[10px] uppercase font-bold">Subdomain Kasir Live</span>
+              <span className="text-emerald-200 block text-[10px] uppercase font-bold">Subdomain Kasir Live Online</span>
               <a
-                href={`https://${approvalResult.tenantSlug}.posmu.cloud`}
+                href={approvalResult.posUrl || `https://pos-${approvalResult.tenantSlug}.vimtk.cloud`}
                 target="_blank"
                 rel="noreferrer"
                 className="text-white font-bold underline flex items-center gap-1 mt-0.5"
               >
-                <span>{approvalResult.tenantSlug}.posmu.cloud</span>
+                <span>{approvalResult.subdomain || `pos-${approvalResult.tenantSlug}.vimtk.cloud`}</span>
                 <span className="material-symbols-outlined text-[14px]">open_in_new</span>
               </a>
             </div>
@@ -247,20 +247,22 @@ export default function UiCustomStudioPage() {
 
           <div className="flex flex-wrap items-center gap-2 pt-2">
             <a
-              href={`https://${approvalResult.tenantSlug}.posmu.cloud`}
+              href={approvalResult.posUrl || `https://pos-${approvalResult.tenantSlug}.vimtk.cloud`}
               target="_blank"
               rel="noreferrer"
               className="h-10 px-5 rounded-xl bg-white text-emerald-800 hover:bg-emerald-50 font-bold text-xs flex items-center gap-2 shadow-md transition-colors"
             >
               <span className="material-symbols-outlined text-[18px]">point_of_sale</span>
-              <span>Buka POS Kasir UMKM</span>
+              <span>Buka POS Kasir UMKM Online</span>
             </a>
 
             {phone && (
               <a
                 href={`https://wa.me/${phone.replace(/[^0-9]/g, "")}?text=Selamat!%20Aplikasi%20POS%20Kasir%20untuk%20${encodeURIComponent(
                   storeName
-                )}%20sudah%20aktif%20dengan%20desain%20kustom:%20https://${approvalResult.tenantSlug}.posmu.cloud`}
+                )}%20sudah%20aktif%20secara%20online%20dengan%20desain%20kustom:%20${encodeURIComponent(
+                  approvalResult.posUrl || `https://pos-${approvalResult.tenantSlug}.vimtk.cloud`
+                )}`}
                 target="_blank"
                 rel="noreferrer"
                 className="h-10 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs flex items-center gap-2 transition-colors"
