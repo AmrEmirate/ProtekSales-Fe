@@ -24,4 +24,4 @@ RUN chmod 755 / && chmod -R 755 /usr/share/nginx/html
 
 EXPOSE 3000
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["sh", "-c", "chmod 755 / && nginx -g 'daemon off;'"]
