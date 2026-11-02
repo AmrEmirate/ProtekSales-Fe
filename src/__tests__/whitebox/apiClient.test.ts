@@ -1,0 +1,116 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+// Polyfill window & localStorage untuk lingkungan pengujian Node
+const mockStorage: Record<string, string> = {};
+const mockLocalStorage = {
+  getItem: (key: string) => mockStorage[key] || null,
+  setItem: (key: string, value: string) => {
+    mockStorage[key] = value;
+  },
+  removeItem: (key: string) => {
+    delete mockStorage[key];
+  },
+  clear: () => {
+    Object.keys(mockStorage).forEach((k) => delete mockStorage[k]);
+  },
+  length: 0,
+  key: () => null,
+};
+
+globalThis.localStorage = mockLocalStorage;
+(globalThis as any).window = globalThis;
+(globalThis as any).window.localStorage = mockLocalStorage;
+
+import { api } from '../../services/api';
+
+describe('White Box Testing: api.ts (REST API Client)', () => {
+  beforeEach(() => {
+    globalThis.localStorage.clear();
+    api.logout();
+    vi.restoreAllMocks();
+  });
+
+  describe('Token & Sesi Lifecycle', () => {
+    it('should initially return null when no token is in storage', () => {
+      expect(api.getToken()).toBeNull();
+    });
+
+    it('should properly store token in localStorage when setToken is called', () => {
+      const sampleToken = 'jwt-token-sample-12345';
+      api.setToken(sampleToken);
+
+      expect(api.getToken()).toBe(sampleToken);
+      expect(globalThis.localStorage.getItem('protek_auth_token')).toBe(sampleToken);
+    });
+
+    it('should clear token from localStorage on logout()', () => {
+      api.setToken('sample-token');
+      api.logout();
+
+      expect(api.getToken()).toBeNull();
+      expect(globalThis.localStorage.getItem('protek_auth_token')).toBeNull();
+    });
+  });
+
+  describe('Phone Sanitization in checkLeadAvailability()', () => {
+    it('should strip non-numeric characters before passing to endpoint', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          success: true,
+          message: 'Toko bebas',
+          data: { canClaim: true },
+        }),
+      });
+      globalThis.fetch = mockFetch;
+
+      const rawPhone = '+62 812-3456-7890';
+      await api.checkLeadAvailability(rawPhone);
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const calledUrl = mockFetch.mock.calls[0][0] as string;
+      expect(calledUrl).toContain('phone=6281234567890');
+      expect(calledUrl).not.toContain('+');
+      expect(calledUrl).not.toContain('-');
+      expect(calledUrl).not.toContain(' ');
+    });
+  });
+
+  describe('Authorization Headers & Error Handlers', () => {
+    it('should attach Bearer token in request headers when user is authenticated', async () => {
+      const token = 'active-jwt-token-987';
+      api.setToken(token);
+
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ success: true, data: [] }),
+      });
+      globalThis.fetch = mockFetch;
+
+      await api.getMyLeads();
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const options = mockFetch.mock.calls[0][1];
+      expect(options.headers['Authorization']).toBe(`Bearer ${token}`);
+    });
+
+    it('should throw an error with server message when HTTP response is not ok', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: async () => ({
+          success: false,
+          message: 'Nomor telepon/WhatsApp tidak valid.',
+        }),
+      });
+      globalThis.fetch = mockFetch;
+
+      await expect(api.checkInLead({
+        storeName: 'Test',
+        ownerName: 'Owner',
+        phone: 'invalid',
+        address: 'Alamat',
+      })).rejects.toThrow('Nomor telepon/WhatsApp tidak valid.');
+    });
+  });
+});
