@@ -387,6 +387,33 @@ class ApiService {
     return res.data;
   }
 
+  async updateSalesCommissionRate(salesId: string, commissionRate: number) {
+    const res = await this.request<{ success: boolean; message: string; data: any }>(
+      `/admin/sales/${salesId}/commission-rate`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ commissionRate }),
+      }
+    );
+    return res;
+  }
+
+  async updateBulkCommissionRate(commissionRate: number) {
+    const res = await this.request<{ success: boolean; message: string; data: any }>(
+      "/admin/sales/commission-rate/bulk",
+      {
+        method: "PATCH",
+        body: JSON.stringify({ commissionRate }),
+      }
+    );
+    return res;
+  }
+
+  async getAdminUiDesigns() {
+    const res = await this.request<{ success: boolean; data: any[] }>("/admin/ui-designs");
+    return res.data;
+  }
+
   // ==========================================
   // 8. CLOUD POS BACKEND INTEGRATION & TELEMETRY
   // ==========================================

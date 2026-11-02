@@ -346,15 +346,44 @@ export default function UiCustomStudioPage() {
 
               <div>
                 <label className="block text-slate-700 font-bold mb-1">
-                  URL Foto Referensi / Suasana Toko (Opsional)
+                  Upload Foto Logo / Menu / Referensi UMKM
                 </label>
-                <input
-                  type="url"
-                  value={referenceImageUrl}
-                  onChange={(e) => setReferenceImageUrl(e.target.value)}
-                  placeholder="https://example.com/foto-toko.jpg"
-                  className="w-full h-10 px-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#F97316]"
-                />
+                <div className="space-y-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setReferenceImageUrl(reader.result as string);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-orange-50 file:text-[#F97316] hover:file:bg-orange-100 cursor-pointer"
+                  />
+                  <input
+                    type="url"
+                    value={referenceImageUrl.startsWith("data:") ? "" : referenceImageUrl}
+                    onChange={(e) => setReferenceImageUrl(e.target.value)}
+                    placeholder="Atau tempel URL gambar (https://...)"
+                    className="w-full h-9 px-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#F97316] text-[11px]"
+                  />
+                  {referenceImageUrl && (
+                    <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 mt-2">
+                      <img src={referenceImageUrl} alt="Preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setReferenceImageUrl("")}
+                        className="absolute top-1 right-1 w-5 h-5 bg-red-600 text-white rounded-full flex items-center justify-center text-[10px]"
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>

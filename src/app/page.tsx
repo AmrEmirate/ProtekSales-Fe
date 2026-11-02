@@ -106,21 +106,21 @@ export default function DashboardPage() {
               className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-white font-bold text-xs shadow-[0_4px_14px_rgba(249,115,22,0.35)] transition-all active:scale-95"
             >
               <span className="material-symbols-outlined text-[18px]">lock</span>
-              <span>Kunci Prospek</span>
+              <span>Kunci Outlet (Anti-Tabrakan)</span>
             </Link>
             <Link
-              href="/leads/check-in"
+              href="/leads/ui-custom"
               className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 transition-all active:scale-95"
             >
-              <span className="material-symbols-outlined text-[18px]">add_location_alt</span>
-              <span>Check-in Kunjungan</span>
+              <span className="material-symbols-outlined text-[18px]">palette</span>
+              <span>Daftar UMKM & Desain UI</span>
             </Link>
             <Link
               href="/commission/withdraw"
               className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white font-bold text-xs shadow-md transition-all active:scale-95"
             >
               <span className="material-symbols-outlined text-[18px]">payments</span>
-              <span>Tarik Saldo</span>
+              <span>Tarik Saldo Komisi</span>
             </Link>
           </div>
         </div>
@@ -575,107 +575,116 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* 4. Bottom Grid: Active Field Pipeline & Quick Toolkits */}
+      {/* 4. Bottom Grid: Outlet Pipeline & Pendaftaran UMKM Request UI */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Pipeline & Check-in Feed */}
+        {/* Outlet Pipeline / Prospek Ditawarkan */}
         <div className="lg:col-span-7 bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[#F97316] text-[22px]">route</span>
+              <span className="material-symbols-outlined text-[#F97316] text-[22px]">storefront</span>
               <h2 className="text-base font-bold text-[#102A43] font-display">
-                Pipeline Kunjungan Lapangan Terkini
+                Outlet yang Ditawarkan (Terproteksi 30 Hari)
               </h2>
             </div>
             <Link
               href="/leads/pipeline"
               className="text-xs font-bold text-[#0284C7] hover:underline"
             >
-              Lihat Timeline &rarr;
+              Lihat Semua &rarr;
             </Link>
           </div>
 
           <div className="space-y-3">
-            {visits.length === 0 ? (
+            {leads.length === 0 ? (
               <div className="p-6 text-center rounded-xl bg-slate-50 border border-slate-200 space-y-2">
                 <span className="material-symbols-outlined text-slate-400 text-[28px]">
-                  explore_off
+                  storefront
                 </span>
-                <p className="text-xs font-bold text-slate-700">Belum ada riwayat kunjungan hari ini</p>
+                <p className="text-xs font-bold text-slate-700">Belum ada outlet yang dikunci</p>
                 <p className="text-[11px] text-slate-400">
-                  Lakukan check-in saat tiba di lokasi outlet untuk mencatat kunjungan GPS
+                  Gunakan form Cek & Kunci Outlet di atas untuk memproteksi outlet sasaran Anda
                 </p>
               </div>
             ) : (
-              visits.map((visit) => (
-                <div
-                  key={visit.id}
-                  className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-start justify-between gap-3"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-xs text-slate-900">{visit.outletName}</span>
-                      <span className="px-1.5 py-0.2 rounded bg-slate-200 text-slate-700 text-[10px] font-semibold">
-                        {visit.category}
-                      </span>
+              leads.map((lead) => {
+                const cleanPhone = lead.phone.replace(/[^0-9]/g, "");
+                return (
+                  <div
+                    key={lead.id}
+                    className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-3"
+                  >
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-xs text-slate-900 truncate font-display">
+                          {lead.name}
+                        </span>
+                        <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold shrink-0">
+                          Tersisa {lead.daysRemaining} Hari
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 truncate">{lead.category} &bull; +62 {cleanPhone}</p>
                     </div>
-                    <p className="text-xs text-slate-600 leading-snug">{visit.notes}</p>
-                    <div className="flex items-center gap-2 text-[10px] text-slate-400">
-                      <span className="flex items-center gap-1 text-emerald-700 font-semibold">
-                        <span className="material-symbols-outlined text-[12px]">my_location</span>
-                        {visit.distance}
-                      </span>
-                      <span>•</span>
-                      <span>{visit.date}, {visit.time}</span>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Link
+                        href={`/leads/ui-custom?leadId=${lead.id}&name=${encodeURIComponent(lead.name)}&phone=${cleanPhone}&category=${encodeURIComponent(lead.category || "")}`}
+                        className="px-3 py-1.5 rounded-lg bg-orange-50 text-[#F97316] hover:bg-[#F97316] hover:text-white border border-orange-200 font-bold text-xs flex items-center gap-1 transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">palette</span>
+                        <span>Request UI</span>
+                      </Link>
+                      <a
+                        href={`https://wa.me/${cleanPhone}?text=Halo%20${encodeURIComponent(lead.name)},%20kami%20dari%20PT%20Pro%20Teknologi.`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors"
+                        title="Chat WhatsApp"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">chat</span>
+                      </a>
                     </div>
                   </div>
-
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
-                      visit.status === "DEAL"
-                        ? "bg-emerald-100 text-emerald-800"
-                        : "bg-blue-100 text-blue-800"
-                    }`}
-                  >
-                    {visit.status === "DEAL" ? "DEAL CLOSING" : "TERVERIFIKASI"}
-                  </span>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 
           <Link
-            href="/leads/check-in"
+            href="/leads/check"
             className="w-full py-2.5 rounded-xl border border-dashed border-[#CBD5E1] text-[#102A43] font-bold text-xs flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors"
           >
             <span className="material-symbols-outlined text-[16px]">add_circle</span>
-            <span>Tambah Check-in Kunjungan Baru</span>
+            <span>Kunci Prospek Outlet Baru</span>
           </Link>
         </div>
 
-        {/* Sales Toolkit Shortcuts */}
-        <div className="lg:col-span-5 bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-4">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[#0284C7] text-[22px]">handyman</span>
-            <h2 className="text-base font-bold text-[#102A43] font-display">
-              Sales Toolkit & Alat Bantu Closing
-            </h2>
-          </div>
+        {/* Quick Hub: Request UI & Tarik Saldo */}
+        <div className="lg:col-span-5 bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-4 flex flex-col justify-between">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[#F97316] text-[22px]">palette</span>
+              <h2 className="text-base font-bold text-[#102A43] font-display">
+                Pendataan UMKM & Desain UI
+              </h2>
+            </div>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              UMKM berminat menggunakan POS? Daftarkan data toko, upload foto logo/menu atau referensi apa yang dimau UMKM, dan generate UI prototipe kustom secara otomatis melalui Google Stitch AI.
+            </p>
 
-          <div className="space-y-3">
             <Link
-              href="/toolkit/roi"
-              className="p-3.5 rounded-xl bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 flex items-center justify-between group hover:border-[#F97316] transition-all"
+              href="/leads/ui-custom"
+              className="p-4 rounded-xl bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 flex items-center justify-between group hover:border-[#F97316] transition-all"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#F97316] text-white flex items-center justify-center font-bold">
-                  <span className="material-symbols-outlined text-[20px]">calculate</span>
+                <div className="w-10 h-10 rounded-xl bg-[#F97316] text-white flex items-center justify-center font-bold shadow-sm">
+                  <span className="material-symbols-outlined text-[20px]">add_photo_alternate</span>
                 </div>
                 <div>
                   <h3 className="text-xs font-bold text-[#102A43] group-hover:text-[#F97316] transition-colors">
-                    Kalkulator ROI & Efisiensi Toko
+                    Upload Kebutuhan & Buat UI Kasir
                   </h3>
                   <p className="text-[11px] text-slate-500">
-                    Hitung potensi penghematan & payback period merchant
+                    Google Stitch MCP Studio &bull; Approval 1-Klik
                   </p>
                 </div>
               </div>
@@ -683,49 +692,24 @@ export default function DashboardPage() {
                 chevron_right
               </span>
             </Link>
+          </div>
 
-            <Link
-              href="/toolkit/brochures"
-              className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between group hover:border-slate-400 transition-all"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#102A43] text-white flex items-center justify-center font-bold">
-                  <span className="material-symbols-outlined text-[20px]">menu_book</span>
-                </div>
-                <div>
-                  <h3 className="text-xs font-bold text-[#102A43] group-hover:text-[#0284C7] transition-colors">
-                    Brosur Digital & Spesifikasi POS
-                  </h3>
-                  <p className="text-[11px] text-slate-500">
-                    Brosur PDF resmi & sharing link instan ke WhatsApp
-                  </p>
-                </div>
-              </div>
-              <span className="material-symbols-outlined text-slate-400 group-hover:text-[#102A43] transition-colors text-[20px]">
-                chevron_right
+          {/* Dompet Komisi Quick Banner */}
+          <div className="p-4 rounded-xl bg-slate-900 text-white flex items-center justify-between gap-3">
+            <div>
+              <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block">
+                SALDO SIAP DITARIK
               </span>
-            </Link>
-
-            <Link
-              href="/toolkit/education"
-              className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between group hover:border-slate-400 transition-all"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#0284C7] text-white flex items-center justify-center font-bold">
-                  <span className="material-symbols-outlined text-[20px]">school</span>
-                </div>
-                <div>
-                  <h3 className="text-xs font-bold text-[#102A43] group-hover:text-[#0284C7] transition-colors">
-                    Script Edukasi & Objection Handling
-                  </h3>
-                  <p className="text-[11px] text-slate-500">
-                    Jawaban cerdas menghadapi keraguan merchant manual
-                  </p>
-                </div>
+              <div className="text-lg font-bold font-display text-white mt-0.5 tabular-nums">
+                Rp {availableBalance.toLocaleString("id-ID")}
               </div>
-              <span className="material-symbols-outlined text-slate-400 group-hover:text-[#0284C7] transition-colors text-[20px]">
-                chevron_right
-              </span>
+            </div>
+            <Link
+              href="/commission/withdraw"
+              className="px-3.5 py-2 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white font-bold text-xs flex items-center gap-1 shadow-sm transition-all shrink-0"
+            >
+              <span className="material-symbols-outlined text-[16px]">payments</span>
+              <span>Tarik Saldo</span>
             </Link>
           </div>
         </div>

@@ -8,22 +8,29 @@ import { api } from "@/services/api";
 export default function LoginPage() {
   const router = useRouter();
 
-  const [loginRole, setLoginRole] = useState<"SALES" | "ADMIN">("SALES");
-  const [email, setEmail] = useState("sales@protek.id");
-  const [password, setPassword] = useState("Protek2026!Secure");
+  const [loginRole, setLoginRole] = useState<"SALES" | "ADMIN">("ADMIN");
+  const [email, setEmail] = useState("owner@protek.id");
+  const [password, setPassword] = useState("admin123");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const fillQuickAccount = (role: "SALES" | "ADMIN", accEmail: string, accPass: string) => {
+    setLoginRole(role);
+    setEmail(accEmail);
+    setPassword(accPass);
+    setErrorMsg(null);
+  };
 
   const handleRoleSwitch = (role: "SALES" | "ADMIN") => {
     setLoginRole(role);
     setErrorMsg(null);
     if (role === "SALES") {
-      setEmail("sales@protek.id");
-      setPassword("Protek2026!Secure");
+      setEmail("sales1@protek.id");
+      setPassword("sales123");
     } else {
-      setEmail("admin@protek.id");
-      setPassword("Protek2026!Secure");
+      setEmail("owner@protek.id");
+      setPassword("admin123");
     }
   };
 
@@ -95,6 +102,74 @@ export default function LoginPage() {
 
         {/* Card Form */}
         <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 border border-slate-100">
+          {/* Quick Account Test Fillers (1-Click Fill) */}
+          <div className="space-y-2 pt-1">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+              ⚡ Akun Uji Coba Cepat (1-Click Fill):
+            </span>
+            <div className="grid grid-cols-2 gap-2 text-left">
+              <button
+                type="button"
+                onClick={() => fillQuickAccount("ADMIN", "owner@protek.id", "admin123")}
+                className={`p-2.5 rounded-xl border text-xs font-semibold transition-all ${
+                  email === "owner@protek.id"
+                    ? "bg-[#102A43] text-white border-[#102A43] shadow-sm"
+                    : "bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200"
+                }`}
+              >
+                <div className="font-bold flex items-center gap-1">
+                  <span>👑 Owner / Admin</span>
+                </div>
+                <div className="text-[10px] opacity-80 truncate">Atur Komisi % & UI</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => fillQuickAccount("ADMIN", "admin@protek.id", "admin123")}
+                className={`p-2.5 rounded-xl border text-xs font-semibold transition-all ${
+                  email === "admin@protek.id"
+                    ? "bg-[#102A43] text-white border-[#102A43] shadow-sm"
+                    : "bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200"
+                }`}
+              >
+                <div className="font-bold flex items-center gap-1">
+                  <span>🛡️ Admin Operasional</span>
+                </div>
+                <div className="text-[10px] opacity-80 truncate">Pusat Server & Tagihan</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => fillQuickAccount("SALES", "sales1@protek.id", "sales123")}
+                className={`p-2.5 rounded-xl border text-xs font-semibold transition-all ${
+                  email === "sales1@protek.id"
+                    ? "bg-[#F97316] text-white border-[#F97316] shadow-sm"
+                    : "bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200"
+                }`}
+              >
+                <div className="font-bold flex items-center gap-1">
+                  <span>💼 Sales 1 (Budi)</span>
+                </div>
+                <div className="text-[10px] opacity-80 truncate">Saldo Rp 500rb + Outlet</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => fillQuickAccount("SALES", "sales2@protek.id", "sales123")}
+                className={`p-2.5 rounded-xl border text-xs font-semibold transition-all ${
+                  email === "sales2@protek.id"
+                    ? "bg-[#F97316] text-white border-[#F97316] shadow-sm"
+                    : "bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200"
+                }`}
+              >
+                <div className="font-bold flex items-center gap-1">
+                  <span>💼 Sales 2 (Dedi)</span>
+                </div>
+                <div className="text-[10px] opacity-80 truncate">Uji Anti-Tabrakan</div>
+              </button>
+            </div>
+          </div>
+
           {/* Role Tab Switcher */}
           <div className="p-1 rounded-xl bg-slate-100 flex items-center text-xs font-bold">
             <button

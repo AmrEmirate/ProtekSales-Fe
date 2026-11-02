@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api } from "@/services/api";
 
-type AdminTab = "BILLING" | "LEADS_MAP" | "DISPUTES" | "FINANCE" | "KILLSWITCH" | "SALES_TEAM" | "CLOUDPOS_SYNC";
+type AdminTab = "BILLING" | "COMMISSION_SETTINGS" | "UI_DESIGNS" | "LEADS_MAP" | "DISPUTES" | "FINANCE" | "KILLSWITCH" | "SALES_TEAM" | "CLOUDPOS_SYNC";
 
 interface InvoiceItem {
   id: string;
@@ -87,6 +87,12 @@ export default function AdminDashboardPage() {
   const [cloudTenants, setCloudTenants] = useState<any[]>([]);
   const [cloudPosAnalytics, setCloudPosAnalytics] = useState<any>(null);
   const [isSyncingCloud, setIsSyncingCloud] = useState(false);
+
+  // Revenue Sharing & UI Design States
+  const [globalRateInput, setGlobalRateInput] = useState<number>(20);
+  const [salesRateInputs, setSalesRateInputs] = useState<Record<string, number>>({});
+  const [uiDesigns, setUiDesigns] = useState<any[]>([]);
+  const [isUpdatingRate, setIsUpdatingRate] = useState(false);
 
   // Search & Filter
   const [searchQuery, setSearchQuery] = useState("");
@@ -222,6 +228,14 @@ export default function AdminDashboardPage() {
         if (tenantsRes.status === "fulfilled" && tenantsRes.value?.tenants) setCloudTenants(tenantsRes.value.tenants);
         if (analyticsRes.status === "fulfilled" && analyticsRes.value) setCloudPosAnalytics(analyticsRes.value);
       } catch {}
+
+      // 9. UMKM UI Requests
+      try {
+        const uis = await api.getAdminUiDesigns();
+        if (Array.isArray(uis)) {
+          setUiDesigns(uis);
+        }
+      } catch {}
     } finally {
       setIsLoading(false);
     }
@@ -230,6 +244,43 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     loadAdminData();
   }, [loadAdminData]);
+
+  const handleUpdateSalesCommissionRate = async (salesId: string, rate: number) => {
+    setIsUpdatingRate(true);
+    try {
+      await api.updateSalesCommissionRate(salesId, rate);
+      setActionNotice(`Berhasil! Persentase komisi sales diperbarui menjadi ${rate}%.`);
+      await loadAdminData();
+    } catch (err: any) {
+      alert(err.message || "Gagal memperbarui persentase komisi.");
+    } finally {
+      setIsUpdatingRate(false);
+    }
+  };
+
+  const handleUpdateBulkCommissionRate = async () => {
+    setIsUpdatingRate(true);
+    try {
+      await api.updateBulkCommissionRate(globalRateInput);
+      setActionNotice(`Berhasil! Persentase komisi seluruh mitra sales diatur ke ${globalRateInput}%.`);
+      await loadAdminData();
+    } catch (err: any) {
+      alert(err.message || "Gagal memperbarui persentase komisi global.");
+    } finally {
+      setIsUpdatingRate(false);
+    }
+  };
+
+  const handleApproveUiDesign = async (requestId: string) => {
+    if (!confirm("Setujui pengajuan UI UMKM ini dan hubungkan ke backend Cloud POS?")) return;
+    try {
+      await api.approveUiDesign(requestId);
+      setActionNotice("Desain UI UMKM disetujui & subdomain POS kasir live aktif!");
+      await loadAdminData();
+    } catch (err: any) {
+      alert(err.message || "Gagal menyetujui desain UI.");
+    }
+  };
 
   const handleSyncCloudTenants = async () => {
     setIsSyncingCloud(true);
@@ -441,6 +492,30 @@ export default function AdminDashboardPage() {
       {/* 2. Navigation Tabs Matching Blueprint 1.B */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-slate-200">
         <button
+          onClick={() => setActiveTab("COMMISSION_SETTINGS")}
+          className={`px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 shrink-0 ${
+            activeTab === "COMMISSION_SETTINGS"
+              ? "bg-[#F97316] text-white shadow-sm"
+              : "bg-white text-slate-700 hover:bg-slate-100 border border-orange-200"
+          }`}
+        >
+          <span className="material-symbols-outlined text-[18px]">tune</span>
+          <span>⚡ Atur Komisi Sales (%)</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("UI_DESIGNS")}
+          className={`px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 shrink-0 ${
+            activeTab === "UI_DESIGNS"
+              ? "bg-purple-700 text-white shadow-sm"
+              : "bg-white text-slate-700 hover:bg-slate-100 border border-purple-200"
+          }`}
+        >
+          <span className="material-symbols-outlined text-[18px]">palette</span>
+          <span>🎨 Desain UI UMKM ({uiDesigns.length})</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab("BILLING")}
           className={`px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 shrink-0 ${
             activeTab === "BILLING"
@@ -524,6 +599,311 @@ export default function AdminDashboardPage() {
           <span>7. Integrasi Cloud POS Engine</span>
         </button>
       </div>
+
+      {/* ============================================================== */}
+      {/* TAB KHUSUS: PENGATURAN PEMBAGIAN KEUNTUNGAN (KOMISI SALES)     */}
+      {/* ============================================================== */}
+      {activeTab === "COMMISSION_SETTINGS" && (
+        <div className="space-y-6">
+          {/* Hero Banner Atur Komisi */}
+          <div className="rounded-2xl bg-gradient-to-r from-[#0B1D3A] via-[#102A43] to-[#1E3E62] text-white p-6 shadow-md border border-[#1E3E62] space-y-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/20 text-orange-300 text-xs font-bold border border-orange-500/30">
+              <span className="material-symbols-outlined text-[16px]">tune</span>
+              <span>Hak Akses Super Admin: Pengaturan Revenue Sharing</span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold font-display text-white">
+              Atur Persentase Pembagian Keuntungan Penjualan
+            </h2>
+            <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+              Anda memegang kendali penuh menentukan persentase keuntungan yang diberikan kepada sales (misalnya 20%, 25%, dll.). Sistem akan otomatis mengalikan persentase ini dari setiap langganan kasir outlet binaan sales.
+            </p>
+          </div>
+
+          {/* Card Atur Komisi Global */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="text-base font-bold text-[#102A43] font-display">
+                  Atur Persentase Komisi Standar (Seluruh Tim Sales)
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Terapkan satu persentase seragam ke seluruh mitra sales yang terdaftar
+                </p>
+              </div>
+              <span className="px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-xs font-bold">
+                Default: {globalRateInput}%
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+              <div className="md:col-span-6 space-y-3">
+                <label className="text-xs font-bold text-slate-700 block">
+                  Nilai Persentase Komisi Sales (%)
+                </label>
+                <div className="flex items-center gap-3">
+                  <div className="relative flex-1">
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      step={0.5}
+                      value={globalRateInput}
+                      onChange={(e) => setGlobalRateInput(parseFloat(e.target.value) || 0)}
+                      className="w-full h-12 px-4 rounded-xl border border-slate-300 text-lg font-bold text-[#102A43] focus:border-[#F97316] outline-none"
+                    />
+                    <span className="absolute right-4 top-3 text-slate-400 font-bold text-sm">%</span>
+                  </div>
+
+                  <button
+                    onClick={handleUpdateBulkCommissionRate}
+                    disabled={isUpdatingRate}
+                    className="h-12 px-6 rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-white font-bold text-xs shadow-md transition-all active:scale-98 disabled:opacity-50 flex items-center gap-2 shrink-0"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">save</span>
+                    <span>{isUpdatingRate ? "Menyimpan..." : "Terapkan Ke Semua Sales"}</span>
+                  </button>
+                </div>
+
+                {/* Preset Chips */}
+                <div className="flex items-center gap-2 pt-1 flex-wrap">
+                  <span className="text-[11px] text-slate-400 font-medium">Pilihan Cepat:</span>
+                  {[15, 20, 25, 30, 35].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setGlobalRateInput(preset)}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors ${
+                        globalRateInput === preset
+                          ? "bg-[#102A43] text-white"
+                          : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                      }`}
+                    >
+                      {preset}%
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Live Calculator Simulation */}
+              <div className="md:col-span-6 bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-2">
+                <div className="flex items-center justify-between text-xs font-bold text-slate-700">
+                  <span>Simulasi Bagi Hasil (Per 1 Outlet)</span>
+                  <span className="text-emerald-700">Biaya: Rp 100.000 / bln</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <div className="p-3 rounded-lg bg-orange-50 border border-orange-200">
+                    <span className="text-[10px] uppercase font-bold text-orange-800 block">Komisi Sales ({globalRateInput}%)</span>
+                    <span className="text-base font-bold text-[#F97316] mt-0.5 block tabular-nums">
+                      Rp {((100000 * globalRateInput) / 100).toLocaleString("id-ID")}
+                    </span>
+                    <span className="text-[10px] text-slate-500">Masuk ke dompet sales</span>
+                  </div>
+
+                  <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+                    <span className="text-[10px] uppercase font-bold text-emerald-800 block">Pendapatan Bersih HQ ({100 - globalRateInput}%)</span>
+                    <span className="text-base font-bold text-emerald-700 mt-0.5 block tabular-nums">
+                      Rp {((100000 * (100 - globalRateInput)) / 100).toLocaleString("id-ID")}
+                    </span>
+                    <span className="text-[10px] text-slate-500">Pendapatan perusahaan</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Individual Sales Commission Table */}
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-[#102A43] font-display">
+                  Atur Komisi Khusus Per-Individu Mitra Sales
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Anda dapat memberikan persentase komisi berbeda untuk sales tertentu
+                </p>
+              </div>
+              <span className="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
+                {salesList.length} Mitra Sales
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#0B1D3A] text-white font-bold uppercase tracking-wider text-[10px]">
+                  <tr>
+                    <th className="py-3 px-4">Nama Mitra Sales</th>
+                    <th className="py-3 px-4">Email / Kontak</th>
+                    <th className="py-3 px-4">Tier</th>
+                    <th className="py-3 px-4">Prospek & Klien</th>
+                    <th className="py-3 px-4">Persentase Komisi Saat Ini</th>
+                    <th className="py-3 px-4 text-center">Ubah Persentase</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium">
+                  {salesList.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-slate-400">
+                        Belum ada mitra sales yang terdaftar.
+                      </td>
+                    </tr>
+                  ) : (
+                    salesList.map((sales) => {
+                      const currentRate = salesRateInputs[sales.id] !== undefined ? salesRateInputs[sales.id] : (sales.commissionRate || 25);
+                      return (
+                        <tr key={sales.id} className="hover:bg-slate-50 transition-colors">
+                          <td className="py-3.5 px-4 font-bold text-slate-900">{sales.name}</td>
+                          <td className="py-3.5 px-4 text-slate-600">
+                            <span>{sales.email}</span>
+                            <span className="text-[11px] text-slate-400 block">+{sales.phone}</span>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-800 text-[10px] font-bold">
+                              {sales.tier || "Mitra Sales"}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-slate-700">
+                            <span className="font-bold">{sales._count?.leads || 0}</span> Prospek &bull; <span className="font-bold">{sales._count?.outlets || 0}</span> Outlet
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs inline-block">
+                              {(sales.commissionRate || 25).toFixed(1)}% Recurring
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <input
+                                type="number"
+                                min={0}
+                                max={100}
+                                step={1}
+                                value={currentRate}
+                                onChange={(e) => {
+                                  const val = parseFloat(e.target.value) || 0;
+                                  setSalesRateInputs((prev) => ({ ...prev, [sales.id]: val }));
+                                }}
+                                className="w-16 h-8 px-2 rounded-lg border border-slate-300 text-center font-bold text-xs focus:border-[#F97316] outline-none"
+                              />
+                              <span className="text-xs font-bold text-slate-500">%</span>
+                              <button
+                                onClick={() => handleUpdateSalesCommissionRate(sales.id, currentRate)}
+                                disabled={isUpdatingRate}
+                                className="h-8 px-3 rounded-lg bg-[#102A43] hover:bg-[#0B1D3A] text-white font-bold text-[11px] transition-colors"
+                              >
+                                Simpan
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* TAB KHUSUS: PENGAJUAN DESAIN UI UMKM (STITCH AI)                */}
+      {/* ============================================================== */}
+      {activeTab === "UI_DESIGNS" && (
+        <div className="space-y-4">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 className="text-base font-bold font-display text-[#102A43]">
+                Daftar Pengajuan Desain UI UMKM oleh Sales
+              </h2>
+              <p className="text-xs text-slate-500">
+                Pusat review mockup Google Stitch AI, permohonan kustomisasi tenant, dan persetujuan penerbitan POS kasir online.
+              </p>
+            </div>
+            <span className="px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-bold">
+              {uiDesigns.length} Pengajuan Desain
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {uiDesigns.length === 0 ? (
+              <div className="col-span-full bg-white rounded-2xl p-12 text-center border border-slate-200 space-y-2">
+                <span className="material-symbols-outlined text-[36px] text-slate-400">palette</span>
+                <p className="font-bold text-xs text-slate-700">Belum ada pengajuan desain UI UMKM</p>
+                <p className="text-[11px] text-slate-400">Sales dapat mengajukan desain baru via menu &apos;Daftar UMKM & Request UI&apos;</p>
+              </div>
+            ) : (
+              uiDesigns.map((req) => (
+                <div
+                  key={req.id}
+                  className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3 flex flex-col justify-between hover:shadow-md transition-all"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h4 className="font-bold text-sm text-[#102A43] font-display">{req.storeName}</h4>
+                        <span className="text-[11px] text-slate-500">{req.category || "F&B / Retail"}</span>
+                      </div>
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                          req.status === "DEPLOYED"
+                            ? "bg-emerald-100 text-emerald-800"
+                            : req.status === "READY_REVIEW"
+                            ? "bg-orange-100 text-orange-800"
+                            : "bg-blue-100 text-blue-800"
+                        }`}
+                      >
+                        {req.status}
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1">
+                      <div className="flex items-center justify-between text-slate-600">
+                        <span>Diajukan oleh:</span>
+                        <strong className="text-slate-900">{req.sales?.name || "Mitra Sales"}</strong>
+                      </div>
+                      {req.primaryColor && (
+                        <div className="flex items-center justify-between text-slate-600">
+                          <span>Warna Brand:</span>
+                          <span className="flex items-center gap-1 font-mono font-bold">
+                            <span className="w-3 h-3 rounded-full border border-slate-300" style={{ backgroundColor: req.primaryColor }} />
+                            {req.primaryColor}
+                          </span>
+                        </div>
+                      )}
+                      {req.styleNotes && (
+                        <div className="pt-1 text-slate-600 border-t border-slate-200 text-[11px]">
+                          <strong>Catatan UMKM:</strong> {req.styleNotes}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 flex items-center gap-2">
+                    {req.status !== "DEPLOYED" ? (
+                      <button
+                        onClick={() => handleApproveUiDesign(req.id)}
+                        className="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1 shadow-sm transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">verified</span>
+                        <span>Approve & Buat POS</span>
+                      </button>
+                    ) : (
+                      <a
+                        href={`https://pos-${req.deployedTenantSlug || req.storeName.toLowerCase().replace(/[^a-z0-9]/g, "")}.vimtk.cloud`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex-1 py-2 rounded-xl bg-[#102A43] hover:bg-[#0B1D3A] text-white font-bold text-xs flex items-center justify-center gap-1 transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+                        <span>Buka POS Kasir Live</span>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ============================================================== */}
       {/* TAB 1: PUSAT MENTORING & TAGIHAN (Blueprint 1.B.1)              */}

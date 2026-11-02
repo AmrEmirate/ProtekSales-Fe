@@ -40,65 +40,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
     {
       title: "UTAMA",
       items: [
-        { href: "/", label: "Ringkasan Command", icon: "dashboard" },
-        { href: "/admin", label: "Pusat Kontrol Admin", icon: "admin_panel_settings", badge: "Server" },
+        { href: "/", label: "Ringkasan Sales", icon: "dashboard" },
+        { href: "/admin", label: "Pusat Kontrol Admin", icon: "admin_panel_settings", badge: "HQ" },
       ],
     },
     {
-      title: "LEAD & PROSPEK",
+      title: "ANTI-TABRAKAN OUTLET",
       items: [
-        { href: "/leads/check", label: "Cek & Kunci Prospek", icon: "radar", badge: "30 Hari" },
-        { href: "/leads/pipeline", label: "Pipeline & Kunjungan", icon: "route" },
-        { href: "/leads/check-in", label: "Form Check-in Baru", icon: "add_location_alt" },
-        { href: "/leads/map", label: "Peta Rute Wilayah", icon: "map" },
-        { href: "/leads/dispute", label: "Banding Sengketa", icon: "gavel" },
+        { href: "/leads/check", label: "Cek & Kunci Outlet", icon: "radar", badge: "30 Hari" },
+        { href: "/leads/pipeline", label: "Daftar Outlet Ditawarkan", icon: "storefront" },
       ],
     },
     {
-      title: "OUTLET & POS LISENSI",
+      title: "PENDAFTARAN UMKM & UI",
       items: [
-        { href: "/outlets", label: "Daftar Klien Aktif", icon: "storefront", badge: outlets.length > 0 ? `${outlets.length}` : undefined },
-        { href: "/outlets/detail", label: "Detail & Kill-Switch", icon: "toggle_on" },
-        { href: "/outlets/onboarding", label: "Aktivasi & Onboarding", icon: "qr_code_scanner" },
-        { href: "/outlets/bast", label: "BAST Hardware Digital", icon: "draw" },
-        { href: "/outlets/support", label: "Suplai & Kendala POS", icon: "receipt_long" },
+        { href: "/leads/ui-custom", label: "Daftar UMKM & Request UI", icon: "palette", badge: "Stitch AI" },
       ],
     },
     {
-      title: "FINANSIAL & KOMISI",
+      title: "KOMISI & PENCAIRAN",
       items: [
         { href: "/commission/wallet", label: "Dompet Komisi", icon: "account_balance_wallet" },
-        { href: "/commission/withdraw", label: "Tarik Saldo", icon: "payments" },
-        { href: "/commission/history", label: "Riwayat & PPh 21", icon: "receipt" },
-        { href: "/commission/leaderboard", label: "Papan Peringkat", icon: "leaderboard" },
+        { href: "/commission/withdraw", label: "Tarik Saldo Komisi", icon: "payments" },
+        { href: "/commission/history", label: "Riwayat Penarikan", icon: "receipt" },
       ],
     },
     {
-      title: "SALES TOOLKIT",
+      title: "AKUN",
       items: [
-        { href: "/toolkit/roi", label: "Kalkulator ROI POS", icon: "calculate" },
-        { href: "/toolkit/brochures", label: "Brosur Digital POS", icon: "menu_book" },
-        { href: "/toolkit/education", label: "Script & Edukasi", icon: "school" },
-      ],
-    },
-    {
-      title: "SISTEM",
-      items: [
-        { href: "/profile", label: "Profil Sales & KPI", icon: "badge" },
-        {
-          href: "/offline-sync",
-          label: "Antrean Sinkronisasi",
-          icon: isOffline ? "cloud_off" : "cloud_sync",
-          badge: offlineQueueCount > 0 ? `${offlineQueueCount}` : undefined,
-          badgeColor: "bg-orange-500",
-        },
-        {
-          href: "/notifications",
-          label: "Pusat Notifikasi",
-          icon: "notifications",
-          badge: unreadNotifs > 0 ? `${unreadNotifs}` : undefined,
-          badgeColor: "bg-red-500",
-        },
+        { href: "/profile", label: "Profil & Rekening Bank", icon: "badge" },
       ],
     },
   ];
