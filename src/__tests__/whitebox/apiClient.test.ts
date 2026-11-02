@@ -113,4 +113,76 @@ describe('White Box Testing: api.ts (REST API Client)', () => {
       })).rejects.toThrow('Nomor telepon/WhatsApp tidak valid.');
     });
   });
+
+  describe('UI Design & Sales Approval Endpoint Binding', () => {
+    it('should POST correctly formatted payload to /ui-design/request', async () => {
+      api.setToken('auth-token-xyz');
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ success: true, message: 'ok', data: { id: 'req-1' } }),
+      });
+      globalThis.fetch = mockFetch;
+
+      await api.requestUiDesign({
+        leadId: 'lead-123',
+        storeName: 'Boba Tea',
+        category: 'FNB_BEVERAGE',
+        primaryColor: '#00BFFF',
+        styleNotes: 'Bright blue beverage theme',
+      });
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const [url, options] = mockFetch.mock.calls[0];
+      expect(url).toContain('/ui-design/request');
+      expect(options.method).toBe('POST');
+      const body = JSON.parse(options.body);
+      expect(body.storeName).toBe('Boba Tea');
+      expect(body.category).toBe('FNB_BEVERAGE');
+      expect(body.primaryColor).toBe('#00BFFF');
+    });
+
+    it('should POST revision prompt to /ui-design/:id/revise', async () => {
+      api.setToken('auth-token-xyz');
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ success: true, message: 'ok', data: { id: 'req-1', status: 'MOCKUP_READY' } }),
+      });
+      globalThis.fetch = mockFetch;
+
+      await api.reviseUiDesign('req-1', 'Make buttons larger');
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const [url, options] = mockFetch.mock.calls[0];
+      expect(url).toContain('/ui-design/req-1/revise');
+      expect(options.method).toBe('POST');
+      expect(JSON.parse(options.body).revisionNotes).toBe('Make buttons larger');
+    });
+
+    it('should POST approval to /ui-design/:id/approve', async () => {
+      api.setToken('auth-token-xyz');
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          success: true,
+          message: 'ok',
+          data: {
+            uiRequest: { id: 'req-1', status: 'APPROVED' },
+            outlet: { id: 'outlet-1' },
+            tenantSlug: 'boba-tea',
+            posUrl: 'https://pos-boba-tea.vimtk.cloud',
+            licenseKey: 'LIC-1',
+          },
+        }),
+      });
+      globalThis.fetch = mockFetch;
+
+      const res = await api.approveUiDesign('req-1');
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const [url, options] = mockFetch.mock.calls[0];
+      expect(url).toContain('/ui-design/req-1/approve');
+      expect(options.method).toBe('POST');
+      expect(res.data.tenantSlug).toBe('boba-tea');
+    });
+  });
 });
