@@ -131,3 +131,4 @@ describe('Black Box Testing: Remote Kill-Switch & POS Heartbeat Cashier State Fl
     expect(state.displayTitle).toContain('Kedaluwarsa');
   });
 });
+
