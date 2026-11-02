@@ -450,6 +450,73 @@ class ApiService {
     }>("/admin/cloudpos/analytics");
     return res.data;
   }
+
+  // ==========================================
+  // GOOGLE STITCH MCP & AUTONOMOUS UI PIPELINE
+  // ==========================================
+  async requestUiDesign(data: {
+    leadId?: string;
+    storeName: string;
+    category?: string;
+    primaryColor?: string;
+    styleNotes?: string;
+    referenceImageUrl?: string;
+  }) {
+    const res = await this.request<{
+      success: boolean;
+      message: string;
+      data: any;
+    }>("/ui-design/request", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return res;
+  }
+
+  async getUiDesignsByLead(leadId: string) {
+    const res = await this.request<{
+      success: boolean;
+      data: any[];
+    }>(`/ui-design/lead/${leadId}`);
+    return res.data;
+  }
+
+  async getUiDesignDetail(id: string) {
+    const res = await this.request<{
+      success: boolean;
+      data: any;
+    }>(`/ui-design/${id}`);
+    return res.data;
+  }
+
+  async reviseUiDesign(id: string, revisionNotes: string) {
+    const res = await this.request<{
+      success: boolean;
+      message: string;
+      data: any;
+    }>(`/ui-design/${id}/revise`, {
+      method: "POST",
+      body: JSON.stringify({ revisionNotes }),
+    });
+    return res;
+  }
+
+  async approveUiDesign(id: string) {
+    const res = await this.request<{
+      success: boolean;
+      message: string;
+      data: {
+        uiRequest: any;
+        outlet: any;
+        tenantSlug: string;
+        posUrl: string;
+        licenseKey: string;
+      };
+    }>(`/ui-design/${id}/approve`, {
+      method: "POST",
+    });
+    return res;
+  }
 }
 
 export const api = new ApiService();

@@ -268,6 +268,18 @@ export default function PipelinePage() {
                         <span>Aktivasi POS</span>
                       </Link>
                     )}
+
+                    {/* Tombol Studio Desain Google Stitch AI */}
+                    <Link
+                      href={`/leads/ui-custom?leadId=${lead.id}&name=${encodeURIComponent(
+                        lead.name
+                      )}&phone=${cleanPhone}&category=${encodeURIComponent(lead.category || "")}`}
+                      className="h-9 px-2.5 rounded-xl bg-orange-50 text-[#F97316] hover:bg-[#F97316] hover:text-white flex items-center justify-center gap-1 font-bold text-xs transition-colors shrink-0 border border-orange-200"
+                      title="Kustomisasi UI via Google Stitch AI"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">palette</span>
+                      <span className="hidden sm:inline">Desain Stitch</span>
+                    </Link>
                   </div>
                 </div>
               </div>
