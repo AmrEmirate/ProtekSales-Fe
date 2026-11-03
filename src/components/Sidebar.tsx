@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useApp } from "@/context/AppContext";
+import { api } from "@/services/api";
 
 interface NavItem {
   href: string;
@@ -231,21 +232,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   {isOffline ? "Mode Offline" : "Terkoneksi POS Hub"}
                 </span>
               </div>
-              <Link
-                href="/login"
-                className="text-[11px] text-orange-400 hover:text-orange-300 font-semibold"
+              <button
+                type="button"
+                onClick={() => {
+                  api.logout();
+                  window.location.href = "/login";
+                }}
+                className="text-[11px] text-red-400 hover:text-red-300 font-semibold flex items-center gap-1"
+                title="Keluar dari akun"
               >
-                Ganti Akun
-              </Link>
+                <span className="material-symbols-outlined text-[14px]">logout</span>
+                <span>Keluar</span>
+              </button>
             </>
           ) : (
             <div className="w-full flex justify-center">
-              <span
-                className={`w-2.5 h-2.5 rounded-full ${
-                  isOffline ? "bg-amber-400 animate-pulse" : "bg-emerald-400"
-                }`}
-                title={isOffline ? "Mode Offline" : "Online"}
-              />
+              <button
+                type="button"
+                onClick={() => {
+                  api.logout();
+                  window.location.href = "/login";
+                }}
+                title="Keluar dari akun"
+                className="w-7 h-7 rounded-lg bg-red-900/30 text-red-400 hover:bg-red-900/50 flex items-center justify-center transition-colors"
+              >
+                <span className="material-symbols-outlined text-[16px]">logout</span>
+              </button>
             </div>
           )}
         </div>

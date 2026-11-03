@@ -88,6 +88,9 @@ interface AppContextType {
   outlets: Outlet[];
   visits: Visit[];
   mutations: CommissionMutation[];
+  rawWithdrawals: any[];
+  hasWithdrawnThisMonth: boolean;
+  hasPendingWithdrawal: boolean;
   notifications: NotificationItem[];
   availableBalance: number;
   escrowBalance: number;
@@ -124,6 +127,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [outlets, setOutlets] = useState<Outlet[]>([]);
   const [visits, setVisits] = useState<Visit[]>([]);
   const [mutations, setMutations] = useState<CommissionMutation[]>([]);
+  const [rawWithdrawals, setRawWithdrawals] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [availableBalance, setAvailableBalance] = useState(0);
   const [escrowBalance, setEscrowBalance] = useState(0);
@@ -132,18 +136,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isOffline, setIsOffline] = useState(false);
   const [offlineQueueCount, setOfflineQueueCount] = useState(0);
 
+  // Evaluasi Aturan Penarikan Saldo: 1x per bulan kalender & pending check
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+
+  const hasWithdrawnThisMonth = rawWithdrawals.some((w: any) => {
+    const wDate = new Date(w.createdAt);
+    return wDate >= startOfMonth && w.status !== "REJECTED";
+  });
+
+  const hasPendingWithdrawal = rawWithdrawals.some(
+    (w: any) => w.status === "PENDING"
+  );
+
   // Inisialisasi Autentikasi & Ambil Data Riil dari Backend
   const refreshData = useCallback(async () => {
     try {
       setIsLoading(true);
 
-      // Cek apakah sudah ada token, jika belum login dengan akun sales resmi
+      // Jika belum ada token, jangan lakukan auto-login palsu
       if (!api.getToken()) {
-        try {
-          await api.login("sales@protek.id", "Protek2026!Secure");
-        } catch {
-          // Fallback dev token jika server offline
-        }
+        setIsLoading(false);
+        return;
       }
 
       // 1. Fetch Profile
@@ -242,6 +256,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       try {
         const withdrawals = await api.getWithdrawalHistory();
         if (Array.isArray(withdrawals)) {
+          setRawWithdrawals(withdrawals);
           const mappedMutations: CommissionMutation[] = withdrawals.map((w: any) => ({
             id: w.id,
             date: new Date(w.createdAt).toLocaleDateString("id-ID", {
@@ -249,7 +264,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               month: "short",
               year: "numeric",
             }),
-            outletName: "Pencairan Saldo",
+            outletName: `Transfer Manual ${w.bankName}`,
             type: "WITHDRAWAL",
             amount: w.amount,
             status: w.status === "COMPLETED" ? "SUCCESS" : "PENDING",
@@ -379,18 +394,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const requestWithdrawal = async (amount: number, bank: string, account: string): Promise<boolean> => {
-    if (amount > availableBalance || amount < 100000) {
-      return false;
-    }
-
     try {
-      if (!isOffline) {
+      if (api.getToken() && !isOffline) {
         await api.requestWithdrawal({
           amount,
           bankName: bank,
           accountNumber: account,
           accountHolder: salesProfile.name,
         });
+        await refreshData();
+        return true;
       }
 
       setAvailableBalance((prev) => Math.max(0, prev - amount));
@@ -398,7 +411,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const newMutation: CommissionMutation = {
         id: `MUT-${Date.now()}`,
         date: "Hari ini",
-        outletName: "Pencairan Saldo",
+        outletName: `Transfer Manual ${bank}`,
         type: "WITHDRAWAL",
         amount: amount,
         status: "PENDING",
@@ -408,9 +421,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       setMutations((prev) => [newMutation, ...prev]);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Gagal request withdrawal:", error);
-      return false;
+      throw error;
     }
   };
 
@@ -432,6 +445,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         outlets,
         visits,
         mutations,
+        rawWithdrawals,
+        hasWithdrawnThisMonth,
+        hasPendingWithdrawal,
         notifications,
         availableBalance,
         escrowBalance,

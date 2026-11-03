@@ -43,11 +43,9 @@ export default function LoginPage() {
       const data = await api.login(email, password);
       setIsLoading(false);
 
-      if (data?.user?.role === "ADMIN" || loginRole === "ADMIN") {
-        router.push("/admin");
-      } else {
-        router.push("/");
-      }
+      const targetUrl =
+        data?.user?.role === "ADMIN" || loginRole === "ADMIN" ? "/admin" : "/";
+      window.location.href = targetUrl;
     } catch (err: any) {
       setIsLoading(false);
       // Fallback dev mode jika server database sedang offline (karena sales di luar jaringan lokal)

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useApp } from "@/context/AppContext";
+import { api } from "@/services/api";
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -221,6 +222,18 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, isSidebarCollap
             </span>
           </div>
         </Link>
+
+        {/* Logout Button */}
+        <button
+          onClick={() => {
+            api.logout();
+            window.location.href = "/login";
+          }}
+          title="Keluar dari Akun"
+          className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 flex items-center justify-center transition-colors shrink-0"
+        >
+          <span className="material-symbols-outlined text-[18px]">logout</span>
+        </button>
       </div>
     </header>
   );

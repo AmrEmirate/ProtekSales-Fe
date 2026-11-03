@@ -2,10 +2,13 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useApp } from "@/context/AppContext";
+import { api } from "@/services/api";
 
 export default function ProfilePage() {
-  const { salesProfile, outlets } = useApp();
+  const router = useRouter();
+  const { salesProfile, outlets, availableBalance, hasWithdrawnThisMonth, hasPendingWithdrawal } = useApp();
   const [phone, setPhone] = useState(salesProfile.phone);
   const [bankAccount, setBankAccount] = useState(salesProfile.bankAccount);
   const [savedNotice, setSavedNotice] = useState(false);
@@ -17,6 +20,11 @@ export default function ProfilePage() {
     e.preventDefault();
     setSavedNotice(true);
     setTimeout(() => setSavedNotice(false), 3000);
+  };
+
+  const handleLogout = () => {
+    api.logout();
+    router.push("/login");
   };
 
   return (
@@ -260,6 +268,93 @@ export default function ProfilePage() {
                 <span>Simpan Perubahan</span>
               </button>
             </form>
+          </div>
+
+          {/* Kebijakan Rekening & Penarikan Saldo Komisi (Manual Transfer HQ) */}
+          <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#F97316] text-[20px]">payments</span>
+                <h3 className="text-base font-bold text-[#102A43] font-display">
+                  Sistem Pencairan Saldo (Transfer Manual HQ)
+                </h3>
+              </div>
+              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                hasWithdrawnThisMonth
+                  ? "bg-red-100 text-red-800"
+                  : hasPendingWithdrawal
+                  ? "bg-blue-100 text-blue-800"
+                  : "bg-emerald-100 text-emerald-800"
+              }`}>
+                {hasWithdrawnThisMonth
+                  ? "Sudah Tarik Bulan Ini"
+                  : hasPendingWithdrawal
+                  ? "Menunggu Transfer"
+                  : "Siap Dicairkan"}
+              </span>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-2">
+              <div className="flex justify-between items-center text-slate-600">
+                <span>Saldo Siap Tarik Saat Ini:</span>
+                <span className="font-bold text-[#102A43] text-sm tabular-nums">
+                  Rp {availableBalance.toLocaleString("id-ID")}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-slate-600">
+                <span>Rekening Bank Mitra:</span>
+                <span className="font-mono font-bold text-slate-900">{salesProfile.bankName} - {bankAccount}</span>
+              </div>
+              <div className="flex justify-between items-center text-slate-600">
+                <span>Atas Nama Rekening:</span>
+                <span className="font-bold text-slate-900">{salesProfile.name}</span>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-orange-50/70 border border-orange-200 text-xs text-orange-950 space-y-1">
+              <div className="font-bold flex items-center gap-1.5 text-orange-900">
+                <span className="material-symbols-outlined text-[16px]">info</span>
+                Aturan Pencairan PT Pro Teknologi:
+              </div>
+              <ul className="list-disc list-inside text-[11px] text-orange-800 space-y-0.5">
+                <li>Penarikan dana dibatasi <strong>1 kali dalam sebulan</strong>.</li>
+                <li>1 kali penarikan <strong>wajib menghabiskan seluruh saldo</strong> yang tersedia (100%).</li>
+                <li>Admin HQ mentransfer manual via m-Banking dan melampirkan bukti transfer resmi.</li>
+              </ul>
+            </div>
+
+            <div className="pt-2 flex flex-col sm:flex-row gap-2">
+              <Link
+                href="/commission/withdraw"
+                className="flex-1 h-11 rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all"
+              >
+                <span className="material-symbols-outlined text-[18px]">account_balance_wallet</span>
+                <span>Buka Formulir Pencairan 100% Saldo</span>
+              </Link>
+              <Link
+                href="/commission/history"
+                className="h-11 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-1.5 transition-all"
+              >
+                <span className="material-symbols-outlined text-[18px]">receipt_long</span>
+                <span>Riwayat Transfer</span>
+              </Link>
+            </div>
+          </div>
+
+          {/* Logout Button */}
+          <div className="p-4 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-between">
+            <div>
+              <div className="text-xs font-bold text-slate-800">Keluar dari Portal Sales</div>
+              <p className="text-[11px] text-slate-500">Hapus sesi kredensial login aktif di browser ini</p>
+            </div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all"
+            >
+              <span className="material-symbols-outlined text-[16px]">logout</span>
+              <span>Keluar</span>
+            </button>
           </div>
         </div>
       </div>

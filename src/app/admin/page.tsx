@@ -44,6 +44,8 @@ interface WithdrawalItem {
   accountNumber: string;
   accountHolder: string;
   status: "PENDING" | "APPROVED" | "REJECTED" | "COMPLETED";
+  proofUrl?: string;
+  adminNotes?: string;
   createdAt: string;
 }
 
@@ -93,6 +95,12 @@ export default function AdminDashboardPage() {
   const [salesRateInputs, setSalesRateInputs] = useState<Record<string, number>>({});
   const [uiDesigns, setUiDesigns] = useState<any[]>([]);
   const [isUpdatingRate, setIsUpdatingRate] = useState(false);
+
+  // Manual Transfer Approval & Proof States
+  const [approvalModalWithdrawal, setApprovalModalWithdrawal] = useState<WithdrawalItem | null>(null);
+  const [proofUrlInput, setProofUrlInput] = useState<string>("");
+  const [adminNotesInput, setAdminNotesInput] = useState<string>("");
+  const [selectedProofPreview, setSelectedProofPreview] = useState<WithdrawalItem | null>(null);
 
   // Search & Filter
   const [searchQuery, setSearchQuery] = useState("");
@@ -176,6 +184,8 @@ export default function AdminDashboardPage() {
               accountNumber: w.accountNumber,
               accountHolder: w.accountHolder,
               status: w.status,
+              proofUrl: w.proofUrl,
+              adminNotes: w.adminNotes,
               createdAt: new Date(w.createdAt).toLocaleDateString("id-ID"),
             }))
           );
@@ -314,17 +324,19 @@ export default function AdminDashboardPage() {
 
   const handleProcessWithdrawal = async (
     withdrawalId: string,
-    status: "APPROVED" | "COMPLETED" | "REJECTED"
+    status: "APPROVED" | "COMPLETED" | "REJECTED",
+    notes?: string,
+    proof?: string
   ) => {
     try {
-      await api.processWithdrawal(withdrawalId, status, `Diproses admin: ${status}`);
-      setActionNotice(`Penarikan dana berhasil diperbarui ke: ${status}`);
+      await api.processWithdrawal(withdrawalId, status, notes || `Diproses admin: ${status}`, proof);
+      setActionNotice(`Pencairan dana komisi berhasil diperbarui ke: ${status}`);
       await loadAdminData();
-    } catch {
+    } catch (err: any) {
       setWithdrawals((prev) =>
-        prev.map((w) => (w.id === withdrawalId ? { ...w, status } : w))
+        prev.map((w) => (w.id === withdrawalId ? { ...w, status, proofUrl: proof, adminNotes: notes } : w))
       );
-      setActionNotice(`Status pencairan diubah ke ${status}.`);
+      setActionNotice(err.message || `Status pencairan diubah ke ${status}.`);
     }
     setTimeout(() => setActionNotice(null), 3500);
   };
@@ -1230,28 +1242,35 @@ export default function AdminDashboardPage() {
                             {w.status}
                           </span>
                         </td>
-                        <td className="py-3.5 px-4">
+                        <td className="py-3.5 px-4 text-center">
                           {w.status === "PENDING" ? (
-                            <div className="flex items-center justify-center gap-1.5">
-                              <button
-                                type="button"
-                                onClick={() => handleProcessWithdrawal(w.id, "COMPLETED")}
-                                className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1 transition-all"
-                              >
-                                <span className="material-symbols-outlined text-[16px]">check</span>
-                                <span>Setujui (Transfer)</span>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleProcessWithdrawal(w.id, "REJECTED")}
-                                className="px-3 py-1.5 rounded-lg bg-slate-200 hover:bg-red-100 hover:text-red-700 text-slate-700 font-bold text-xs flex items-center gap-1 transition-all"
-                              >
-                                <span className="material-symbols-outlined text-[16px]">close</span>
-                                <span>Tolak</span>
-                              </button>
-                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setApprovalModalWithdrawal(w);
+                                setProofUrlInput(`https://storage.vimtk.cloud/proofs/mbca-${w.id.slice(0, 8)}.jpg`);
+                                setAdminNotesInput(`Transfer manual m-BCA Ref: ${Math.floor(10000000 + Math.random() * 90000000)} a/n PT Pro Teknologi`);
+                              }}
+                              className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-1 shadow-sm transition-all"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">send_to_mobile</span>
+                              <span>Proses Transfer Manual</span>
+                            </button>
                           ) : (
-                            <span className="text-slate-400 text-center block text-[11px]">Selesai diproses</span>
+                            <div className="flex items-center justify-center gap-1.5">
+                              {w.proofUrl ? (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedProofPreview(w)}
+                                  className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-xs inline-flex items-center gap-1 transition-all"
+                                >
+                                  <span className="material-symbols-outlined text-[16px]">image</span>
+                                  <span>Lihat Bukti</span>
+                                </button>
+                              ) : (
+                                <span className="text-slate-400 text-[11px]">Selesai diproses</span>
+                              )}
+                            </div>
                           )}
                         </td>
                       </tr>
@@ -1706,6 +1725,190 @@ export default function AdminDashboardPage() {
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+      )}
+      {/* MODAL 1: FORM PROSES TRANSFER MANUAL OLEH ADMIN */}
+      {approvalModalWithdrawal && (
+        <div className="fixed inset-0 z-50 bg-[#0B1D3A]/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#F97316] text-[24px]">send_to_mobile</span>
+                <h3 className="text-base font-bold text-[#102A43] font-display">
+                  Proses Transfer Manual m-Banking
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setApprovalModalWithdrawal(null)}
+                className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center justify-center"
+              >
+                <span className="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            </div>
+
+            {/* Rincian Rekening & Nominal Bersih yang Wajib Ditransfer */}
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-500">Penerima Dana:</span>
+                <span className="font-bold text-slate-900">{approvalModalWithdrawal.salesName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Bank & Rekening:</span>
+                <span className="font-mono font-bold text-slate-900">
+                  {approvalModalWithdrawal.bankName} - {approvalModalWithdrawal.accountNumber} ({approvalModalWithdrawal.accountHolder})
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Nominal Bruto (100% Saldo):</span>
+                <span className="font-semibold text-slate-700 tabular-nums">
+                  Rp {approvalModalWithdrawal.amount.toLocaleString("id-ID")}
+                </span>
+              </div>
+              <div className="flex justify-between text-red-600">
+                <span>Potongan PPh 21 (2.5%):</span>
+                <span className="font-semibold tabular-nums">
+                  - Rp {approvalModalWithdrawal.taxAmount.toLocaleString("id-ID")}
+                </span>
+              </div>
+              <div className="flex justify-between pt-2 border-t border-slate-200 text-sm">
+                <span className="font-bold text-[#102A43]">Nominal Bersih yang Ditransfer:</span>
+                <span className="font-bold font-display text-emerald-700 text-base tabular-nums">
+                  Rp {approvalModalWithdrawal.netAmount.toLocaleString("id-ID")}
+                </span>
+              </div>
+            </div>
+
+            {/* Form Input Bukti & Catatan */}
+            <div className="space-y-3 text-xs">
+              <div className="space-y-1">
+                <label className="font-bold text-[#102A43]">
+                  URL / Tautan Bukti Transfer Bank (Screenshot m-Banking)
+                </label>
+                <input
+                  type="text"
+                  value={proofUrlInput}
+                  onChange={(e) => setProofUrlInput(e.target.value)}
+                  placeholder="https://storage.vimtk.cloud/proofs/..."
+                  className="w-full h-10 px-3 rounded-xl bg-slate-50 border border-slate-300 font-mono text-xs text-slate-800 outline-none focus:bg-white focus:border-[#F97316]"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-bold text-[#102A43]">
+                  Nomor Referensi Transfer / Catatan Admin
+                </label>
+                <input
+                  type="text"
+                  value={adminNotesInput}
+                  onChange={(e) => setAdminNotesInput(e.target.value)}
+                  placeholder="Transfer m-BCA Ref: 829103948..."
+                  className="w-full h-10 px-3 rounded-xl bg-slate-50 border border-slate-300 text-xs text-slate-800 outline-none focus:bg-white focus:border-[#F97316]"
+                />
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => {
+                  handleProcessWithdrawal(approvalModalWithdrawal.id, "REJECTED", adminNotesInput);
+                  setApprovalModalWithdrawal(null);
+                }}
+                className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-red-50 hover:text-red-700 text-slate-700 font-bold text-xs transition-colors"
+              >
+                Tolak Pengajuan
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  handleProcessWithdrawal(
+                    approvalModalWithdrawal.id,
+                    "COMPLETED",
+                    adminNotesInput,
+                    proofUrlInput
+                  );
+                  setApprovalModalWithdrawal(null);
+                }}
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all"
+              >
+                <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                <span>Konfirmasi Telah Ditransfer & Setujui</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: PRATINJAU BUKTI TRANSFER SELESAI */}
+      {selectedProofPreview && (
+        <div className="fixed inset-0 z-50 bg-[#0B1D3A]/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-emerald-600 text-[22px]">verified</span>
+                <h3 className="text-base font-bold text-[#102A43] font-display">
+                  Bukti Transfer Resmi
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedProofPreview(null)}
+                className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center justify-center"
+              >
+                <span className="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1 text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-500">Sales:</span>
+                <span className="font-bold text-slate-900">{selectedProofPreview.salesName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Nominal Bersih:</span>
+                <span className="font-bold text-emerald-700 font-display">
+                  Rp {selectedProofPreview.netAmount.toLocaleString("id-ID")}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Catatan Transfer:</span>
+                <span className="font-semibold text-slate-800">{selectedProofPreview.adminNotes || "-"}</span>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 overflow-hidden bg-slate-100 flex items-center justify-center p-2 min-h-[160px]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={selectedProofPreview.proofUrl}
+                alt="Bukti Transfer Bank"
+                className="max-h-72 w-auto object-contain rounded-lg"
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                  const fb = e.currentTarget.parentElement?.querySelector(".proof-fallback");
+                  if (fb) fb.classList.remove("hidden");
+                }}
+              />
+              <div className="proof-fallback hidden text-center p-4 text-xs text-slate-500">
+                <span className="material-symbols-outlined text-3xl text-emerald-600 block mb-1">
+                  receipt_long
+                </span>
+                <span className="font-bold text-slate-800 block">Bukti Transfer Resmi</span>
+                <span className="font-mono text-[11px] text-slate-500 break-all">
+                  {selectedProofPreview.proofUrl}
+                </span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setSelectedProofPreview(null)}
+              className="w-full h-10 rounded-xl bg-[#102A43] hover:bg-[#0B1D3A] text-white font-bold text-xs"
+            >
+              Tutup
+            </button>
           </div>
         </div>
       )}
