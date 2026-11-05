@@ -42,18 +42,55 @@ export default function LoginPage() {
     setIsLoading(true);
     setErrorMsg(null);
 
+    const cleanEmail = email.toLowerCase().trim();
+    let resolvedRole: "SALES" | "ADMIN" | "SUPERADMIN" = "SALES";
+    if (cleanEmail === "owner@protek.id") {
+      resolvedRole = "SUPERADMIN";
+    } else if (cleanEmail === "admin@protek.id") {
+      resolvedRole = "ADMIN";
+    } else if (cleanEmail.includes("sales")) {
+      resolvedRole = "SALES";
+    } else if (loginRole === "SUPERADMIN") {
+      resolvedRole = "SUPERADMIN";
+    } else if (loginRole === "ADMIN") {
+      resolvedRole = "ADMIN";
+    } else {
+      resolvedRole = "SALES";
+    }
+
     try {
-      const data = await api.login(email, password);
+      const data = await api.login(cleanEmail, password);
       setIsLoading(false);
 
+      // Pastikan role disinkronkan akurat dari identitas pengguna
+      if (cleanEmail === "owner@protek.id") {
+        resolvedRole = "SUPERADMIN";
+      } else if (cleanEmail === "admin@protek.id") {
+        resolvedRole = "ADMIN";
+      } else if (data?.user?.role === "ADMIN") {
+        resolvedRole = "ADMIN";
+      } else {
+        resolvedRole = "SALES";
+      }
+
       if (typeof window !== "undefined") {
-        localStorage.setItem("protek_user_role", loginRole);
+        localStorage.setItem("protek_user_role", resolvedRole);
+        localStorage.setItem("protek_user_email", cleanEmail);
+        localStorage.setItem(
+          "protek_user_name",
+          data?.user?.name ||
+            (resolvedRole === "SUPERADMIN"
+              ? "Owner / Direktur PT Pro Teknologi"
+              : resolvedRole === "ADMIN"
+              ? "Admin PT Pro Teknologi"
+              : "Budi Sales (Senior)")
+        );
       }
 
       const targetUrl =
-        loginRole === "SUPERADMIN"
+        resolvedRole === "SUPERADMIN"
           ? "/admin/command-center"
-          : data?.user?.role === "ADMIN" || loginRole === "ADMIN"
+          : resolvedRole === "ADMIN"
           ? "/admin"
           : "/";
       window.location.href = targetUrl;
@@ -68,15 +105,24 @@ export default function LoginPage() {
 
       if (isConnectionError) {
         if (typeof window !== "undefined") {
-          localStorage.setItem("protek_user_role", loginRole);
+          localStorage.setItem("protek_user_role", resolvedRole);
+          localStorage.setItem("protek_user_email", cleanEmail);
+          localStorage.setItem(
+            "protek_user_name",
+            resolvedRole === "SUPERADMIN"
+              ? "Owner / Direktur PT Pro Teknologi"
+              : resolvedRole === "ADMIN"
+              ? "Admin PT Pro Teknologi"
+              : "Budi Sales (Senior)"
+          );
         }
-        // Izinkan masuk mode offline/standalone sesuai permintaan user
-        if (loginRole === "SUPERADMIN") {
-          router.push("/admin/command-center");
-        } else if (loginRole === "ADMIN") {
-          router.push("/admin");
+        // Izinkan masuk mode offline/standalone sesuai peran
+        if (resolvedRole === "SUPERADMIN") {
+          window.location.href = "/admin/command-center";
+        } else if (resolvedRole === "ADMIN") {
+          window.location.href = "/admin";
         } else {
-          router.push("/");
+          window.location.href = "/";
         }
       } else {
         setErrorMsg(err.message || "Gagal masuk. Periksa email dan kata sandi Anda.");

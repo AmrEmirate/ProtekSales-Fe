@@ -69,7 +69,7 @@ export default function UiCustomStudioPage() {
     }
 
     setIsGenerating(true);
-    setStatusMessage("Menghubungkan ke Google Stitch MCP & men-generate mockup visual...");
+    setStatusMessage("Menghubungkan ke Studio Desain Visual POS & men-generate mockup visual...");
 
     try {
       const res = await api.requestUiDesign({
@@ -84,7 +84,7 @@ export default function UiCustomStudioPage() {
       if (res && res.data) {
         setActiveRequestId(res.data.id);
         setDesignData(res.data);
-        setStatusMessage("Mockup UI berhasil dibuat oleh Google Stitch AI!");
+        setStatusMessage("Mockup UI berhasil dibuat oleh Studio Desain Visual POS!");
       }
     } catch (err: any) {
       console.error(err);
@@ -101,14 +101,14 @@ export default function UiCustomStudioPage() {
     }
 
     setIsRevising(true);
-    setStatusMessage("Mengirim permintaan revisi ke Google Stitch AI...");
+    setStatusMessage("Mengirim permintaan revisi ke Studio Desain Visual POS...");
 
     try {
       const res = await api.reviseUiDesign(activeRequestId, revisionInput.trim());
       if (res && res.data) {
         setDesignData(res.data);
         setRevisionInput("");
-        setStatusMessage("Revisi berhasil diterapkan oleh Google Stitch AI!");
+        setStatusMessage("Revisi berhasil diterapkan oleh Studio Desain Visual POS!");
       }
     } catch (err: any) {
       console.error(err);
@@ -125,7 +125,7 @@ export default function UiCustomStudioPage() {
     }
 
     setIsApproving(true);
-    setStatusMessage("Antigravity Pipeline sedang bekerja: Men-generate Frontend kustom -> Injeksi Tema Stitch -> Menyambungkan ke Backend Cloud POS API...");
+    setStatusMessage("Antigravity Pipeline sedang bekerja: Men-generate Frontend kustom -> Injeksi Tema Visual -> Menyambungkan ke Backend Cloud POS API...");
 
     try {
       const res = await api.approveUiDesign(activeRequestId);
@@ -159,7 +159,7 @@ export default function UiCustomStudioPage() {
             </span>
             Studio Desain UI UMKM
             <span className="text-xs px-2.5 py-0.5 rounded-full bg-orange-100 text-[#F97316] font-bold">
-              Google Stitch MCP
+              Studio Visual POS
             </span>
           </h1>
           <p className="text-xs text-slate-500">
@@ -207,7 +207,7 @@ export default function UiCustomStudioPage() {
                   DESAIN DISETUJUI & POS AKTIF!
                 </h3>
                 <p className="text-xs text-emerald-100">
-                  Antigravity telah menyambungkan UI Stitch ke Backend Cloud POS Engine.
+                  Antigravity telah menyambungkan UI Kustom Kasir ke Backend Cloud POS Engine.
                 </p>
               </div>
             </div>
@@ -408,12 +408,12 @@ export default function UiCustomStudioPage() {
                 {isGenerating ? (
                   <>
                     <span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>
-                    <span>Men-generate Desain di Google Stitch...</span>
+                    <span>Men-generate Desain di Studio Visual...</span>
                   </>
                 ) : (
                   <>
                     <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
-                    <span>Generate Mockup via Google Stitch AI</span>
+                    <span>Generate Mockup via Studio Visual POS</span>
                   </>
                 )}
               </button>
@@ -446,12 +446,12 @@ export default function UiCustomStudioPage() {
                 {isRevising ? (
                   <>
                     <span className="material-symbols-outlined text-[16px] animate-spin">refresh</span>
-                    <span>Menerapkan Revisi ke Stitch AI...</span>
+                    <span>Menerapkan Revisi ke Studio Visual...</span>
                   </>
                 ) : (
                   <>
                     <span className="material-symbols-outlined text-[16px]">sync</span>
-                    <span>Kirim Revisi ke Stitch AI</span>
+                    <span>Kirim Revisi ke Studio Visual</span>
                   </>
                 )}
               </button>
@@ -468,7 +468,7 @@ export default function UiCustomStudioPage() {
                   devices
                 </span>
                 <h2 className="text-sm font-bold text-[#102A43]">
-                  Pratinjau Layar POS Kasir (Stitch Preview)
+                  Pratinjau Layar POS Kasir (Live Preview)
                 </h2>
               </div>
               {designData && (
@@ -511,7 +511,7 @@ export default function UiCustomStudioPage() {
                 {designData.themeConfig && (
                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-2">
                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
-                      Token Desain yang Diekstrak Stitch MCP
+                      Token Desain yang Diterapkan
                     </span>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
                       <div>
@@ -582,7 +582,7 @@ export default function UiCustomStudioPage() {
                 </div>
                 <h3 className="text-sm font-bold text-slate-700">Belum Ada Mockup yang Dibuat</h3>
                 <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                  Isi data nama usaha dan preferensi warna di panel sebelah kiri, lalu klik &quot;Generate Mockup via Google Stitch AI&quot;.
+                  Isi data nama usaha dan preferensi warna di panel sebelah kiri, lalu klik &quot;Generate Mockup via Studio Visual POS&quot;.
                 </p>
               </div>
             )}

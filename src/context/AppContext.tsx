@@ -121,7 +121,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return saved;
       }
     }
-    return "SUPERADMIN";
+    return "SALES";
   });
 
   const switchRole = useCallback((role: UserRole) => {
@@ -181,10 +181,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return;
       }
 
-      // 1. Fetch Profile
+      // 1. Fetch Profile & Sinkronisasi Role Pengguna
       try {
         const profile = await api.getProfile();
         if (profile?.user) {
+          const userEmail = (profile.user.email || "").toLowerCase().trim();
+          let resolvedRole: UserRole = "SALES";
+          if (userEmail === "owner@protek.id" || profile.user.role === "SUPERADMIN") {
+            resolvedRole = "SUPERADMIN";
+          } else if (userEmail === "admin@protek.id" || profile.user.role === "ADMIN") {
+            resolvedRole = "ADMIN";
+          } else {
+            resolvedRole = "SALES";
+          }
+          setCurrentUserRoleState(resolvedRole);
+          if (typeof window !== "undefined") {
+            localStorage.setItem("protek_user_role", resolvedRole);
+            localStorage.setItem("protek_user_email", userEmail);
+            localStorage.setItem("protek_user_name", profile.user.name || "Pengguna");
+          }
           setSalesProfile((prev) => ({
             ...prev,
             name: profile.user.name || prev.name,

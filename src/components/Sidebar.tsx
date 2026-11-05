@@ -39,73 +39,107 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const isSuperAdminOrAdmin = currentUserRole === "SUPERADMIN" || currentUserRole === "ADMIN";
 
-  const navSections: NavSection[] = [
-    ...(isSuperAdminOrAdmin
-      ? [
+  let navSections: NavSection[] = [];
+
+  if (currentUserRole === "SUPERADMIN") {
+    navSections = [
+      {
+        title: "KONTROL BISNIS & SAAS",
+        items: [
           {
-            title: "KONTROL BISNIS & SAAS",
-            items: [
-              {
-                href: "/admin/command-center",
-                label: "Command Center Bisnis",
-                icon: "hub",
-                badge: "Live",
-                badgeColor: "bg-[#2563EB]",
-              },
-              {
-                href: "/admin",
-                label: "Pusat Kontrol Admin",
-                icon: "admin_panel_settings",
-                badge: "HQ",
-              },
-            ],
+            href: "/admin/command-center",
+            label: "Command Center Bisnis",
+            icon: "hub",
+            badge: "Live",
+            badgeColor: "bg-[#2563EB]",
           },
-        ]
-      : []),
-    {
-      title: "UTAMA",
-      items: [
-        { href: "/", label: "Ringkasan Sales", icon: "dashboard" },
-        ...(isSuperAdminOrAdmin
-          ? []
-          : [
-              {
-                href: "/admin/command-center",
-                label: "Command Center Bisnis",
-                icon: "hub",
-                badge: "HQ",
-              },
-            ]),
-      ],
-    },
-    {
-      title: "ANTI-TABRAKAN OUTLET",
-      items: [
-        { href: "/leads/check", label: "Cek & Kunci Outlet", icon: "radar", badge: "30 Hari" },
-        { href: "/leads/pipeline", label: "Daftar Outlet Ditawarkan", icon: "storefront" },
-      ],
-    },
-    {
-      title: "PENDAFTARAN UMKM & UI",
-      items: [
-        { href: "/leads/ui-custom", label: "Daftar UMKM & Request UI", icon: "palette", badge: "Stitch AI" },
-      ],
-    },
-    {
-      title: "KOMISI & PENCAIRAN",
-      items: [
-        { href: "/commission/wallet", label: "Dompet Komisi", icon: "account_balance_wallet" },
-        { href: "/commission/withdraw", label: "Tarik Saldo Komisi", icon: "payments" },
-        { href: "/commission/history", label: "Riwayat Penarikan", icon: "receipt" },
-      ],
-    },
-    {
-      title: "AKUN",
-      items: [
-        { href: "/profile", label: "Profil & Rekening Bank", icon: "badge" },
-      ],
-    },
-  ];
+          {
+            href: "/admin",
+            label: "Pusat Kontrol Admin",
+            icon: "admin_panel_settings",
+            badge: "HQ",
+          },
+        ],
+      },
+      {
+        title: "OUTLET & KLIEN",
+        items: [
+          { href: "/outlets", label: "Daftar Outlet Klien", icon: "storefront" },
+          { href: "/leads/ui-custom", label: "Studio Desain UI UMKM", icon: "palette", badge: "Studio UI" },
+        ],
+      },
+      {
+        title: "AKUN",
+        items: [
+          { href: "/profile", label: "Profil Superadmin", icon: "badge" },
+        ],
+      },
+    ];
+  } else if (currentUserRole === "ADMIN") {
+    navSections = [
+      {
+        title: "PUSAT KONTROL HQ",
+        items: [
+          {
+            href: "/admin",
+            label: "Pusat Kontrol Admin",
+            icon: "admin_panel_settings",
+            badge: "HQ",
+          },
+        ],
+      },
+      {
+        title: "OUTLET & KLIEN",
+        items: [
+          { href: "/outlets", label: "Daftar Outlet Klien", icon: "storefront" },
+          { href: "/leads/ui-custom", label: "Studio Desain UI UMKM", icon: "palette", badge: "Studio UI" },
+        ],
+      },
+      {
+        title: "AKUN",
+        items: [
+          { href: "/profile", label: "Profil Admin HQ", icon: "badge" },
+        ],
+      },
+    ];
+  } else {
+    // SALES ROLE (Tidak ada akses ke halaman admin HQ)
+    navSections = [
+      {
+        title: "UTAMA",
+        items: [
+          { href: "/", label: "Ringkasan Sales", icon: "dashboard" },
+        ],
+      },
+      {
+        title: "ANTI-TABRAKAN OUTLET",
+        items: [
+          { href: "/leads/check", label: "Cek & Kunci Outlet", icon: "radar", badge: "30 Hari" },
+          { href: "/leads/pipeline", label: "Daftar Outlet Ditawarkan", icon: "storefront" },
+        ],
+      },
+      {
+        title: "PENDAFTARAN UMKM & UI",
+        items: [
+          { href: "/leads/ui-custom", label: "Daftar UMKM & Request UI", icon: "palette", badge: "Studio UI" },
+        ],
+      },
+      {
+        title: "KOMISI & PENCAIRAN",
+        items: [
+          { href: "/commission/wallet", label: "Dompet Komisi", icon: "account_balance_wallet" },
+          { href: "/commission/withdraw", label: "Tarik Saldo Komisi", icon: "payments" },
+          { href: "/commission/history", label: "Riwayat Penarikan", icon: "receipt" },
+        ],
+      },
+      {
+        title: "AKUN",
+        items: [
+          { href: "/profile", label: "Profil & Rekening Bank", icon: "badge" },
+        ],
+      },
+    ];
+  }
 
   return (
     <>
@@ -127,7 +161,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
       >
         {/* Sidebar Header */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-[#1E3E62]/80 bg-[#0B1D3A]">
-          <Link href="/" className="flex items-center gap-3 overflow-hidden">
+          <Link
+            href={
+              currentUserRole === "SUPERADMIN"
+                ? "/admin/command-center"
+                : currentUserRole === "ADMIN"
+                ? "/admin"
+                : "/"
+            }
+            className="flex items-center gap-3 overflow-hidden"
+          >
             <div className="w-9 h-9 rounded-lg bg-[#1E3E62] p-1 flex items-center justify-center shrink-0 border border-[#49607c]/40">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img

@@ -668,7 +668,7 @@ export default function DashboardPage() {
               </h2>
             </div>
             <p className="text-xs text-slate-500 leading-relaxed">
-              UMKM berminat menggunakan POS? Daftarkan data toko, upload foto logo/menu atau referensi apa yang dimau UMKM, dan generate UI prototipe kustom secara otomatis melalui Google Stitch AI.
+              UMKM berminat menggunakan POS? Daftarkan data toko, upload foto logo/menu atau referensi apa yang dimau UMKM, dan generate UI prototipe kustom secara otomatis melalui Studio Desain Visual POS.
             </p>
 
             <Link
@@ -684,7 +684,7 @@ export default function DashboardPage() {
                     Upload Kebutuhan & Buat UI Kasir
                   </h3>
                   <p className="text-[11px] text-slate-500">
-                    Google Stitch MCP Studio &bull; Approval 1-Klik
+                    Studio Desain Visual UI &bull; Approval 1-Klik
                   </p>
                 </div>
               </div>

@@ -67,7 +67,7 @@ export default function BusinessCommandCenterPage() {
     dbLatencyMs: 24,
     cluster: "AP-Southeast (Singapore/Jakarta Edge)",
     memoryRssMb: 142,
-    onlinePosCount: 48,
+    onlinePosCount: 6,
   });
 
   const showToast = (text: string, type: "success" | "error" | "info" = "success") => {
@@ -75,7 +75,7 @@ export default function BusinessCommandCenterPage() {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  // Default real businesses baseline
+  // Real businesses baseline (Hanya bisnis riil aktif, saat ini Dimsum Intan)
   const defaultBusinesses: BusinessTenant[] = useMemo(() => [
     {
       id: "tnt-dimsum-intan",
@@ -97,90 +97,6 @@ export default function BusinessCommandCenterPage() {
       lastHeartbeat: "3 detik lalu",
       createdAt: "2026-10-15",
       cluster: "Bandung & Jabodetabek",
-    },
-    {
-      id: "tnt-barakah-food",
-      name: "Barakah Food Industry",
-      slug: "barakahfood",
-      customDomain: "barakahfood.vimtk.cloud",
-      posUrl: "https://barakahfood.vimtk.cloud",
-      logoUrl: null,
-      plan: "ENTERPRISE",
-      status: "ACTIVE",
-      ownerName: "Haji Ahmad Barakah",
-      ownerEmail: "ceo@barakahfood.id",
-      ownerPhone: "+62 811-987-6543",
-      maxOutlets: 20,
-      usedOutlets: 12,
-      pricePerOutlet: 500000,
-      activePosCount: 24,
-      monthlyGmv: 184500000,
-      lastHeartbeat: "1 detik lalu",
-      createdAt: "2026-09-01",
-      cluster: "Surabaya & Jawa Timur",
-    },
-    {
-      id: "tnt-proship-exp",
-      name: "ProShip Express Logistics",
-      slug: "proship",
-      customDomain: "proship.vimtk.cloud",
-      posUrl: "https://proship.vimtk.cloud",
-      logoUrl: null,
-      plan: "GROWTH",
-      status: "ACTIVE",
-      ownerName: "Darmawan Santoso",
-      ownerEmail: "admin@proship.co.id",
-      ownerPhone: "+62 813-2233-4455",
-      maxOutlets: 8,
-      usedOutlets: 7,
-      pricePerOutlet: 350000,
-      activePosCount: 14,
-      monthlyGmv: 96200000,
-      lastHeartbeat: "5 detik lalu",
-      createdAt: "2026-10-02",
-      cluster: "Jakarta Hub",
-    },
-    {
-      id: "tnt-otgbracket",
-      name: "OtgBracket Hardware Store",
-      slug: "otgbracket",
-      customDomain: "otgbracket.vimtk.cloud",
-      posUrl: "https://otgbracket.vimtk.cloud",
-      logoUrl: null,
-      plan: "STARTER",
-      status: "REVIEW",
-      ownerName: "Bambang Otg",
-      ownerEmail: "owner@otgbracket.com",
-      ownerPhone: "+62 856-7890-1234",
-      maxOutlets: 2,
-      usedOutlets: 2,
-      pricePerOutlet: 250000,
-      activePosCount: 2,
-      monthlyGmv: 18400000,
-      lastHeartbeat: "12 detik lalu",
-      createdAt: "2026-10-20",
-      cluster: "Semarang",
-    },
-    {
-      id: "tnt-tauheed-news",
-      name: "Tauheed Media Network",
-      slug: "tauheednews",
-      customDomain: "tauheednews.vimtk.cloud",
-      posUrl: "https://tauheednews.vimtk.cloud",
-      logoUrl: null,
-      plan: "STARTER",
-      status: "ACTIVE",
-      ownerName: "Faris Al-Fatih",
-      ownerEmail: "editor@tauheednews.com",
-      ownerPhone: "+62 878-1122-3344",
-      maxOutlets: 1,
-      usedOutlets: 1,
-      pricePerOutlet: 250000,
-      activePosCount: 2,
-      monthlyGmv: 12000000,
-      lastHeartbeat: "8 detik lalu",
-      createdAt: "2026-10-28",
-      cluster: "Jakarta Pusat",
     },
   ], []);
 
@@ -210,7 +126,17 @@ export default function BusinessCommandCenterPage() {
           try {
             const parsed = JSON.parse(stored);
             if (Array.isArray(parsed) && parsed.length > 0) {
-              loadedList = parsed;
+              // Hapus data dummy lama jika tersimpan di cache browser
+              const filtered = parsed.filter(
+                (t: any) =>
+                  !["barakahfood", "proship", "otgbracket", "tauheednews", "warungbeku"].includes(t.slug)
+              );
+              if (filtered.length > 0) {
+                loadedList = filtered;
+                localStorage.setItem("protek_business_tenants", JSON.stringify(filtered));
+              } else {
+                localStorage.setItem("protek_business_tenants", JSON.stringify(defaultBusinesses));
+              }
             }
           } catch {}
         }

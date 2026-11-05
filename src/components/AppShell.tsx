@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { BottomNav } from "./BottomNav";
 import { api } from "@/services/api";
+import { useApp } from "@/context/AppContext";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -13,6 +14,8 @@ interface AppShellProps {
 
 export const AppShell: React.FC<AppShellProps> = ({ children }) => {
   const router = useRouter();
+  const pathname = usePathname();
+  const { currentUserRole } = useApp();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
@@ -21,16 +24,44 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
     const token = api.getToken();
     if (!token) {
       router.replace("/login");
-    } else {
-      setIsCheckingAuth(false);
+      return;
     }
-  }, [router]);
 
-  if (isCheckingAuth) {
+    // Strict Role-Based Access Control (RBAC) Path Validation
+    if (currentUserRole === "SALES" && pathname.startsWith("/admin")) {
+      router.replace("/");
+      return;
+    }
+
+    if (currentUserRole === "ADMIN") {
+      if (pathname.startsWith("/admin/command-center")) {
+        router.replace("/admin");
+        return;
+      }
+      if (pathname === "/") {
+        router.replace("/admin");
+        return;
+      }
+    }
+
+    if (currentUserRole === "SUPERADMIN" && pathname === "/") {
+      router.replace("/admin/command-center");
+      return;
+    }
+
+    setIsCheckingAuth(false);
+  }, [router, pathname, currentUserRole]);
+
+  const isUnauthorized =
+    (currentUserRole === "SALES" && pathname.startsWith("/admin")) ||
+    (currentUserRole === "ADMIN" && (pathname.startsWith("/admin/command-center") || pathname === "/")) ||
+    (currentUserRole === "SUPERADMIN" && pathname === "/");
+
+  if (isCheckingAuth || isUnauthorized) {
     return (
       <div className="min-h-screen bg-[#0B1D3A] flex flex-col items-center justify-center text-white">
         <div className="w-8 h-8 border-4 border-[#F97316] border-t-transparent rounded-full animate-spin mb-3" />
-        <span className="text-xs font-semibold text-slate-300">Memverifikasi sesi login resmi...</span>
+        <span className="text-xs font-semibold text-slate-300">Memverifikasi otorisasi akses role...</span>
       </div>
     );
   }

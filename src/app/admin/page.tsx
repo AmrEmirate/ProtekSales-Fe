@@ -829,7 +829,7 @@ export default function AdminDashboardPage() {
       )}
 
       {/* ============================================================== */}
-      {/* TAB KHUSUS: PENGAJUAN DESAIN UI UMKM (STITCH AI)                */}
+      {/* TAB KHUSUS: PENGAJUAN DESAIN UI UMKM                            */}
       {/* ============================================================== */}
       {activeTab === "UI_DESIGNS" && (
         <div className="space-y-4">
@@ -839,7 +839,7 @@ export default function AdminDashboardPage() {
                 Daftar Pengajuan Desain UI UMKM oleh Sales
               </h2>
               <p className="text-xs text-slate-500">
-                Pusat review mockup Google Stitch AI, permohonan kustomisasi tenant, dan persetujuan penerbitan POS kasir online.
+                Pusat review mockup Studio Desain UI, permohonan kustomisasi tenant, dan persetujuan penerbitan POS kasir online.
               </p>
             </div>
             <span className="px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-bold">

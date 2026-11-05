@@ -39,7 +39,7 @@ export default function LeaderboardPage() {
             mrrFormatted: `Rp ${(item.totalCommission || 0).toLocaleString("id-ID")}`,
             tier: item.tier || "Mitra Sales",
             bonus: item.bonus || 0,
-            isCurrentUser: item.email === "sales@protek.id",
+            isCurrentUser: item.name === salesProfile.name || item.id === salesProfile.id,
           }));
           setSalesList(mapped);
           return;
