@@ -72,7 +72,11 @@ export interface NotificationItem {
   actionUrl?: string;
 }
 
+export type UserRole = "SALES" | "ADMIN" | "SUPERADMIN";
+
 interface AppContextType {
+  currentUserRole: UserRole;
+  switchRole: (role: UserRole) => void;
   salesProfile: {
     name: string;
     id: string;
@@ -110,6 +114,23 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [currentUserRole, setCurrentUserRoleState] = useState<UserRole>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("protek_user_role") as UserRole;
+      if (saved === "SALES" || saved === "ADMIN" || saved === "SUPERADMIN") {
+        return saved;
+      }
+    }
+    return "SUPERADMIN";
+  });
+
+  const switchRole = useCallback((role: UserRole) => {
+    setCurrentUserRoleState(role);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("protek_user_role", role);
+    }
+  }, []);
+
   const [salesProfile, setSalesProfile] = useState({
     name: "Budi Santoso",
     id: "SLS-JKT-042",
@@ -440,6 +461,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   return (
     <AppContext.Provider
       value={{
+        currentUserRole,
+        switchRole,
         salesProfile,
         leads,
         outlets,

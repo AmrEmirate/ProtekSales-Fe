@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
 
-export type UserRole = 'SALES' | 'ADMIN';
+export type UserRole = 'SALES' | 'ADMIN' | 'SUPERADMIN';
 
 export const canAccessRoute = (role: UserRole, routePath: string): boolean => {
-  // Rute Khusus Admin (Pusat Kontrol Super Admin ProTek)
+  // Rute Khusus Admin & Superadmin (Pusat Kontrol Bisnis SaaS & Admin ProTek)
   if (routePath.startsWith('/admin')) {
-    return role === 'ADMIN';
+    return role === 'ADMIN' || role === 'SUPERADMIN';
   }
 
   // Rute Operasional Sales Lapangan & Toolkit
@@ -86,6 +86,23 @@ describe('Black Box Testing: Role-Based Access Control (RBAC) Navigation Matrix'
     it('should grant access to all sales views for monitoring & mentoring', () => {
       expect(canAccessRoute(role, '/leads/pipeline')).toBe(true);
       expect(canAccessRoute(role, '/outlets')).toBe(true);
+      expect(canAccessRoute(role, '/commission/wallet')).toBe(true);
+    });
+  });
+
+  describe('Business Super Admin (Admin Bisnis & Multi-Tenant SaaS) Permissions', () => {
+    const role: UserRole = 'SUPERADMIN';
+
+    it('should grant access to Business Command Center (/admin/command-center)', () => {
+      expect(canAccessRoute(role, '/admin/command-center')).toBe(true);
+      expect(canAccessRoute(role, '/admin')).toBe(true);
+      expect(canAccessRoute(role, '/admin/licenses')).toBe(true);
+    });
+
+    it('should grant access to oversee merchant outlets & pipeline', () => {
+      expect(canAccessRoute(role, '/')).toBe(true);
+      expect(canAccessRoute(role, '/outlets')).toBe(true);
+      expect(canAccessRoute(role, '/leads/pipeline')).toBe(true);
       expect(canAccessRoute(role, '/commission/wallet')).toBe(true);
     });
   });

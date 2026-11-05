@@ -33,16 +33,49 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onToggleCollapse,
 }) => {
   const pathname = usePathname();
-  const { salesProfile, notifications, isOffline, offlineQueueCount, outlets } = useApp();
+  const { salesProfile, notifications, isOffline, offlineQueueCount, outlets, currentUserRole } = useApp();
 
   const unreadNotifs = notifications.filter((n) => !n.read).length;
 
+  const isSuperAdminOrAdmin = currentUserRole === "SUPERADMIN" || currentUserRole === "ADMIN";
+
   const navSections: NavSection[] = [
+    ...(isSuperAdminOrAdmin
+      ? [
+          {
+            title: "KONTROL BISNIS & SAAS",
+            items: [
+              {
+                href: "/admin/command-center",
+                label: "Command Center Bisnis",
+                icon: "hub",
+                badge: "Live",
+                badgeColor: "bg-[#2563EB]",
+              },
+              {
+                href: "/admin",
+                label: "Pusat Kontrol Admin",
+                icon: "admin_panel_settings",
+                badge: "HQ",
+              },
+            ],
+          },
+        ]
+      : []),
     {
       title: "UTAMA",
       items: [
         { href: "/", label: "Ringkasan Sales", icon: "dashboard" },
-        { href: "/admin", label: "Pusat Kontrol Admin", icon: "admin_panel_settings", badge: "HQ" },
+        ...(isSuperAdminOrAdmin
+          ? []
+          : [
+              {
+                href: "/admin/command-center",
+                label: "Command Center Bisnis",
+                icon: "hub",
+                badge: "HQ",
+              },
+            ]),
       ],
     },
     {
@@ -139,28 +172,50 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
         </div>
 
-        {/* User Card */}
+        {/* User Role Card */}
         <div className="p-3 border-b border-[#1E3E62]/60 bg-[#0B1D3A]/40">
           <div className="flex items-center gap-3 p-2 rounded-xl bg-[#1E3E62]/50 border border-[#1E3E62]">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-[#F97316] to-[#FF8A00] flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-md">
-              BS
+            <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-md ${
+              currentUserRole === "SUPERADMIN"
+                ? "bg-gradient-to-tr from-[#2563EB] to-[#38BDF8]"
+                : currentUserRole === "ADMIN"
+                ? "bg-gradient-to-tr from-[#0F766E] to-[#10B981]"
+                : "bg-gradient-to-tr from-[#F97316] to-[#FF8A00]"
+            }`}>
+              {currentUserRole === "SUPERADMIN" ? "SA" : currentUserRole === "ADMIN" ? "AD" : "BS"}
             </div>
             {!isCollapsed && (
               <div className="flex flex-col min-w-0 flex-1">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-white truncate">
-                    {salesProfile.name}
+                    {currentUserRole === "SUPERADMIN"
+                      ? "Admin Bisnis"
+                      : currentUserRole === "ADMIN"
+                      ? "Admin Operasional"
+                      : salesProfile.name}
                   </span>
-                  <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
-                    {salesProfile.tier.split(" ")[0]}
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold border ${
+                    currentUserRole === "SUPERADMIN"
+                      ? "bg-[#38BDF8]/20 text-[#38BDF8] border-[#38BDF8]/30"
+                      : currentUserRole === "ADMIN"
+                      ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                      : "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                  }`}>
+                    {currentUserRole === "SUPERADMIN"
+                      ? "SUPERADMIN"
+                      : currentUserRole === "ADMIN"
+                      ? "ADMIN"
+                      : salesProfile.tier.split(" ")[0]}
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-slate-300">
-                  <span className="text-[#F97316] font-semibold">
-                    Target: {salesProfile.targetPercent}%
+                  <span className={`${currentUserRole === "SUPERADMIN" ? "text-[#38BDF8]" : "text-[#F97316]"} font-semibold truncate`}>
+                    {currentUserRole === "SUPERADMIN"
+                      ? "Multi-Tenant SaaS HQ"
+                      : currentUserRole === "ADMIN"
+                      ? "Pusat Server & HQ"
+                      : `Target: ${salesProfile.targetPercent}%`}
                   </span>
-                  <span>•</span>
-                  <span className="truncate text-slate-400">{salesProfile.id}</span>
                 </div>
               </div>
             )}

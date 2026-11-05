@@ -3,43 +3,81 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useApp } from "@/context/AppContext";
 
 export const BottomNav: React.FC = () => {
   const pathname = usePathname();
+  const { currentUserRole } = useApp();
 
-  const navItems = [
-    {
-      href: "/",
-      label: "Beranda",
-      icon: "dashboard",
-      isActive: pathname === "/",
-    },
-    {
-      href: "/leads/check",
-      label: "Kunci Outlet",
-      icon: "radar",
-      isActive: pathname.startsWith("/leads/check"),
-    },
-    {
-      href: "/leads/ui-custom",
-      label: "Desain UMKM",
-      icon: "palette",
-      isActive: pathname.startsWith("/leads/ui-custom"),
-      highlight: true,
-    },
-    {
-      href: "/leads/pipeline",
-      label: "Outlet Saya",
-      icon: "storefront",
-      isActive: pathname.startsWith("/leads/pipeline"),
-    },
-    {
-      href: "/commission/wallet",
-      label: "Komisi",
-      icon: "account_balance_wallet",
-      isActive: pathname.startsWith("/commission"),
-    },
-  ];
+  const isSuperAdmin = currentUserRole === "SUPERADMIN";
+
+  const navItems = isSuperAdmin
+    ? [
+        {
+          href: "/",
+          label: "Sales",
+          icon: "dashboard",
+          isActive: pathname === "/",
+        },
+        {
+          href: "/admin",
+          label: "Admin HQ",
+          icon: "admin_panel_settings",
+          isActive: pathname === "/admin",
+        },
+        {
+          href: "/admin/command-center",
+          label: "Bisnis SaaS",
+          icon: "hub",
+          isActive: pathname.startsWith("/admin/command-center"),
+          highlight: true,
+        },
+        {
+          href: "/leads/pipeline",
+          label: "Outlet",
+          icon: "storefront",
+          isActive: pathname.startsWith("/leads/pipeline"),
+        },
+        {
+          href: "/commission/wallet",
+          label: "Komisi",
+          icon: "account_balance_wallet",
+          isActive: pathname.startsWith("/commission"),
+        },
+      ]
+    : [
+        {
+          href: "/",
+          label: "Beranda",
+          icon: "dashboard",
+          isActive: pathname === "/",
+        },
+        {
+          href: "/leads/check",
+          label: "Kunci Outlet",
+          icon: "radar",
+          isActive: pathname.startsWith("/leads/check"),
+        },
+        {
+          href: "/leads/ui-custom",
+          label: "Desain UMKM",
+          icon: "palette",
+          isActive: pathname.startsWith("/leads/ui-custom"),
+          highlight: true,
+        },
+        {
+          href: "/leads/pipeline",
+          label: "Outlet Saya",
+          icon: "storefront",
+          isActive: pathname.startsWith("/leads/pipeline"),
+        },
+        {
+          href: "/commission/wallet",
+          label: "Komisi",
+          icon: "account_balance_wallet",
+          isActive: pathname.startsWith("/commission"),
+        },
+      ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E2E8F0] shadow-[0_-2px_10px_rgba(0,0,0,0.05)] lg:hidden">

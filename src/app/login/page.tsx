@@ -8,26 +8,29 @@ import { api } from "@/services/api";
 export default function LoginPage() {
   const router = useRouter();
 
-  const [loginRole, setLoginRole] = useState<"SALES" | "ADMIN">("ADMIN");
+  const [loginRole, setLoginRole] = useState<"SALES" | "ADMIN" | "SUPERADMIN">("SUPERADMIN");
   const [email, setEmail] = useState("owner@protek.id");
   const [password, setPassword] = useState("admin123");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const fillQuickAccount = (role: "SALES" | "ADMIN", accEmail: string, accPass: string) => {
+  const fillQuickAccount = (role: "SALES" | "ADMIN" | "SUPERADMIN", accEmail: string, accPass: string) => {
     setLoginRole(role);
     setEmail(accEmail);
     setPassword(accPass);
     setErrorMsg(null);
   };
 
-  const handleRoleSwitch = (role: "SALES" | "ADMIN") => {
+  const handleRoleSwitch = (role: "SALES" | "ADMIN" | "SUPERADMIN") => {
     setLoginRole(role);
     setErrorMsg(null);
     if (role === "SALES") {
       setEmail("sales1@protek.id");
       setPassword("sales123");
+    } else if (role === "ADMIN") {
+      setEmail("admin@protek.id");
+      setPassword("admin123");
     } else {
       setEmail("owner@protek.id");
       setPassword("admin123");
@@ -43,8 +46,16 @@ export default function LoginPage() {
       const data = await api.login(email, password);
       setIsLoading(false);
 
+      if (typeof window !== "undefined") {
+        localStorage.setItem("protek_user_role", loginRole);
+      }
+
       const targetUrl =
-        data?.user?.role === "ADMIN" || loginRole === "ADMIN" ? "/admin" : "/";
+        loginRole === "SUPERADMIN"
+          ? "/admin/command-center"
+          : data?.user?.role === "ADMIN" || loginRole === "ADMIN"
+          ? "/admin"
+          : "/";
       window.location.href = targetUrl;
     } catch (err: any) {
       setIsLoading(false);
@@ -56,8 +67,13 @@ export default function LoginPage() {
         err?.message?.includes("HTTP Error");
 
       if (isConnectionError) {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("protek_user_role", loginRole);
+        }
         // Izinkan masuk mode offline/standalone sesuai permintaan user
-        if (loginRole === "ADMIN") {
+        if (loginRole === "SUPERADMIN") {
+          router.push("/admin/command-center");
+        } else if (loginRole === "ADMIN") {
           router.push("/admin");
         } else {
           router.push("/");
@@ -105,33 +121,33 @@ export default function LoginPage() {
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
               ⚡ Akun Uji Coba Cepat (1-Click Fill):
             </span>
-            <div className="grid grid-cols-2 gap-2 text-left">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-left">
               <button
                 type="button"
-                onClick={() => fillQuickAccount("ADMIN", "owner@protek.id", "admin123")}
+                onClick={() => fillQuickAccount("SUPERADMIN", "owner@protek.id", "admin123")}
                 className={`p-2.5 rounded-xl border text-xs font-semibold transition-all ${
-                  email === "owner@protek.id"
-                    ? "bg-[#102A43] text-white border-[#102A43] shadow-sm"
+                  loginRole === "SUPERADMIN"
+                    ? "bg-[#0B1D3A] text-[#38BDF8] border-[#38BDF8] shadow-md ring-1 ring-[#38BDF8]"
                     : "bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200"
                 }`}
               >
-                <div className="font-bold flex items-center gap-1">
-                  <span>👑 Owner / Admin</span>
+                <div className="font-bold flex items-center gap-1 text-[#38BDF8]">
+                  <span>👑 Admin Bisnis & SaaS</span>
                 </div>
-                <div className="text-[10px] opacity-80 truncate">Atur Komisi % & UI</div>
+                <div className="text-[10px] opacity-80 truncate">Command Center Multi-Tenant</div>
               </button>
 
               <button
                 type="button"
                 onClick={() => fillQuickAccount("ADMIN", "admin@protek.id", "admin123")}
                 className={`p-2.5 rounded-xl border text-xs font-semibold transition-all ${
-                  email === "admin@protek.id"
+                  loginRole === "ADMIN"
                     ? "bg-[#102A43] text-white border-[#102A43] shadow-sm"
                     : "bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200"
                 }`}
               >
                 <div className="font-bold flex items-center gap-1">
-                  <span>🛡️ Admin Operasional</span>
+                  <span>🛡️ Admin Sales CRM</span>
                 </div>
                 <div className="text-[10px] opacity-80 truncate">Pusat Server & Tagihan</div>
               </button>
@@ -140,47 +156,32 @@ export default function LoginPage() {
                 type="button"
                 onClick={() => fillQuickAccount("SALES", "sales1@protek.id", "sales123")}
                 className={`p-2.5 rounded-xl border text-xs font-semibold transition-all ${
-                  email === "sales1@protek.id"
+                  loginRole === "SALES"
                     ? "bg-[#F97316] text-white border-[#F97316] shadow-sm"
                     : "bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200"
                 }`}
               >
                 <div className="font-bold flex items-center gap-1">
-                  <span>💼 Sales 1 (Budi)</span>
+                  <span>💼 Mitra Sales (Budi)</span>
                 </div>
-                <div className="text-[10px] opacity-80 truncate">Saldo Rp 500rb + Outlet</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => fillQuickAccount("SALES", "sales2@protek.id", "sales123")}
-                className={`p-2.5 rounded-xl border text-xs font-semibold transition-all ${
-                  email === "sales2@protek.id"
-                    ? "bg-[#F97316] text-white border-[#F97316] shadow-sm"
-                    : "bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200"
-                }`}
-              >
-                <div className="font-bold flex items-center gap-1">
-                  <span>💼 Sales 2 (Dedi)</span>
-                </div>
-                <div className="text-[10px] opacity-80 truncate">Uji Anti-Tabrakan</div>
+                <div className="text-[10px] opacity-80 truncate">Kunci Leads & Dompet</div>
               </button>
             </div>
           </div>
 
           {/* Role Tab Switcher */}
-          <div className="p-1 rounded-xl bg-slate-100 flex items-center text-xs font-bold">
+          <div className="p-1 rounded-xl bg-slate-100 flex items-center text-xs font-bold gap-1">
             <button
               type="button"
-              onClick={() => handleRoleSwitch("SALES")}
+              onClick={() => handleRoleSwitch("SUPERADMIN")}
               className={`flex-1 py-2 rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-                loginRole === "SALES"
-                  ? "bg-white text-[#102A43] shadow-sm font-bold"
+                loginRole === "SUPERADMIN"
+                  ? "bg-[#0B1D3A] text-[#38BDF8] shadow-sm font-bold border border-[#38BDF8]/40"
                   : "text-slate-500 hover:text-slate-900"
               }`}
             >
-              <span className="material-symbols-outlined text-[16px]">badge</span>
-              <span>Mitra Sales Lapangan</span>
+              <span className="material-symbols-outlined text-[16px]">hub</span>
+              <span>Admin Bisnis</span>
             </button>
             <button
               type="button"
@@ -192,7 +193,19 @@ export default function LoginPage() {
               }`}
             >
               <span className="material-symbols-outlined text-[16px]">admin_panel_settings</span>
-              <span>Pusat Kontrol Admin</span>
+              <span>Admin Sales</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleRoleSwitch("SALES")}
+              className={`flex-1 py-2 rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+                loginRole === "SALES"
+                  ? "bg-white text-[#F97316] shadow-sm font-bold"
+                  : "text-slate-500 hover:text-slate-900"
+              }`}
+            >
+              <span className="material-symbols-outlined text-[16px]">badge</span>
+              <span>Mitra Sales</span>
             </button>
           </div>
 

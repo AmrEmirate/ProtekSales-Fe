@@ -21,6 +21,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, isSidebarCollap
     markNotificationRead,
     markAllNotificationsRead,
     availableBalance,
+    currentUserRole,
   } = useApp();
 
   const [showNotifMenu, setShowNotifMenu] = useState(false);
@@ -29,6 +30,8 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, isSidebarCollap
   const unreadNotifs = notifications.filter((n) => !n.read);
 
   const getPageTitle = () => {
+    if (pathname.startsWith("/admin/command-center")) return "Command Center Bisnis & SaaS Multi-Tenant";
+    if (pathname.startsWith("/admin")) return "Pusat Kontrol Admin & HQ";
     if (pathname === "/") return "Ringkasan Command Center";
     if (pathname.startsWith("/leads/check")) return "Cek & Kunci Prospek";
     if (pathname.startsWith("/leads/pipeline")) return "Pipeline & Kunjungan";
@@ -208,17 +211,25 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, isSidebarCollap
         <Link
           href="/profile"
           className="flex items-center gap-2 pl-1 group"
-          title="Lihat Profil Sales"
+          title="Lihat Profil Pengguna"
         >
-          <div className="w-9 h-9 rounded-xl bg-[#102A43] text-white flex items-center justify-center font-bold text-xs group-hover:ring-2 group-hover:ring-[#F97316] transition-all">
-            BS
+          <div className={`w-9 h-9 rounded-xl text-white flex items-center justify-center font-bold text-xs transition-all ${
+            currentUserRole === "SUPERADMIN"
+              ? "bg-[#0B1D3A] border border-[#38BDF8] text-[#38BDF8] group-hover:ring-2 group-hover:ring-[#38BDF8]"
+              : currentUserRole === "ADMIN"
+              ? "bg-[#0F766E] border border-teal-400 group-hover:ring-2 group-hover:ring-teal-400"
+              : "bg-[#102A43] group-hover:ring-2 group-hover:ring-[#F97316]"
+          }`}>
+            {currentUserRole === "SUPERADMIN" ? "👑" : currentUserRole === "ADMIN" ? "🛡️" : "BS"}
           </div>
           <div className="hidden xl:flex flex-col text-left">
             <span className="text-xs font-bold text-[#102A43] leading-none">
-              {salesProfile.name}
+              {currentUserRole === "SUPERADMIN" ? "Admin Bisnis" : currentUserRole === "ADMIN" ? "Admin Sales" : salesProfile.name}
             </span>
-            <span className="text-[10px] text-[#F97316] font-semibold">
-              {salesProfile.tier}
+            <span className={`text-[10px] font-semibold ${
+              currentUserRole === "SUPERADMIN" ? "text-[#0284C7]" : currentUserRole === "ADMIN" ? "text-emerald-600" : "text-[#F97316]"
+            }`}>
+              {currentUserRole === "SUPERADMIN" ? "SUPERADMIN HQ" : currentUserRole === "ADMIN" ? "OPERATIONAL HQ" : salesProfile.tier}
             </span>
           </div>
         </Link>

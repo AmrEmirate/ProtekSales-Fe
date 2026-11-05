@@ -503,6 +503,18 @@ export default function AdminDashboardPage() {
 
       {/* 2. Navigation Tabs Matching Blueprint 1.B */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-slate-200">
+        <Link
+          href="/admin/command-center"
+          className="px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 shrink-0 bg-[#0B1D3A] text-[#38BDF8] border border-[#38BDF8]/40 hover:bg-[#102A43] shadow-xs active:scale-95"
+          title="Buka Command Center Bisnis Multi-Tenant"
+        >
+          <span className="material-symbols-outlined text-[18px]">hub</span>
+          <span>👑 Command Center Bisnis SaaS</span>
+          <span className="px-1.5 py-0.2 rounded-full bg-[#38BDF8]/20 text-[#38BDF8] text-[9px] font-black">
+            HQ
+          </span>
+        </Link>
+
         <button
           onClick={() => setActiveTab("COMMISSION_SETTINGS")}
           className={`px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 shrink-0 ${
