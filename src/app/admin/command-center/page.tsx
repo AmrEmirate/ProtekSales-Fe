@@ -106,12 +106,21 @@ export default function BusinessCommandCenterPage() {
     try {
       // 1. Ambil telemetry live dari endpoint Cloud POS jika tersedia
       try {
-        const health = await api.getCloudPosHealth();
+        const [health, analytics] = await Promise.all([
+          api.getCloudPosHealth().catch(() => null),
+          api.getCloudPosAnalytics().catch(() => null),
+        ]);
         if (health) {
           setTelemetry((prev) => ({
             ...prev,
             status: health.online ? "HEALTHY" : "DEGRADED",
             dbLatencyMs: health.latencyMs || prev.dbLatencyMs,
+          }));
+        }
+        if (analytics) {
+          setTelemetry((prev) => ({
+            ...prev,
+            onlinePosCount: analytics.totalUsers || analytics.totalOutlets || prev.onlinePosCount,
           }));
         }
       } catch {
@@ -142,14 +151,30 @@ export default function BusinessCommandCenterPage() {
         }
       }
 
-      // 3. Gabungkan dengan data sinkronisasi backend
+      // 3. Gabungkan dengan data sinkronisasi backend Cloud POS
       try {
         const cloudData = await api.getCloudPosTenants();
         if (cloudData?.tenants && Array.isArray(cloudData.tenants)) {
-          // Sync any new tenants
+          // Sinkronisasi data real-time tenant dari Cloud POS
           cloudData.tenants.forEach((ct: any) => {
-            const exists = loadedList.some((t) => t.slug === ct.slug || t.id === ct.id);
-            if (!exists && ct.name) {
+            const existingIdx = loadedList.findIndex(
+              (t) =>
+                t.slug === ct.slug ||
+                t.id === ct.id ||
+                (ct.slug === "dimsum-intan" && (t.slug === "dimsumintan" || t.slug === "dimsum-intan"))
+            );
+            if (existingIdx >= 0) {
+              loadedList[existingIdx] = {
+                ...loadedList[existingIdx],
+                name: ct.name || loadedList[existingIdx].name,
+                usedOutlets: ct.outletsCount || loadedList[existingIdx].usedOutlets,
+                pricePerOutlet: ct.pricePerOutlet || loadedList[existingIdx].pricePerOutlet,
+                status: ct.status === "ACTIVE" ? "ACTIVE" : "SUSPENDED",
+                activePosCount: ct.usersCount || ct.outletsCount || loadedList[existingIdx].activePosCount,
+                monthlyGmv: ct.totalGmv || loadedList[existingIdx].monthlyGmv,
+                lastHeartbeat: "Live Cloud POS",
+              };
+            } else if (ct.name) {
               loadedList.push({
                 id: ct.id || `tnt-${ct.slug}`,
                 name: ct.name,
@@ -164,9 +189,9 @@ export default function BusinessCommandCenterPage() {
                 maxOutlets: ct.maxOutlets || 5,
                 usedOutlets: ct.outletsCount || 1,
                 pricePerOutlet: ct.pricePerOutlet || 350000,
-                activePosCount: ct.posCount || 2,
-                monthlyGmv: ct.totalGmv || 25000000,
-                lastHeartbeat: "Baru saja",
+                activePosCount: ct.usersCount || ct.posCount || 2,
+                monthlyGmv: ct.totalGmv || 0,
+                lastHeartbeat: "Live Cloud POS",
                 createdAt: ct.createdAt || new Date().toISOString().split("T")[0],
                 cluster: "Nasional",
               });
