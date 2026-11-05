@@ -185,4 +185,61 @@ describe('White Box Testing: api.ts (REST API Client)', () => {
       expect(res.data.tenantSlug).toBe('boba-tea');
     });
   });
+
+  describe('Admin Sales Management (createSalesAccount & deleteSalesAccount)', () => {
+    it('should POST /admin/sales with correct payload when creating sales partner', async () => {
+      api.setToken('admin-token-123');
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          success: true,
+          message: 'Akun sales berhasil dibuat',
+          data: { id: 'sales-new-1', name: 'Sales Baru' },
+        }),
+      });
+      globalThis.fetch = mockFetch;
+
+      const payload = {
+        name: 'Budi Sales',
+        email: 'budi@vimtk.cloud',
+        password: 'securePassword123!',
+        phone: '628123456789',
+        tier: 'GOLD',
+        commissionRate: 30,
+        bankName: 'BCA',
+        bankAccountNumber: '9876543210',
+        bankAccountHolder: 'Budi Sales',
+      };
+
+      const res = await api.createSalesAccount(payload);
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const [url, options] = mockFetch.mock.calls[0];
+      expect(url).toContain('/admin/sales');
+      expect(options.method).toBe('POST');
+      expect(JSON.parse(options.body).name).toBe('Budi Sales');
+      expect(JSON.parse(options.body).commissionRate).toBe(30);
+      expect(res.data.id).toBe('sales-new-1');
+    });
+
+    it('should DELETE /admin/sales/:id when deleting sales partner', async () => {
+      api.setToken('admin-token-123');
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          success: true,
+          message: 'Akun sales berhasil dihapus',
+        }),
+      });
+      globalThis.fetch = mockFetch;
+
+      const res = await api.deleteSalesAccount('sales-123');
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const [url, options] = mockFetch.mock.calls[0];
+      expect(url).toContain('/admin/sales/sales-123');
+      expect(options.method).toBe('DELETE');
+      expect(res.success).toBe(true);
+    });
+  });
 });

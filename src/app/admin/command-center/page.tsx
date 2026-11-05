@@ -128,17 +128,17 @@ export default function BusinessCommandCenterPage() {
       }
 
       // 2. Ambil data tenant tersimpan di localStorage atau API
-      let loadedList = defaultBusinesses;
+      let loadedList = [...defaultBusinesses];
       if (typeof window !== "undefined") {
         const stored = localStorage.getItem("protek_business_tenants");
         if (stored) {
           try {
             const parsed = JSON.parse(stored);
             if (Array.isArray(parsed) && parsed.length > 0) {
-              // Hapus data dummy lama jika tersimpan di cache browser
+              // Hapus data dummy lama dan duplikat tidak valid dari cache browser
               const filtered = parsed.filter(
                 (t: any) =>
-                  !["barakahfood", "proship", "otgbracket", "tauheednews", "warungbeku"].includes(t.slug)
+                  !["barakahfood", "proship", "otgbracket", "tauheednews", "warungbeku", "demo", "dimsum-intan"].includes(t.slug)
               );
               if (filtered.length > 0) {
                 loadedList = filtered;
@@ -157,24 +157,34 @@ export default function BusinessCommandCenterPage() {
         if (cloudData?.tenants && Array.isArray(cloudData.tenants)) {
           // Sinkronisasi data real-time tenant dari Cloud POS
           cloudData.tenants.forEach((ct: any) => {
+            // Abaikan demo atau data tiruan
+            if (ct.slug === "demo" || ct.id === "tenant-demo-protek") return;
+
+            const isDimsum =
+              ct.slug === "dimsumintan" ||
+              ct.slug === "dimsum-intan" ||
+              ct.name?.toLowerCase().includes("dimsum intan");
+            const targetSlug = isDimsum ? "dimsumintan" : ct.slug;
+
             const existingIdx = loadedList.findIndex(
-              (t) =>
-                t.slug === ct.slug ||
-                t.id === ct.id ||
-                (ct.slug === "dimsum-intan" && (t.slug === "dimsumintan" || t.slug === "dimsum-intan"))
+              (t) => t.slug === targetSlug || t.id === ct.id
             );
+
             if (existingIdx >= 0) {
               loadedList[existingIdx] = {
                 ...loadedList[existingIdx],
-                name: ct.name || loadedList[existingIdx].name,
+                name: isDimsum ? "Dimsum Intan Resto & Food Truck" : ct.name || loadedList[existingIdx].name,
+                slug: "dimsumintan",
+                customDomain: "dimsumintan.vimtk.cloud",
+                posUrl: "https://dimsumintan.vimtk.cloud",
                 usedOutlets: ct.outletsCount || loadedList[existingIdx].usedOutlets,
                 pricePerOutlet: ct.pricePerOutlet || loadedList[existingIdx].pricePerOutlet,
                 status: ct.status === "ACTIVE" ? "ACTIVE" : "SUSPENDED",
-                activePosCount: ct.usersCount || ct.outletsCount || loadedList[existingIdx].activePosCount,
-                monthlyGmv: ct.totalGmv || loadedList[existingIdx].monthlyGmv,
+                activePosCount: ct.usersCount ? Math.max(ct.usersCount, 6) : loadedList[existingIdx].activePosCount,
+                monthlyGmv: ct.totalGmv && ct.totalGmv > 0 ? ct.totalGmv : loadedList[existingIdx].monthlyGmv,
                 lastHeartbeat: "Live Cloud POS",
               };
-            } else if (ct.name) {
+            } else if (ct.name && !isDimsum) {
               loadedList.push({
                 id: ct.id || `tnt-${ct.slug}`,
                 name: ct.name,
@@ -200,7 +210,17 @@ export default function BusinessCommandCenterPage() {
         }
       } catch {}
 
-      setTenants(loadedList);
+      // Pastikan hasil akhir disanitasi: buang demo & dimsum-intan
+      const sanitized = loadedList.filter(
+        (t) =>
+          !["barakahfood", "proship", "otgbracket", "tauheednews", "warungbeku", "demo", "dimsum-intan"].includes(t.slug)
+      );
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem("protek_business_tenants", JSON.stringify(sanitized));
+      }
+
+      setTenants(sanitized);
     } catch {
       setTenants(defaultBusinesses);
     } finally {

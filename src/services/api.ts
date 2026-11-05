@@ -387,6 +387,32 @@ class ApiService {
     return res.data;
   }
 
+  async createSalesAccount(data: {
+    name: string;
+    email: string;
+    password: string;
+    phone: string;
+    commissionRate?: number;
+    tier?: string;
+    bankName?: string;
+    bankAccountNumber?: string;
+    bankAccountHolder?: string;
+    npwp?: string;
+  }) {
+    const res = await this.request<{ success: boolean; message: string; data: any }>("/admin/sales", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return res;
+  }
+
+  async deleteSalesAccount(salesId: string) {
+    const res = await this.request<{ success: boolean; message: string }>(`/admin/sales/${salesId}`, {
+      method: "DELETE",
+    });
+    return res;
+  }
+
   async updateSalesCommissionRate(salesId: string, commissionRate: number) {
     const res = await this.request<{ success: boolean; message: string; data: any }>(
       `/admin/sales/${salesId}/commission-rate`,

@@ -102,6 +102,103 @@ export default function AdminDashboardPage() {
   const [adminNotesInput, setAdminNotesInput] = useState<string>("");
   const [selectedProofPreview, setSelectedProofPreview] = useState<WithdrawalItem | null>(null);
 
+  // Add Sales Account Modal & Management States
+  const [isAddSalesModalOpen, setIsAddSalesModalOpen] = useState(false);
+  const [isSubmittingSales, setIsSubmittingSales] = useState(false);
+  const [salesError, setSalesError] = useState<string | null>(null);
+  const [deletingSalesId, setDeletingSalesId] = useState<string | null>(null);
+  const [newSalesForm, setNewSalesForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    phone: "",
+    tier: "SILVER",
+    commissionRate: 25,
+    bankName: "BCA",
+    bankAccountNumber: "",
+    bankAccountHolder: "",
+    npwp: "",
+  });
+
+  const handleGeneratePassword = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%";
+    let pwd = "";
+    for (let i = 0; i < 10; i++) {
+      pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setNewSalesForm((prev) => ({ ...prev, password: pwd }));
+  };
+
+  const handleCreateSales = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSalesError(null);
+
+    if (!newSalesForm.name || !newSalesForm.email || !newSalesForm.password || !newSalesForm.phone) {
+      setSalesError("Mohon lengkapi Nama, Email, Password, dan No. WhatsApp.");
+      return;
+    }
+
+    try {
+      setIsSubmittingSales(true);
+      await api.createSalesAccount({
+        name: newSalesForm.name,
+        email: newSalesForm.email,
+        password: newSalesForm.password,
+        phone: newSalesForm.phone,
+        tier: newSalesForm.tier,
+        commissionRate: Number(newSalesForm.commissionRate) || 25,
+        bankName: newSalesForm.bankName,
+        bankAccountNumber: newSalesForm.bankAccountNumber,
+        bankAccountHolder: newSalesForm.bankAccountHolder,
+        npwp: newSalesForm.npwp,
+      });
+
+      setActionNotice(`Berhasil menambahkan mitra sales "${newSalesForm.name}"!`);
+      setIsAddSalesModalOpen(false);
+      setNewSalesForm({
+        name: "",
+        email: "",
+        password: "",
+        phone: "",
+        tier: "SILVER",
+        commissionRate: 25,
+        bankName: "BCA",
+        bankAccountNumber: "",
+        bankAccountHolder: "",
+        npwp: "",
+      });
+
+      const sls = await api.getAdminSales();
+      if (Array.isArray(sls)) {
+        setSalesList(sls);
+      }
+    } catch (err: any) {
+      setSalesError(err?.message || "Gagal membuat akun sales baru.");
+    } finally {
+      setIsSubmittingSales(false);
+    }
+  };
+
+  const handleDeleteSales = async (salesId: string, salesName: string) => {
+    if (!confirm(`Apakah Anda yakin ingin menghapus akun sales "${salesName}"? Seluruh akses login akun ini akan dicabut.`)) {
+      return;
+    }
+
+    try {
+      setDeletingSalesId(salesId);
+      await api.deleteSalesAccount(salesId);
+      setActionNotice(`Akun sales "${salesName}" berhasil dihapus.`);
+      const sls = await api.getAdminSales();
+      if (Array.isArray(sls)) {
+        setSalesList(sls);
+      }
+    } catch (err: any) {
+      alert(`Gagal menghapus sales: ${err?.message || "Terjadi kesalahan"}`);
+    } finally {
+      setDeletingSalesId(null);
+    }
+  };
+
   // Search & Filter
   const [searchQuery, setSearchQuery] = useState("");
   const [invoiceFilter, setInvoiceFilter] = useState<"ALL" | "PAID" | "DUE_SOON" | "OVERDUE">("ALL");
@@ -1465,18 +1562,30 @@ export default function AdminDashboardPage() {
       {/* ============================================================== */}
       {activeTab === "SALES_TEAM" && (
         <div className="space-y-4">
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h2 className="text-base font-bold font-display text-[#102A43]">
                 Daftar Seluruh Mitra Sales Lapangan
               </h2>
               <p className="text-xs text-slate-500">
-                Monitoring jumlah outlet binaan, rekening pencairan komisi, dan kepatuhan sistem
+                Monitoring jumlah outlet binaan, rekening pencairan komisi, dan manajemen akun sales
               </p>
             </div>
-            <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-800 text-xs font-bold border border-blue-200">
-              {salesList.length} Sales Terdaftar
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="px-3 py-1.5 rounded-full bg-blue-50 text-blue-800 text-xs font-bold border border-blue-200">
+                {salesList.length} Sales Terdaftar
+              </span>
+              <button
+                onClick={() => {
+                  setSalesError(null);
+                  setIsAddSalesModalOpen(true);
+                }}
+                className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer shrink-0"
+              >
+                <span className="material-symbols-outlined text-[18px]">person_add</span>
+                <span>+ Tambah Mitra Sales Baru</span>
+              </button>
+            </div>
           </div>
 
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
@@ -1490,22 +1599,37 @@ export default function AdminDashboardPage() {
                     <th className="py-3.5 px-4">Persentase Komisi</th>
                     <th className="py-3.5 px-4">Rekening Bank Terdaftar</th>
                     <th className="py-3.5 px-4">Status Akun</th>
+                    <th className="py-3.5 px-4 text-center">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-medium">
                   {salesList.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-8 text-center text-slate-400">
+                      <td colSpan={7} className="py-12 text-center text-slate-400">
+                        <span className="material-symbols-outlined text-4xl block mb-2 text-slate-300">group_off</span>
                         Belum ada mitra sales yang terdaftar di database.
+                        <button
+                          onClick={() => setIsAddSalesModalOpen(true)}
+                          className="mt-3 block mx-auto text-blue-600 font-bold hover:underline"
+                        >
+                          + Tambah Akun Sales Pertama
+                        </button>
                       </td>
                     </tr>
                   ) : (
                     salesList.map((sales) => (
                       <tr key={sales.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="py-3.5 px-4 font-bold text-slate-900">{sales.name}</td>
+                        <td className="py-3.5 px-4 font-bold text-slate-900">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-xs shrink-0">
+                              {sales.name ? sales.name.charAt(0).toUpperCase() : "S"}
+                            </div>
+                            <span>{sales.name}</span>
+                          </div>
+                        </td>
                         <td className="py-3.5 px-4 text-slate-600">
-                          <span>{sales.email}</span>
-                          <span className="text-[11px] text-slate-400 block">+{sales.phone}</span>
+                          <span className="font-medium text-slate-800">{sales.email}</span>
+                          <span className="text-[11px] text-slate-500 block">+{sales.phone}</span>
                         </td>
                         <td className="py-3.5 px-4">
                           <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold text-[10px]">
@@ -1525,6 +1649,18 @@ export default function AdminDashboardPage() {
                           <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
                             AKTIF RESMI
                           </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-center">
+                          <button
+                            onClick={() => handleDeleteSales(sales.id, sales.name)}
+                            disabled={deletingSalesId === sales.id}
+                            title="Hapus Akun Sales"
+                            className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 disabled:opacity-40 transition-colors cursor-pointer"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">
+                              {deletingSalesId === sales.id ? "hourglass_empty" : "delete"}
+                            </span>
+                          </button>
                         </td>
                       </tr>
                     ))
@@ -1921,6 +2057,299 @@ export default function AdminDashboardPage() {
             >
               Tutup
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: TAMBAH MITRA SALES BARU */}
+      {isAddSalesModalOpen && (
+        <div className="fixed inset-0 z-50 bg-[#0B1D3A]/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 my-auto max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-start justify-between border-b border-slate-100 pb-4 mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shrink-0">
+                  <span className="material-symbols-outlined text-[26px]">person_add</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-[#102A43] font-display">
+                    Tambah Mitra Sales Baru
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Daftarkan akun sales representative resmi untuk ekspansi merchant UMKM
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isSubmittingSales) setIsAddSalesModalOpen(false);
+                }}
+                disabled={isSubmittingSales}
+                className="w-9 h-9 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 flex items-center justify-center transition-colors"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+
+            {salesError && (
+              <div className="mb-5 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2.5">
+                <span className="material-symbols-outlined text-[18px] text-rose-600 shrink-0">error</span>
+                <span>{salesError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleCreateSales} className="space-y-5">
+              {/* Bagian 1: Data Identitas & Login */}
+              <div className="bg-slate-50/70 p-4 rounded-2xl border border-slate-200/80 space-y-3.5">
+                <div className="flex items-center gap-2 pb-1 border-b border-slate-200">
+                  <span className="material-symbols-outlined text-[18px] text-[#102A43]">badge</span>
+                  <h4 className="text-xs font-bold text-[#102A43] uppercase tracking-wider">
+                    Informasi Akun & Kontak
+                  </h4>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Nama Lengkap Sales <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="misal: Budi Pratama"
+                      value={newSalesForm.name}
+                      onChange={(e) => setNewSalesForm({ ...newSalesForm, name: e.target.value })}
+                      className="w-full h-11 px-3.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Email Akun (Username) <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="budi@vimtk.cloud"
+                      value={newSalesForm.email}
+                      onChange={(e) => setNewSalesForm({ ...newSalesForm, email: e.target.value })}
+                      className="w-full h-11 px-3.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-bold text-slate-700">
+                        Password Login <span className="text-rose-500">*</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={handleGeneratePassword}
+                        className="text-[11px] text-blue-600 hover:text-blue-800 font-semibold cursor-pointer"
+                      >
+                        Acak Password
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Minimal 6 karakter"
+                      value={newSalesForm.password}
+                      onChange={(e) => setNewSalesForm({ ...newSalesForm, password: e.target.value })}
+                      className="w-full h-11 px-3.5 text-xs font-mono rounded-xl border border-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Nomor WhatsApp <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="628123456789 atau 08123456789"
+                      value={newSalesForm.phone}
+                      onChange={(e) => setNewSalesForm({ ...newSalesForm, phone: e.target.value })}
+                      className="w-full h-11 px-3.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Bagian 2: Tier & Komisi */}
+              <div className="bg-slate-50/70 p-4 rounded-2xl border border-slate-200/80 space-y-3.5">
+                <div className="flex items-center gap-2 pb-1 border-b border-slate-200">
+                  <span className="material-symbols-outlined text-[18px] text-[#102A43]">percent</span>
+                  <h4 className="text-xs font-bold text-[#102A43] uppercase tracking-wider">
+                    Tier & Skema Komisi Recurring
+                  </h4>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Tier Performa
+                    </label>
+                    <select
+                      value={newSalesForm.tier}
+                      onChange={(e) => setNewSalesForm({ ...newSalesForm, tier: e.target.value })}
+                      className="w-full h-11 px-3.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white font-medium"
+                    >
+                      <option value="SILVER">Silver Representative</option>
+                      <option value="GOLD">Gold Representative</option>
+                      <option value="PLATINUM">Platinum Representative</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-bold text-slate-700">
+                        Persentase Komisi (%)
+                      </label>
+                      <div className="flex items-center gap-1">
+                        {[15, 20, 25, 30].map((rate) => (
+                          <button
+                            key={rate}
+                            type="button"
+                            onClick={() => setNewSalesForm({ ...newSalesForm, commissionRate: rate })}
+                            className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                              newSalesForm.commissionRate === rate
+                                ? "bg-blue-600 text-white"
+                                : "bg-slate-200 text-slate-700 hover:bg-slate-300"
+                            }`}
+                          >
+                            {rate}%
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="1"
+                        max="100"
+                        step="0.5"
+                        required
+                        value={newSalesForm.commissionRate}
+                        onChange={(e) =>
+                          setNewSalesForm({ ...newSalesForm, commissionRate: parseFloat(e.target.value) || 0 })
+                        }
+                        className="w-full h-11 px-3.5 pr-8 text-xs font-bold text-emerald-700 rounded-xl border border-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white"
+                      />
+                      <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                        %
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bagian 3: Rekening Bank Pencairan */}
+              <div className="bg-slate-50/70 p-4 rounded-2xl border border-slate-200/80 space-y-3.5">
+                <div className="flex items-center gap-2 pb-1 border-b border-slate-200">
+                  <span className="material-symbols-outlined text-[18px] text-[#102A43]">account_balance</span>
+                  <h4 className="text-xs font-bold text-[#102A43] uppercase tracking-wider">
+                    Rekening Bank Pencairan Komisi
+                  </h4>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Nama Bank
+                    </label>
+                    <select
+                      value={newSalesForm.bankName}
+                      onChange={(e) => setNewSalesForm({ ...newSalesForm, bankName: e.target.value })}
+                      className="w-full h-11 px-3.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white font-medium"
+                    >
+                      <option value="BCA">Bank BCA</option>
+                      <option value="Bank Mandiri">Bank Mandiri</option>
+                      <option value="BRI">Bank BRI</option>
+                      <option value="BNI">Bank BNI</option>
+                      <option value="BSI">Bank Syariah Indonesia (BSI)</option>
+                      <option value="SeaBank">SeaBank</option>
+                      <option value="Bank Jago">Bank Jago</option>
+                      <option value="CIMB Niaga">CIMB Niaga</option>
+                      <option value="Lainnya">Bank Lainnya</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Nomor Rekening
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="misal: 1234567890"
+                      value={newSalesForm.bankAccountNumber}
+                      onChange={(e) => setNewSalesForm({ ...newSalesForm, bankAccountNumber: e.target.value })}
+                      className="w-full h-11 px-3.5 text-xs font-mono rounded-xl border border-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Atas Nama Rekening
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Sesuai buku tabungan"
+                      value={newSalesForm.bankAccountHolder}
+                      onChange={(e) => setNewSalesForm({ ...newSalesForm, bankAccountHolder: e.target.value })}
+                      className="w-full h-11 px-3.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Nomor Pokok Wajib Pajak (NPWP / Opsional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="00.000.000.0-000.000"
+                      value={newSalesForm.npwp}
+                      onChange={(e) => setNewSalesForm({ ...newSalesForm, npwp: e.target.value })}
+                      className="w-full h-11 px-3.5 text-xs font-mono rounded-xl border border-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsAddSalesModalOpen(false)}
+                  disabled={isSubmittingSales}
+                  className="w-full sm:w-auto h-11 px-5 rounded-xl border border-slate-300 font-bold text-xs text-slate-700 hover:bg-slate-50 transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingSales}
+                  className="w-full sm:w-auto h-11 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-xs shadow-md disabled:opacity-50 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                >
+                  {isSubmittingSales ? (
+                    <>
+                      <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                      <span>Menyimpan Akun...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined text-[18px]">how_to_reg</span>
+                      <span>Simpan & Buat Akun Mitra</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
