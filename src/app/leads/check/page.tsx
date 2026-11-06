@@ -252,11 +252,11 @@ export default function LeadCheckPage() {
                 <div>{notificationMsg}</div>
                 {notificationMsg.includes("Sukses") && (
                   <Link
-                    href={`/leads/ui-custom?name=${encodeURIComponent(outletName || "Outlet Baru")}&phone=${waInput.replace(/[^0-9]/g, "")}&category=${encodeURIComponent(category)}`}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F97316] text-white text-xs font-bold shadow hover:bg-orange-600 transition"
+                    href={`/leads/check-in?name=${encodeURIComponent(outletName || "Outlet Baru")}&phone=${waInput.replace(/[^0-9]/g, "")}&category=${encodeURIComponent(category)}`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#2563EB] text-white text-xs font-bold shadow hover:bg-blue-700 transition"
                   >
-                    <span className="material-symbols-outlined text-[16px]">brush</span>
-                    <span>Lanjut Buat UI Kasir & Akuntansi</span>
+                    <span className="material-symbols-outlined text-[16px]">add_location_alt</span>
+                    <span>Lanjut Check-in & Buat POS Toko</span>
                   </Link>
                 )}
               </div>

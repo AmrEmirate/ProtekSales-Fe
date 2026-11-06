@@ -71,10 +71,9 @@ describe('Black Box Testing: 2-Role Access Control Matrix (ADMIN & SALES)', () =
       expect(canAccessRoute(role, '/leads/map')).toBe(true);
     });
 
-    it('harus mengizinkan akses ke Outlet, Onboarding & BAST', () => {
+    it('harus mengizinkan akses ke Outlet & Check-in POS UMKM', () => {
       expect(canAccessRoute(role, '/outlets')).toBe(true);
-      expect(canAccessRoute(role, '/outlets/onboarding')).toBe(true);
-      expect(canAccessRoute(role, '/outlets/bast')).toBe(true);
+      expect(canAccessRoute(role, '/leads/check-in')).toBe(true);
     });
 
     it('harus mengizinkan akses ke Dompet Komisi & Penarikan Dana', () => {
@@ -83,10 +82,10 @@ describe('Black Box Testing: 2-Role Access Control Matrix (ADMIN & SALES)', () =
       expect(canAccessRoute(role, '/commission/history')).toBe(true);
     });
 
-    it('harus mengizinkan akses ke Sales Toolkit & Studio Desain UI', () => {
+    it('harus mengizinkan akses ke Sales Toolkit & Check-in UMKM', () => {
       expect(canAccessRoute(role, '/toolkit/roi')).toBe(true);
       expect(canAccessRoute(role, '/toolkit/brochures')).toBe(true);
-      expect(canAccessRoute(role, '/leads/ui-custom')).toBe(true);
+      expect(canAccessRoute(role, '/leads/check-in')).toBe(true);
       expect(canAccessRoute(role, '/offline-sync')).toBe(true);
     });
 
@@ -109,10 +108,9 @@ describe('Black Box Testing: 2-Role Access Control Matrix (ADMIN & SALES)', () =
       expect(canAccessRoute(role, '/admin/invoices')).toBe(true);
     });
 
-    it('harus mengizinkan akses ke monitoring Outlet, Pipeline & Studio Desain UI', () => {
+    it('harus mengizinkan akses ke monitoring Outlet & Pipeline', () => {
       expect(canAccessRoute(role, '/outlets')).toBe(true);
       expect(canAccessRoute(role, '/leads/pipeline')).toBe(true);
-      expect(canAccessRoute(role, '/leads/ui-custom')).toBe(true);
       expect(canAccessRoute(role, '/profile')).toBe(true);
     });
 

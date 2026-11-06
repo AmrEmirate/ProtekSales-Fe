@@ -109,11 +109,11 @@ export default function DashboardPage() {
               <span>Kunci Outlet (Anti-Tabrakan)</span>
             </Link>
             <Link
-              href="/leads/ui-custom"
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 transition-all active:scale-95"
+              href="/leads/check-in"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs shadow-md transition-all active:scale-95"
             >
-              <span className="material-symbols-outlined text-[18px]">palette</span>
-              <span>Daftar UMKM & Desain UI</span>
+              <span className="material-symbols-outlined text-[18px]">add_location_alt</span>
+              <span>Check-In & Buat POS UMKM</span>
             </Link>
             <Link
               href="/commission/withdraw"
@@ -302,11 +302,11 @@ export default function DashboardPage() {
                   <div className="p-3 rounded-xl bg-emerald-100 text-emerald-900 text-xs font-bold border border-emerald-400 animate-in fade-in space-y-2">
                     <div>{lockSuccessMsg}</div>
                     <Link
-                      href={`/leads/ui-custom?name=${encodeURIComponent(outletName || "Outlet Baru")}&phone=${waNumber.replace(/[^0-9]/g, "")}`}
+                      href={`/leads/check-in?name=${encodeURIComponent(outletName || "Outlet Baru")}&phone=${waNumber.replace(/[^0-9]/g, "")}`}
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-700 text-white text-xs font-bold shadow hover:bg-emerald-800 transition"
                     >
-                      <span className="material-symbols-outlined text-[16px]">brush</span>
-                      <span>Lanjut Buat UI Kasir & Akuntansi</span>
+                      <span className="material-symbols-outlined text-[16px]">add_location_alt</span>
+                      <span>Lanjut Check-in & Buat POS Toko</span>
                     </Link>
                   </div>
                 )}
@@ -634,11 +634,11 @@ export default function DashboardPage() {
 
                     <div className="flex items-center gap-2 shrink-0">
                       <Link
-                        href={`/leads/ui-custom?leadId=${lead.id}&name=${encodeURIComponent(lead.name)}&phone=${cleanPhone}&category=${encodeURIComponent(lead.category || "")}`}
-                        className="px-3 py-1.5 rounded-lg bg-orange-50 text-[#F97316] hover:bg-[#F97316] hover:text-white border border-orange-200 font-bold text-xs flex items-center gap-1 transition-colors"
+                        href={`/leads/check-in?leadId=${lead.id}&name=${encodeURIComponent(lead.name)}&phone=${cleanPhone}&category=${encodeURIComponent(lead.category || "")}`}
+                        className="px-3 py-1.5 rounded-lg bg-blue-50 text-[#2563EB] hover:bg-[#2563EB] hover:text-white border border-blue-200 font-bold text-xs flex items-center gap-1 transition-colors"
                       >
-                        <span className="material-symbols-outlined text-[16px]">palette</span>
-                        <span>Request UI</span>
+                        <span className="material-symbols-outlined text-[16px]">add_location_alt</span>
+                        <span>Check-In POS</span>
                       </Link>
                       <a
                         href={`https://wa.me/${cleanPhone}?text=Halo%20${encodeURIComponent(lead.name)},%20kami%20dari%20PT%20Pro%20Teknologi.`}
@@ -665,22 +665,22 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        {/* Quick Hub: Request UI & Tarik Saldo */}
+        {/* Quick Hub: Check-In UMKM & Buat POS */}
         <div className="lg:col-span-5 bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-4 flex flex-col justify-between">
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[#F97316] text-[22px]">palette</span>
+              <span className="material-symbols-outlined text-[#2563EB] text-[22px]">add_location_alt</span>
               <h2 className="text-base font-bold text-[#102A43] font-display">
-                Pendataan UMKM & Desain UI
+                Check-In Kunjungan & Buat POS UMKM
               </h2>
             </div>
             <p className="text-xs text-slate-500 leading-relaxed">
-              UMKM berminat menggunakan POS? Daftarkan data toko, upload foto logo/menu atau referensi apa yang dimau UMKM, dan generate UI prototipe kustom secara otomatis melalui Studio Desain Visual POS.
+              Kunjungi UMKM mitra, input data toko, tampilkan referensi desain UI kasir modern, dan buatkan akun Cloud POS lengkap secara otomatis menggunakan engine Antigravity.
             </p>
 
             <Link
-              href="/leads/ui-custom"
-              className="p-4 rounded-xl bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 flex items-center justify-between group hover:border-[#F97316] transition-all"
+              href="/leads/check-in"
+              className="p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 flex items-center justify-between group hover:border-[#2563EB] transition-all"
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-[#F97316] text-white flex items-center justify-center font-bold shadow-sm">

@@ -56,14 +56,14 @@ export default function OutletDetailPage() {
           </div>
           <h2 className="text-xl font-bold font-display text-[#102A43]">Belum Ada Klien Outlet Aktif</h2>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
-            Daftarkan outlet baru setelah deal prospek atau lakukan onboarding aktivasi lisensi POS perdana.
+            Daftarkan outlet baru melalui alur Check-in Kunjungan UMKM & Buat POS.
           </p>
           <div className="flex items-center justify-center gap-3 pt-2">
             <Link
-              href="/outlets/onboarding"
-              className="px-4 py-2.5 rounded-xl bg-[#F97316] text-white font-bold text-xs shadow-md hover:bg-[#EA580C] transition-all"
+              href="/leads/check-in"
+              className="px-4 py-2.5 rounded-xl bg-[#2563EB] text-white font-bold text-xs shadow-md hover:bg-[#1D4ED8] transition-all"
             >
-              Aktivasi Lisensi Outlet Baru
+              Mulai Check-In UMKM
             </Link>
           </div>
         </div>

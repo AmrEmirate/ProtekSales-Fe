@@ -67,16 +67,6 @@ export default function OutletsListPage() {
               Komisi berjalan dari {outlets.length} gerai aktif di bawah naungan Anda
             </p>
           </div>
-
-          <div className="flex items-center gap-2">
-            <Link
-              href="/outlets/onboarding"
-              className="px-4 py-2.5 rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-white font-bold text-xs shadow-md transition-all active:scale-95 flex items-center gap-1.5"
-            >
-              <span className="material-symbols-outlined text-[18px]">add</span>
-              <span>Aktivasi Lisensi Baru</span>
-            </Link>
-          </div>
         </div>
 
         {/* Health Breakdown Mini-Grid */}
@@ -223,14 +213,14 @@ export default function OutletsListPage() {
             </div>
             <h3 className="text-base font-bold font-display text-[#102A43]">Belum Ada Outlet Terdaftar</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              Belum ada data outlet aktif dalam database produksi. Daftarkan outlet baru atau lakukan onboarding lisensi POS.
+              Belum ada data outlet aktif dalam database produksi. Daftarkan outlet baru melalui menu Check-In UMKM.
             </p>
             <div className="pt-2">
               <Link
-                href="/outlets/onboarding"
-                className="px-4 py-2.5 rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-white font-bold text-xs shadow-md transition-all inline-block"
+                href="/leads/check-in"
+                className="px-4 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs shadow-md transition-all inline-block"
               >
-                Aktivasi Lisensi Baru
+                Mulai Check-In UMKM
               </Link>
             </div>
           </div>

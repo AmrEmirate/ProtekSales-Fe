@@ -134,6 +134,29 @@ class ApiService {
     return res.data;
   }
 
+  async provisionTenantFromLead(payload: {
+    leadId?: string;
+    storeName: string;
+    ownerName: string;
+    phone: string;
+    address?: string;
+    category?: string;
+    subdomain?: string;
+    customDomain?: string;
+    planCode?: string;
+    username: string;
+    password: string;
+    themeColor?: string;
+    themeConfig?: any;
+    outletCount?: number;
+  }) {
+    const res = await this.request<{ success: boolean; message: string; data: any }>("/leads/provision-tenant", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    return res.data;
+  }
+
   async getMyLeads() {
     const res = await this.request<{ success: boolean; data: any[] }>("/leads");
     return res.data;

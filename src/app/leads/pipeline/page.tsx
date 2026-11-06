@@ -282,31 +282,32 @@ export default function PipelinePage() {
                       </button>
                     )}
 
-                    {isDeal && (
+                    {isDeal ? (
                       <Link
-                        href={`/outlets/onboarding?leadId=${lead.id}&name=${encodeURIComponent(
+                        href={`/leads/check-in?leadId=${lead.id}&name=${encodeURIComponent(
                           lead.name
-                        )}&phone=${cleanPhone}`}
-                        className="flex-1 h-9 rounded-xl bg-[#102A43] hover:bg-[#0B1D3A] text-white font-bold text-xs flex items-center justify-center gap-1 transition-colors shadow-sm"
+                        )}&phone=${cleanPhone}&category=${encodeURIComponent(
+                          lead.category || ""
+                        )}&salesType=${lead.salesType || "OFFLINE"}&outlets=${lead.outletCount || 1}`}
+                        className="flex-1 h-9 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs flex items-center justify-center gap-1 transition-colors shadow-sm"
                       >
                         <span className="material-symbols-outlined text-[14px]">rocket_launch</span>
-                        <span>Aktivasi POS</span>
+                        <span>Buat Sistem POS</span>
+                      </Link>
+                    ) : (
+                      <Link
+                        href={`/leads/check-in?leadId=${lead.id}&name=${encodeURIComponent(
+                          lead.name
+                        )}&phone=${cleanPhone}&category=${encodeURIComponent(
+                          lead.category || ""
+                        )}&salesType=${lead.salesType || "OFFLINE"}&outlets=${lead.outletCount || 1}`}
+                        className="h-9 px-3 rounded-xl bg-blue-50 text-[#2563EB] hover:bg-[#2563EB] hover:text-white flex items-center justify-center gap-1 font-bold text-xs transition-colors shrink-0 border border-blue-200"
+                        title="Check-In & Presentasi Desain UI"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">add_location_alt</span>
+                        <span>Check-In & UI</span>
                       </Link>
                     )}
-
-                    {/* Tombol Studio Desain UI POS */}
-                    <Link
-                      href={`/leads/ui-custom?leadId=${lead.id}&name=${encodeURIComponent(
-                        lead.name
-                      )}&phone=${cleanPhone}&category=${encodeURIComponent(
-                        lead.category || ""
-                      )}&salesType=${lead.salesType || "OFFLINE"}&outlets=${lead.outletCount || 1}`}
-                      className="h-9 px-3 rounded-xl bg-orange-50 text-[#F97316] hover:bg-[#F97316] hover:text-white flex items-center justify-center gap-1 font-bold text-xs transition-colors shrink-0 border border-orange-200"
-                      title="Kustomisasi Desain UI POS Klien"
-                    >
-                      <span className="material-symbols-outlined text-[16px]">palette</span>
-                      <span>Desain UI</span>
-                    </Link>
                   </div>
                 </div>
               </div>

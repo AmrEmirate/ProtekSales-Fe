@@ -35,14 +35,11 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, isSidebarCollap
     if (pathname === "/") return "Ringkasan Command Center";
     if (pathname.startsWith("/leads/check")) return "Cek & Kunci Prospek";
     if (pathname.startsWith("/leads/pipeline")) return "Pipeline & Kunjungan";
-    if (pathname.startsWith("/leads/check-in")) return "Form Check-in Kunjungan";
+    if (pathname.startsWith("/leads/check-in")) return "Check-In & Buat POS UMKM (Antigravity)";
     if (pathname.startsWith("/leads/map")) return "Peta Rute Wilayah";
     if (pathname.startsWith("/leads/dispute")) return "Banding Sengketa Prospek";
     if (pathname === "/outlets") return "Daftar Klien Aktif Lisensi";
     if (pathname.startsWith("/outlets/detail")) return "Detail Klien & Remote Kill-Switch";
-    if (pathname.startsWith("/outlets/onboarding")) return "Aktivasi & Onboarding POS";
-    if (pathname.startsWith("/outlets/bast")) return "BAST Hardware Digital";
-    if (pathname.startsWith("/outlets/support")) return "Suplai & Tiket Kendala";
     if (pathname.startsWith("/commission/wallet")) return "Dompet Komisi Sales";
     if (pathname.startsWith("/commission/withdraw")) return "Tarik Saldo Komisi";
     if (pathname.startsWith("/commission/history")) return "Riwayat & Bukti Potong Pajak";

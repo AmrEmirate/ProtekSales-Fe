@@ -66,7 +66,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         items: [
           { href: "/outlets", label: "Daftar Outlet Klien", icon: "storefront" },
           { href: "/leads/pipeline", label: "Monitoring Prospek", icon: "radar" },
-          { href: "/leads/ui-custom", label: "Studio Desain UI UMKM", icon: "palette", badge: "Studio UI" },
         ],
       },
       {
@@ -86,25 +85,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
         ],
       },
       {
-        title: "ANTI-TABRAKAN OUTLET",
+        title: "AKUISISI & PROSPEK",
         items: [
+          {
+            href: "/leads/check-in",
+            label: "Check-In & Buat POS UMKM",
+            icon: "add_location_alt",
+            badge: "Alur Utama",
+            badgeColor: "bg-[#2563EB]",
+          },
           { href: "/leads/check", label: "Cek & Kunci Outlet", icon: "radar", badge: "30 Hari" },
           { href: "/leads/pipeline", label: "Daftar Outlet Ditawarkan", icon: "storefront" },
           { href: "/leads/map", label: "Peta Rute Prospek", icon: "map" },
         ],
       },
       {
-        title: "PENDAFTARAN UMKM & UI",
-        items: [
-          { href: "/leads/ui-custom", label: "Daftar UMKM & Request UI", icon: "palette", badge: "Studio UI" },
-        ],
-      },
-      {
-        title: "OUTLET & AKTIVASI",
+        title: "OUTLET KLIEN",
         items: [
           { href: "/outlets", label: "Daftar Outlet Saya", icon: "storefront" },
-          { href: "/outlets/onboarding", label: "Aktivasi & Onboarding POS", icon: "point_of_sale" },
-          { href: "/outlets/bast", label: "BAST Digital Hardware", icon: "assignment_turned_in" },
         ],
       },
       {
