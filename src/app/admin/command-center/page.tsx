@@ -24,6 +24,7 @@ export interface BusinessTenant {
   lastHeartbeat: string;
   createdAt: string;
   cluster: string;
+  licenseId?: string;
 }
 
 export default function BusinessCommandCenterPage() {
@@ -61,10 +62,10 @@ export default function BusinessCommandCenterPage() {
   const [telemetry, setTelemetry] = useState({
     status: "HEALTHY",
     uptimeSeconds: 98420,
-    dbLatencyMs: 24,
-    cluster: "AP-Southeast (Singapore/Jakarta Edge)",
+    dbLatencyMs: 1,
+    cluster: "Server VPS Vimtk • Production Node",
     memoryRssMb: 142,
-    onlinePosCount: 6,
+    onlinePosCount: 3,
   });
 
   const showToast = (text: string, type: "success" | "error" | "info" = "success") => {
@@ -72,10 +73,10 @@ export default function BusinessCommandCenterPage() {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  // Real businesses baseline (Hanya bisnis riil aktif, saat ini Dimsum Intan)
+  // Real businesses baseline (Hanya bisnis riil aktif, Dimsum Intan)
   const defaultBusinesses: BusinessTenant[] = useMemo(() => [
     {
-      id: "tnt-dimsum-intan",
+      id: "tenant-dimsum-intan",
       name: "Dimsum Intan Resto & Food Truck",
       slug: "dimsumintan",
       customDomain: "dimsumintan.vimtk.cloud",
@@ -83,17 +84,18 @@ export default function BusinessCommandCenterPage() {
       logoUrl: "/qris.jpeg",
       plan: "GROWTH",
       status: "ACTIVE",
-      ownerName: "Intan Permatasari",
-      ownerEmail: "owner@dimsumintan.com",
-      ownerPhone: "+62 812-4455-8899",
+      ownerName: "Ibu Intan Permata",
+      ownerEmail: "owner@dimsumintan.vimtk.cloud",
+      ownerPhone: "081284525304",
       maxOutlets: 5,
-      usedOutlets: 3,
+      usedOutlets: 4,
       pricePerOutlet: 350000,
-      activePosCount: 6,
-      monthlyGmv: 42800000,
-      lastHeartbeat: "3 detik lalu",
-      createdAt: "2026-10-15",
-      cluster: "Bandung & Jabodetabek",
+      activePosCount: 3,
+      monthlyGmv: 0,
+      lastHeartbeat: "Live Cloud POS",
+      createdAt: "2026-10-25",
+      cluster: "DKI Jakarta & Sekitarnya",
+      licenseId: "1c0284ba-fba7-4750-a39a-0dad443ec16d",
     },
   ], []);
 
@@ -101,17 +103,22 @@ export default function BusinessCommandCenterPage() {
   const fetchTenants = useCallback(async () => {
     setIsLoading(true);
     try {
-      // 1. Ambil telemetry live dari endpoint Cloud POS jika tersedia
+      // 1. Ambil telemetry & daftar outlet riil
+      let outletsList: any[] = [];
       try {
-        const [health, analytics] = await Promise.all([
+        const [health, analytics, outlets] = await Promise.all([
           api.getCloudPosHealth().catch(() => null),
           api.getCloudPosAnalytics().catch(() => null),
+          api.getOutlets().catch(() => []),
         ]);
+        if (Array.isArray(outlets)) {
+          outletsList = outlets;
+        }
         if (health) {
           setTelemetry((prev) => ({
             ...prev,
             status: health.online ? "HEALTHY" : "DEGRADED",
-            dbLatencyMs: health.latencyMs || prev.dbLatencyMs,
+            dbLatencyMs: health.latencyMs || 1,
           }));
         }
         if (analytics) {
@@ -124,7 +131,7 @@ export default function BusinessCommandCenterPage() {
         // Fallback live telemetry
       }
 
-      // 2. Ambil data tenant tersimpan di localStorage atau API
+      // 2. Ambil data tenant tersimpan di localStorage (dengan sanitasi ketat anti-dummy)
       let loadedList = [...defaultBusinesses];
       if (typeof window !== "undefined") {
         const stored = localStorage.getItem("protek_business_tenants");
@@ -132,11 +139,29 @@ export default function BusinessCommandCenterPage() {
           try {
             const parsed = JSON.parse(stored);
             if (Array.isArray(parsed) && parsed.length > 0) {
-              // Hapus data dummy lama dan duplikat tidak valid dari cache browser
-              const filtered = parsed.filter(
-                (t: any) =>
-                  !["barakahfood", "proship", "otgbracket", "tauheednews", "warungbeku", "demo", "dimsum-intan"].includes(t.slug)
-              );
+              // Hapus data dummy lama dan nilai tiruan dari cache browser
+              const filtered = parsed
+                .filter(
+                  (t: any) =>
+                    !["barakahfood", "proship", "otgbracket", "tauheednews", "warungbeku", "demo", "dimsum-intan"].includes(t.slug)
+                )
+                .map((t: any) => {
+                  if (t.slug === "dimsumintan") {
+                    return {
+                      ...t,
+                      monthlyGmv: Number(t.monthlyGmv) === 42800000 ? 0 : Number(t.monthlyGmv) || 0,
+                      activePosCount: t.activePosCount === 6 ? 3 : t.activePosCount || 3,
+                      usedOutlets: t.usedOutlets === 3 ? 4 : t.usedOutlets || 4,
+                      ownerName: t.ownerName === "Intan Permatasari" ? "Ibu Intan Permata" : t.ownerName || "Ibu Intan Permata",
+                      ownerPhone: t.ownerPhone === "+62 812-4455-8899" ? "081284525304" : t.ownerPhone || "081284525304",
+                      ownerEmail: t.ownerEmail === "owner@dimsumintan.com" ? "owner@dimsumintan.vimtk.cloud" : t.ownerEmail || "owner@dimsumintan.vimtk.cloud",
+                      cluster: t.cluster === "Bandung & Jabodetabek" ? "DKI Jakarta & Sekitarnya" : t.cluster || "DKI Jakarta & Sekitarnya",
+                      licenseId: t.licenseId || "1c0284ba-fba7-4750-a39a-0dad443ec16d",
+                    };
+                  }
+                  return t;
+                });
+
               if (filtered.length > 0) {
                 loadedList = filtered;
                 localStorage.setItem("protek_business_tenants", JSON.stringify(filtered));
@@ -144,14 +169,16 @@ export default function BusinessCommandCenterPage() {
                 localStorage.setItem("protek_business_tenants", JSON.stringify(defaultBusinesses));
               }
             }
-          } catch {}
+          } catch {
+            localStorage.removeItem("protek_business_tenants");
+          }
         }
       }
 
-      // 3. Gabungkan dengan data sinkronisasi backend Cloud POS
+      // 3. Gabungkan dengan data sinkronisasi backend Cloud POS riil
       try {
         const cloudData = await api.getCloudPosTenants();
-        if (cloudData?.tenants && Array.isArray(cloudData.tenants)) {
+        if (cloudData?.tenants && Array.isArray(cloudData.tenants) && cloudData.tenants.length > 0) {
           // Sinkronisasi data real-time tenant dari Cloud POS
           cloudData.tenants.forEach((ct: any) => {
             // Abaikan demo atau data tiruan
@@ -163,6 +190,24 @@ export default function BusinessCommandCenterPage() {
               ct.name?.toLowerCase().includes("dimsum intan");
             const targetSlug = isDimsum ? "dimsumintan" : ct.slug;
 
+            // Cari outlet matching dari ProtekSales outlets
+            const matchedOutlet = outletsList.find(
+              (o: any) =>
+                (ct.licenseKey && o.license?.licenseKey === ct.licenseKey) ||
+                (ct.mainOutlet?.phone && o.phone === ct.mainOutlet.phone) ||
+                (isDimsum && o.name?.toLowerCase().includes("dimsum intan"))
+            );
+
+            const resolvedLicenseId =
+              matchedOutlet?.license?.id ||
+              ct.protekOutlet?.licenseId ||
+              ct.protekOutlet?.id ||
+              ct.licenseKey ||
+              "1c0284ba-fba7-4750-a39a-0dad443ec16d";
+
+            const resolvedStatus: "ACTIVE" | "SUSPENDED" =
+              (matchedOutlet?.license?.status || ct.status) === "ACTIVE" ? "ACTIVE" : "SUSPENDED";
+
             const existingIdx = loadedList.findIndex(
               (t) => t.slug === targetSlug || t.id === ct.id
             );
@@ -170,16 +215,22 @@ export default function BusinessCommandCenterPage() {
             if (existingIdx >= 0) {
               loadedList[existingIdx] = {
                 ...loadedList[existingIdx],
+                id: ct.id || loadedList[existingIdx].id,
                 name: isDimsum ? "Dimsum Intan Resto & Food Truck" : ct.name || loadedList[existingIdx].name,
-                slug: "dimsumintan",
-                customDomain: "dimsumintan.vimtk.cloud",
-                posUrl: "https://dimsumintan.vimtk.cloud",
-                usedOutlets: ct.outletsCount || loadedList[existingIdx].usedOutlets,
-                pricePerOutlet: ct.pricePerOutlet || loadedList[existingIdx].pricePerOutlet,
-                status: ct.status === "ACTIVE" ? "ACTIVE" : "SUSPENDED",
-                activePosCount: ct.usersCount ? Math.max(ct.usersCount, 6) : loadedList[existingIdx].activePosCount,
-                monthlyGmv: ct.totalGmv && ct.totalGmv > 0 ? ct.totalGmv : loadedList[existingIdx].monthlyGmv,
+                slug: targetSlug,
+                customDomain: ct.customDomain || (isDimsum ? "dimsumintan.vimtk.cloud" : loadedList[existingIdx].customDomain),
+                posUrl: ct.customDomain ? `https://${ct.customDomain}` : `https://${targetSlug}.vimtk.cloud`,
+                usedOutlets: ct.outletsCount || 4,
+                pricePerOutlet: ct.pricePerOutlet || loadedList[existingIdx].pricePerOutlet || 350000,
+                status: resolvedStatus,
+                activePosCount: ct.usersCount || (isDimsum ? 3 : 1),
+                monthlyGmv: Number(ct.totalGmv) || 0,
+                ownerName: isDimsum ? "Ibu Intan Permata" : (ct.ownerName || loadedList[existingIdx].ownerName),
+                ownerPhone: ct.mainOutlet?.phone || ct.ownerPhone || (isDimsum ? "081284525304" : loadedList[existingIdx].ownerPhone),
+                ownerEmail: ct.ownerEmail || (isDimsum ? "owner@dimsumintan.vimtk.cloud" : loadedList[existingIdx].ownerEmail),
+                cluster: isDimsum ? "DKI Jakarta & Sekitarnya" : (ct.mainOutlet?.address || "Nasional"),
                 lastHeartbeat: "Live Cloud POS",
+                licenseId: resolvedLicenseId,
               };
             } else if (ct.name && !isDimsum) {
               loadedList.push({
@@ -189,25 +240,28 @@ export default function BusinessCommandCenterPage() {
                 customDomain: ct.customDomain || `${ct.slug}.vimtk.cloud`,
                 posUrl: ct.customDomain ? `https://${ct.customDomain}` : `https://${ct.slug}.vimtk.cloud`,
                 plan: (ct.plan as any) || "GROWTH",
-                status: (ct.status as any) || "ACTIVE",
+                status: resolvedStatus,
                 ownerName: ct.ownerName || "Merchant Owner",
                 ownerEmail: ct.ownerEmail || `${ct.slug}@merchant.id`,
-                ownerPhone: ct.ownerPhone || "+62 812-0000-0000",
+                ownerPhone: ct.mainOutlet?.phone || ct.ownerPhone || "+62 812-0000-0000",
                 maxOutlets: ct.maxOutlets || 5,
                 usedOutlets: ct.outletsCount || 1,
                 pricePerOutlet: ct.pricePerOutlet || 350000,
-                activePosCount: ct.usersCount || ct.posCount || 2,
-                monthlyGmv: ct.totalGmv || 0,
+                activePosCount: ct.usersCount || 1,
+                monthlyGmv: Number(ct.totalGmv) || 0,
                 lastHeartbeat: "Live Cloud POS",
                 createdAt: ct.createdAt || new Date().toISOString().split("T")[0],
-                cluster: "Nasional",
+                cluster: ct.mainOutlet?.address || "Nasional",
+                licenseId: resolvedLicenseId,
               });
             }
           });
         }
-      } catch {}
+      } catch {
+        // Fallback jika backend sedang reload
+      }
 
-      // Pastikan hasil akhir disanitasi: buang demo & dimsum-intan
+      // Pastikan hasil akhir disanitasi: buang demo & dummy slugs
       const sanitized = loadedList.filter(
         (t) =>
           !["barakahfood", "proship", "otgbracket", "tauheednews", "warungbeku", "demo", "dimsum-intan"].includes(t.slug)
@@ -296,20 +350,41 @@ export default function BusinessCommandCenterPage() {
     setFormCustomDomain("");
   };
 
-  // Toggle Status (Suspend / Activate)
-  const handleToggleStatus = (tenant: BusinessTenant) => {
+  // Toggle Status (Suspend / Activate) dengan Sinkronisasi Backend & Cloud POS Killswitch
+  const handleToggleStatus = async (tenant: BusinessTenant) => {
     const nextStatus: "ACTIVE" | "SUSPENDED" = tenant.status === "ACTIVE" ? "SUSPENDED" : "ACTIVE";
+    const targetLicense = tenant.licenseId || tenant.id;
+
+    // Optimistic UI update
     const updated = tenants.map((t) => (t.id === tenant.id ? { ...t, status: nextStatus } : t));
     saveTenants(updated);
     if (selectedTenant && selectedTenant.id === tenant.id) {
       setSelectedTenant({ ...selectedTenant, status: nextStatus });
     }
-    showToast(
-      nextStatus === "ACTIVE"
-        ? `Bisnis ${tenant.name} berhasil diaktifkan kembali!`
-        : `Bisnis ${tenant.name} berhasil ditangguhkan (Killswitch aktif).`,
-      nextStatus === "ACTIVE" ? "success" : "info"
-    );
+
+    try {
+      if (targetLicense) {
+        await api.toggleKillswitch(
+          targetLicense,
+          nextStatus === "SUSPENDED",
+          `Admin Command Center: Bisnis diubah ke status ${nextStatus}`
+        );
+      }
+      showToast(
+        nextStatus === "ACTIVE"
+          ? `Bisnis ${tenant.name} berhasil diaktifkan kembali!`
+          : `Bisnis ${tenant.name} berhasil ditangguhkan (Killswitch aktif).`,
+        nextStatus === "ACTIVE" ? "success" : "info"
+      );
+    } catch (err: any) {
+      console.warn("[Killswitch Warning]", err);
+      showToast(
+        nextStatus === "ACTIVE"
+          ? `Bisnis ${tenant.name} diaktifkan (Mode Standalone).`
+          : `Bisnis ${tenant.name} ditangguhkan (Mode Standalone).`,
+        "info"
+      );
+    }
   };
 
   // Save Edit Quota
@@ -531,7 +606,11 @@ export default function BusinessCommandCenterPage() {
           </div>
           <div className="space-y-1">
             <div className="text-xl sm:text-2xl font-black font-mono tracking-tight text-white truncate">
-              Rp {(totalMonthlyGmv / 1000000).toFixed(1)} Jt
+              {totalMonthlyGmv === 0
+                ? "Rp 0"
+                : totalMonthlyGmv >= 1000000
+                ? `Rp ${(totalMonthlyGmv / 1000000).toFixed(1)} Jt`
+                : `Rp ${totalMonthlyGmv.toLocaleString("id-ID")}`}
             </div>
             <div className="text-[10px] text-slate-400">
               Total omzet lintas tenant
@@ -1164,6 +1243,10 @@ export default function BusinessCommandCenterPage() {
               <div className="flex justify-between">
                 <span className="text-slate-400">Email & WhatsApp:</span>
                 <span className="font-mono text-slate-300">{selectedTenant.ownerEmail} • {selectedTenant.ownerPhone}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Wilayah / Cluster:</span>
+                <span className="font-medium text-slate-300">{selectedTenant.cluster}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Subdomain Sistem:</span>
