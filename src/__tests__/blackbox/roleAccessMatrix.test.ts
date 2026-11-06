@@ -1,11 +1,16 @@
 import { describe, it, expect } from 'vitest';
 
-export type UserRole = 'SALES' | 'ADMIN' | 'SUPERADMIN';
+export type UserRole = 'SALES' | 'ADMIN';
 
 export const canAccessRoute = (role: UserRole, routePath: string): boolean => {
-  // Rute Khusus Admin & Superadmin (Pusat Kontrol Bisnis SaaS & Admin ProTek)
+  // Rute Khusus Admin (Pusat Kontrol HQ & Command Center Bisnis SaaS)
   if (routePath.startsWith('/admin')) {
-    return role === 'ADMIN' || role === 'SUPERADMIN';
+    return role === 'ADMIN';
+  }
+
+  // Admin diarahkan langsung ke /admin jika membuka root /
+  if (role === 'ADMIN' && routePath === '/') {
+    return false;
   }
 
   // Rute Operasional Sales Lapangan & Toolkit
@@ -16,6 +21,7 @@ export const canAccessRoute = (role: UserRole, routePath: string): boolean => {
     '/leads/pipeline',
     '/leads/map',
     '/leads/dispute',
+    '/leads/ui-custom',
     '/outlets',
     '/outlets/detail',
     '/outlets/onboarding',
@@ -32,79 +38,70 @@ export const canAccessRoute = (role: UserRole, routePath: string): boolean => {
   ];
 
   if (salesRoutes.some((r) => routePath === r || routePath.startsWith(r + '/'))) {
-    // Baik SALES maupun ADMIN dapat melihat rute sales
     return true;
   }
 
   return true;
 };
 
-describe('Black Box Testing: Role-Based Access Control (RBAC) Navigation Matrix', () => {
-  describe('Sales Partner (Mitra Sales Lapangan) Permissions', () => {
+describe('Black Box Testing: 2-Role Access Control Matrix (ADMIN & SALES)', () => {
+  describe('Peran SALES (Mitra Sales Lapangan)', () => {
     const role: UserRole = 'SALES';
 
-    it('should grant access to Dashboard & Leads pipeline', () => {
+    it('harus mengizinkan akses ke Beranda Sales & Pipeline Leads', () => {
       expect(canAccessRoute(role, '/')).toBe(true);
       expect(canAccessRoute(role, '/leads/check')).toBe(true);
       expect(canAccessRoute(role, '/leads/pipeline')).toBe(true);
       expect(canAccessRoute(role, '/leads/map')).toBe(true);
     });
 
-    it('should grant access to Outlets & POS Onboarding', () => {
+    it('harus mengizinkan akses ke Outlet, Onboarding & BAST', () => {
       expect(canAccessRoute(role, '/outlets')).toBe(true);
       expect(canAccessRoute(role, '/outlets/onboarding')).toBe(true);
       expect(canAccessRoute(role, '/outlets/bast')).toBe(true);
     });
 
-    it('should grant access to Commission Wallet & Withdrawal', () => {
+    it('harus mengizinkan akses ke Dompet Komisi & Penarikan Dana', () => {
       expect(canAccessRoute(role, '/commission/wallet')).toBe(true);
       expect(canAccessRoute(role, '/commission/withdraw')).toBe(true);
       expect(canAccessRoute(role, '/commission/history')).toBe(true);
     });
 
-    it('should grant access to Sales Toolkit & ROI Calculator', () => {
+    it('harus mengizinkan akses ke Sales Toolkit & Studio Desain UI', () => {
       expect(canAccessRoute(role, '/toolkit/roi')).toBe(true);
       expect(canAccessRoute(role, '/toolkit/brochures')).toBe(true);
+      expect(canAccessRoute(role, '/leads/ui-custom')).toBe(true);
       expect(canAccessRoute(role, '/offline-sync')).toBe(true);
     });
 
-    it('CRITICAL GUARD: should strictly deny SALES partner from accessing Super Admin Center (/admin)', () => {
+    it('CRITICAL GUARD: role SALES DILARANG KERAS mengakses Pusat Kontrol Admin (/admin)', () => {
       expect(canAccessRoute(role, '/admin')).toBe(false);
+      expect(canAccessRoute(role, '/admin/command-center')).toBe(false);
       expect(canAccessRoute(role, '/admin/licenses')).toBe(false);
       expect(canAccessRoute(role, '/admin/invoices')).toBe(false);
       expect(canAccessRoute(role, '/admin/disputes')).toBe(false);
     });
   });
 
-  describe('Super Admin (Pemilik Server / Server Owner) Permissions', () => {
+  describe('Peran ADMIN (Pusat Kontrol HQ & Bisnis Multi-Tenant SaaS)', () => {
     const role: UserRole = 'ADMIN';
 
-    it('should grant access to Super Admin Command Center (/admin)', () => {
+    it('harus mengizinkan akses penuh ke Pusat Kontrol Admin & Command Center Bisnis', () => {
       expect(canAccessRoute(role, '/admin')).toBe(true);
-    });
-
-    it('should grant access to all sales views for monitoring & mentoring', () => {
-      expect(canAccessRoute(role, '/leads/pipeline')).toBe(true);
-      expect(canAccessRoute(role, '/outlets')).toBe(true);
-      expect(canAccessRoute(role, '/commission/wallet')).toBe(true);
-    });
-  });
-
-  describe('Business Super Admin (Admin Bisnis & Multi-Tenant SaaS) Permissions', () => {
-    const role: UserRole = 'SUPERADMIN';
-
-    it('should grant access to Business Command Center (/admin/command-center)', () => {
       expect(canAccessRoute(role, '/admin/command-center')).toBe(true);
-      expect(canAccessRoute(role, '/admin')).toBe(true);
       expect(canAccessRoute(role, '/admin/licenses')).toBe(true);
+      expect(canAccessRoute(role, '/admin/invoices')).toBe(true);
     });
 
-    it('should grant access to oversee merchant outlets & pipeline', () => {
-      expect(canAccessRoute(role, '/')).toBe(true);
+    it('harus mengizinkan akses ke monitoring Outlet, Pipeline & Studio Desain UI', () => {
       expect(canAccessRoute(role, '/outlets')).toBe(true);
       expect(canAccessRoute(role, '/leads/pipeline')).toBe(true);
-      expect(canAccessRoute(role, '/commission/wallet')).toBe(true);
+      expect(canAccessRoute(role, '/leads/ui-custom')).toBe(true);
+      expect(canAccessRoute(role, '/profile')).toBe(true);
+    });
+
+    it('harus mengarahkan root path / ke dashboard khusus Admin (/admin)', () => {
+      expect(canAccessRoute(role, '/')).toBe(false);
     });
   });
 });
-

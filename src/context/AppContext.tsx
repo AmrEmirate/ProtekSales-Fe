@@ -72,7 +72,7 @@ export interface NotificationItem {
   actionUrl?: string;
 }
 
-export type UserRole = "SALES" | "ADMIN" | "SUPERADMIN";
+export type UserRole = "ADMIN" | "SALES";
 
 interface AppContextType {
   currentUserRole: UserRole;
@@ -117,7 +117,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [currentUserRole, setCurrentUserRoleState] = useState<UserRole>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("protek_user_role") as UserRole;
-      if (saved === "SALES" || saved === "ADMIN" || saved === "SUPERADMIN") {
+      if (saved === "ADMIN" || saved === "SALES") {
         return saved;
       }
     }
@@ -181,15 +181,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return;
       }
 
-      // 1. Fetch Profile & Sinkronisasi Role Pengguna
+      // 1. Fetch Profile & Sinkronisasi Role Pengguna (ADMIN atau SALES)
       try {
         const profile = await api.getProfile();
         if (profile?.user) {
           const userEmail = (profile.user.email || "").toLowerCase().trim();
           let resolvedRole: UserRole = "SALES";
-          if (userEmail === "owner@protek.id" || profile.user.role === "SUPERADMIN") {
-            resolvedRole = "SUPERADMIN";
-          } else if (userEmail === "admin@protek.id" || profile.user.role === "ADMIN") {
+          if (
+            userEmail === "owner@protek.id" ||
+            userEmail === "admin@protek.id" ||
+            userEmail.includes("admin") ||
+            profile.user.role === "ADMIN" ||
+            profile.user.role === "SUPERADMIN"
+          ) {
             resolvedRole = "ADMIN";
           } else {
             resolvedRole = "SALES";
@@ -198,15 +202,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (typeof window !== "undefined") {
             localStorage.setItem("protek_user_role", resolvedRole);
             localStorage.setItem("protek_user_email", userEmail);
-            localStorage.setItem("protek_user_name", profile.user.name || "Pengguna");
+            localStorage.setItem(
+              "protek_user_name",
+              profile.user.name || (resolvedRole === "ADMIN" ? "Admin ProTek" : "Budi Santoso")
+            );
           }
           setSalesProfile((prev) => ({
             ...prev,
-            name: profile.user.name || prev.name,
+            name: profile.user.name || (resolvedRole === "ADMIN" ? "Admin ProTek" : prev.name),
             phone: profile.user.phone ? `+${profile.user.phone}` : prev.phone,
             bankAccount: profile.user.bankAccountNumber || prev.bankAccount,
             bankName: profile.user.bankName || prev.bankName,
-            tier: profile.user.tier || prev.tier,
+            tier: profile.user.tier || (resolvedRole === "ADMIN" ? "Administrator HQ" : prev.tier),
           }));
         }
       } catch {}

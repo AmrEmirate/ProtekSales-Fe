@@ -214,22 +214,20 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, isSidebarCollap
           title="Lihat Profil Pengguna"
         >
           <div className={`w-9 h-9 rounded-xl text-white flex items-center justify-center font-bold text-xs transition-all ${
-            currentUserRole === "SUPERADMIN"
-              ? "bg-[#0B1D3A] border border-[#38BDF8] text-[#38BDF8] group-hover:ring-2 group-hover:ring-[#38BDF8]"
-              : currentUserRole === "ADMIN"
+            currentUserRole === "ADMIN"
               ? "bg-[#0F766E] border border-teal-400 group-hover:ring-2 group-hover:ring-teal-400"
               : "bg-[#102A43] group-hover:ring-2 group-hover:ring-[#F97316]"
           }`}>
-            {currentUserRole === "SUPERADMIN" ? "👑" : currentUserRole === "ADMIN" ? "🛡️" : "BS"}
+            {currentUserRole === "ADMIN" ? "🛡️" : "BS"}
           </div>
           <div className="hidden xl:flex flex-col text-left">
             <span className="text-xs font-bold text-[#102A43] leading-none">
-              {currentUserRole === "SUPERADMIN" ? "Admin Bisnis" : currentUserRole === "ADMIN" ? "Admin Sales" : salesProfile.name}
+              {currentUserRole === "ADMIN" ? "Admin ProTek" : salesProfile.name}
             </span>
             <span className={`text-[10px] font-semibold ${
-              currentUserRole === "SUPERADMIN" ? "text-[#0284C7]" : currentUserRole === "ADMIN" ? "text-emerald-600" : "text-[#F97316]"
+              currentUserRole === "ADMIN" ? "text-emerald-600" : "text-[#F97316]"
             }`}>
-              {currentUserRole === "SUPERADMIN" ? "SUPERADMIN HQ" : currentUserRole === "ADMIN" ? "OPERATIONAL HQ" : salesProfile.tier}
+              {currentUserRole === "ADMIN" ? "ADMINISTRATOR HQ" : salesProfile.tier}
             </span>
           </div>
         </Link>

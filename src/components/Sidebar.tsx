@@ -37,15 +37,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const unreadNotifs = notifications.filter((n) => !n.read).length;
 
-  const isSuperAdminOrAdmin = currentUserRole === "SUPERADMIN" || currentUserRole === "ADMIN";
+  const isSuperAdminOrAdmin = currentUserRole === "ADMIN";
 
   let navSections: NavSection[] = [];
 
-  if (currentUserRole === "SUPERADMIN") {
+  if (currentUserRole === "ADMIN") {
     navSections = [
       {
-        title: "KONTROL BISNIS & SAAS",
+        title: "PUSAT KONTROL ADMIN & HQ",
         items: [
+          {
+            href: "/admin",
+            label: "Pusat Kontrol Admin",
+            icon: "admin_panel_settings",
+            badge: "HQ",
+          },
           {
             href: "/admin/command-center",
             label: "Command Center Bisnis",
@@ -53,45 +59,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
             badge: "Live",
             badgeColor: "bg-[#2563EB]",
           },
-          {
-            href: "/admin",
-            label: "Pusat Kontrol Admin",
-            icon: "admin_panel_settings",
-            badge: "HQ",
-          },
         ],
       },
       {
-        title: "OUTLET & KLIEN",
+        title: "OUTLET & MONITORING",
         items: [
           { href: "/outlets", label: "Daftar Outlet Klien", icon: "storefront" },
-          { href: "/leads/ui-custom", label: "Studio Desain UI UMKM", icon: "palette", badge: "Studio UI" },
-        ],
-      },
-      {
-        title: "AKUN",
-        items: [
-          { href: "/profile", label: "Profil Superadmin", icon: "badge" },
-        ],
-      },
-    ];
-  } else if (currentUserRole === "ADMIN") {
-    navSections = [
-      {
-        title: "PUSAT KONTROL HQ",
-        items: [
-          {
-            href: "/admin",
-            label: "Pusat Kontrol Admin",
-            icon: "admin_panel_settings",
-            badge: "HQ",
-          },
-        ],
-      },
-      {
-        title: "OUTLET & KLIEN",
-        items: [
-          { href: "/outlets", label: "Daftar Outlet Klien", icon: "storefront" },
+          { href: "/leads/pipeline", label: "Monitoring Prospek", icon: "radar" },
           { href: "/leads/ui-custom", label: "Studio Desain UI UMKM", icon: "palette", badge: "Studio UI" },
         ],
       },
@@ -103,7 +77,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       },
     ];
   } else {
-    // SALES ROLE (Tidak ada akses ke halaman admin HQ)
+    // SALES ROLE (Akses operasional mitra sales lapangan)
     navSections = [
       {
         title: "UTAMA",
@@ -116,6 +90,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         items: [
           { href: "/leads/check", label: "Cek & Kunci Outlet", icon: "radar", badge: "30 Hari" },
           { href: "/leads/pipeline", label: "Daftar Outlet Ditawarkan", icon: "storefront" },
+          { href: "/leads/map", label: "Peta Rute Prospek", icon: "map" },
         ],
       },
       {
@@ -125,11 +100,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
         ],
       },
       {
+        title: "OUTLET & AKTIVASI",
+        items: [
+          { href: "/outlets", label: "Daftar Outlet Saya", icon: "storefront" },
+          { href: "/outlets/onboarding", label: "Aktivasi & Onboarding POS", icon: "point_of_sale" },
+          { href: "/outlets/bast", label: "BAST Digital Hardware", icon: "assignment_turned_in" },
+        ],
+      },
+      {
         title: "KOMISI & PENCAIRAN",
         items: [
           { href: "/commission/wallet", label: "Dompet Komisi", icon: "account_balance_wallet" },
           { href: "/commission/withdraw", label: "Tarik Saldo Komisi", icon: "payments" },
           { href: "/commission/history", label: "Riwayat Penarikan", icon: "receipt" },
+        ],
+      },
+      {
+        title: "SALES TOOLKIT",
+        items: [
+          { href: "/toolkit/roi", label: "Kalkulator ROI POS", icon: "calculate" },
+          { href: "/toolkit/brochures", label: "Brosur Digital", icon: "menu_book" },
+          { href: "/offline-sync", label: "Sinkronisasi Offline", icon: "sync" },
         ],
       },
       {
@@ -162,13 +153,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Sidebar Header */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-[#1E3E62]/80 bg-[#0B1D3A]">
           <Link
-            href={
-              currentUserRole === "SUPERADMIN"
-                ? "/admin/command-center"
-                : currentUserRole === "ADMIN"
-                ? "/admin"
-                : "/"
-            }
+            href={currentUserRole === "ADMIN" ? "/admin" : "/"}
             className="flex items-center gap-3 overflow-hidden"
           >
             <div className="w-9 h-9 rounded-lg bg-[#1E3E62] p-1 flex items-center justify-center shrink-0 border border-[#49607c]/40">
@@ -219,43 +204,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="p-3 border-b border-[#1E3E62]/60 bg-[#0B1D3A]/40">
           <div className="flex items-center gap-3 p-2 rounded-xl bg-[#1E3E62]/50 border border-[#1E3E62]">
             <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-md ${
-              currentUserRole === "SUPERADMIN"
-                ? "bg-gradient-to-tr from-[#2563EB] to-[#38BDF8]"
-                : currentUserRole === "ADMIN"
+              currentUserRole === "ADMIN"
                 ? "bg-gradient-to-tr from-[#0F766E] to-[#10B981]"
                 : "bg-gradient-to-tr from-[#F97316] to-[#FF8A00]"
             }`}>
-              {currentUserRole === "SUPERADMIN" ? "SA" : currentUserRole === "ADMIN" ? "AD" : "BS"}
+              {currentUserRole === "ADMIN" ? "AD" : "BS"}
             </div>
             {!isCollapsed && (
               <div className="flex flex-col min-w-0 flex-1">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-white truncate">
-                    {currentUserRole === "SUPERADMIN"
-                      ? "Admin Bisnis"
-                      : currentUserRole === "ADMIN"
-                      ? "Admin Operasional"
+                    {currentUserRole === "ADMIN"
+                      ? "Admin ProTek"
                       : salesProfile.name}
                   </span>
                   <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold border ${
-                    currentUserRole === "SUPERADMIN"
-                      ? "bg-[#38BDF8]/20 text-[#38BDF8] border-[#38BDF8]/30"
-                      : currentUserRole === "ADMIN"
+                    currentUserRole === "ADMIN"
                       ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
-                      : "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                      : "bg-orange-500/20 text-orange-300 border-orange-500/30"
                   }`}>
-                    {currentUserRole === "SUPERADMIN"
-                      ? "SUPERADMIN"
-                      : currentUserRole === "ADMIN"
+                    {currentUserRole === "ADMIN"
                       ? "ADMIN"
                       : salesProfile.tier.split(" ")[0]}
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-slate-300">
-                  <span className={`${currentUserRole === "SUPERADMIN" ? "text-[#38BDF8]" : "text-[#F97316]"} font-semibold truncate`}>
-                    {currentUserRole === "SUPERADMIN"
-                      ? "Multi-Tenant SaaS HQ"
-                      : currentUserRole === "ADMIN"
+                  <span className={`${currentUserRole === "ADMIN" ? "text-emerald-400" : "text-[#F97316]"} font-semibold truncate`}>
+                    {currentUserRole === "ADMIN"
                       ? "Pusat Server & HQ"
                       : `Target: ${salesProfile.targetPercent}%`}
                   </span>

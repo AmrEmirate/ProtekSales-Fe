@@ -8,31 +8,28 @@ import { api } from "@/services/api";
 export default function LoginPage() {
   const router = useRouter();
 
-  const [loginRole, setLoginRole] = useState<"SALES" | "ADMIN" | "SUPERADMIN">("SUPERADMIN");
-  const [email, setEmail] = useState("owner@protek.id");
+  const [loginRole, setLoginRole] = useState<"SALES" | "ADMIN">("ADMIN");
+  const [email, setEmail] = useState("admin@protek.id");
   const [password, setPassword] = useState("admin123");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const fillQuickAccount = (role: "SALES" | "ADMIN" | "SUPERADMIN", accEmail: string, accPass: string) => {
+  const fillQuickAccount = (role: "SALES" | "ADMIN", accEmail: string, accPass: string) => {
     setLoginRole(role);
     setEmail(accEmail);
     setPassword(accPass);
     setErrorMsg(null);
   };
 
-  const handleRoleSwitch = (role: "SALES" | "ADMIN" | "SUPERADMIN") => {
+  const handleRoleSwitch = (role: "SALES" | "ADMIN") => {
     setLoginRole(role);
     setErrorMsg(null);
     if (role === "SALES") {
       setEmail("sales1@protek.id");
       setPassword("sales123");
-    } else if (role === "ADMIN") {
-      setEmail("admin@protek.id");
-      setPassword("admin123");
     } else {
-      setEmail("owner@protek.id");
+      setEmail("admin@protek.id");
       setPassword("admin123");
     }
   };
@@ -43,15 +40,11 @@ export default function LoginPage() {
     setErrorMsg(null);
 
     const cleanEmail = email.toLowerCase().trim();
-    let resolvedRole: "SALES" | "ADMIN" | "SUPERADMIN" = "SALES";
-    if (cleanEmail === "owner@protek.id") {
-      resolvedRole = "SUPERADMIN";
-    } else if (cleanEmail === "admin@protek.id") {
+    let resolvedRole: "SALES" | "ADMIN" = "SALES";
+    if (cleanEmail === "admin@protek.id" || cleanEmail === "owner@protek.id" || cleanEmail.includes("admin")) {
       resolvedRole = "ADMIN";
     } else if (cleanEmail.includes("sales")) {
       resolvedRole = "SALES";
-    } else if (loginRole === "SUPERADMIN") {
-      resolvedRole = "SUPERADMIN";
     } else if (loginRole === "ADMIN") {
       resolvedRole = "ADMIN";
     } else {
@@ -63,11 +56,7 @@ export default function LoginPage() {
       setIsLoading(false);
 
       // Pastikan role disinkronkan akurat dari identitas pengguna
-      if (cleanEmail === "owner@protek.id") {
-        resolvedRole = "SUPERADMIN";
-      } else if (cleanEmail === "admin@protek.id") {
-        resolvedRole = "ADMIN";
-      } else if (data?.user?.role === "ADMIN") {
+      if (cleanEmail === "admin@protek.id" || cleanEmail === "owner@protek.id" || data?.user?.role === "ADMIN" || data?.user?.role === "SUPERADMIN") {
         resolvedRole = "ADMIN";
       } else {
         resolvedRole = "SALES";
@@ -78,21 +67,11 @@ export default function LoginPage() {
         localStorage.setItem("protek_user_email", cleanEmail);
         localStorage.setItem(
           "protek_user_name",
-          data?.user?.name ||
-            (resolvedRole === "SUPERADMIN"
-              ? "Owner / Direktur PT Pro Teknologi"
-              : resolvedRole === "ADMIN"
-              ? "Admin PT Pro Teknologi"
-              : "Budi Sales (Senior)")
+          data?.user?.name || (resolvedRole === "ADMIN" ? "Admin ProTek HQ" : "Budi Sales (Senior)")
         );
       }
 
-      const targetUrl =
-        resolvedRole === "SUPERADMIN"
-          ? "/admin/command-center"
-          : resolvedRole === "ADMIN"
-          ? "/admin"
-          : "/";
+      const targetUrl = resolvedRole === "ADMIN" ? "/admin" : "/";
       window.location.href = targetUrl;
     } catch (err: any) {
       setIsLoading(false);
@@ -109,17 +88,11 @@ export default function LoginPage() {
           localStorage.setItem("protek_user_email", cleanEmail);
           localStorage.setItem(
             "protek_user_name",
-            resolvedRole === "SUPERADMIN"
-              ? "Owner / Direktur PT Pro Teknologi"
-              : resolvedRole === "ADMIN"
-              ? "Admin PT Pro Teknologi"
-              : "Budi Sales (Senior)"
+            resolvedRole === "ADMIN" ? "Admin ProTek HQ" : "Budi Sales (Senior)"
           );
         }
         // Izinkan masuk mode offline/standalone sesuai peran
-        if (resolvedRole === "SUPERADMIN") {
-          window.location.href = "/admin/command-center";
-        } else if (resolvedRole === "ADMIN") {
+        if (resolvedRole === "ADMIN") {
           window.location.href = "/admin";
         } else {
           window.location.href = "/";
@@ -167,35 +140,20 @@ export default function LoginPage() {
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
               ⚡ Akun Uji Coba Cepat (1-Click Fill):
             </span>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-left">
-              <button
-                type="button"
-                onClick={() => fillQuickAccount("SUPERADMIN", "owner@protek.id", "admin123")}
-                className={`p-2.5 rounded-xl border text-xs font-semibold transition-all ${
-                  loginRole === "SUPERADMIN"
-                    ? "bg-[#0B1D3A] text-[#38BDF8] border-[#38BDF8] shadow-md ring-1 ring-[#38BDF8]"
-                    : "bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200"
-                }`}
-              >
-                <div className="font-bold flex items-center gap-1 text-[#38BDF8]">
-                  <span>👑 Admin Bisnis & SaaS</span>
-                </div>
-                <div className="text-[10px] opacity-80 truncate">Command Center Multi-Tenant</div>
-              </button>
-
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left">
               <button
                 type="button"
                 onClick={() => fillQuickAccount("ADMIN", "admin@protek.id", "admin123")}
                 className={`p-2.5 rounded-xl border text-xs font-semibold transition-all ${
                   loginRole === "ADMIN"
-                    ? "bg-[#102A43] text-white border-[#102A43] shadow-sm"
+                    ? "bg-[#102A43] text-white border-[#102A43] shadow-md ring-1 ring-[#102A43]"
                     : "bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200"
                 }`}
               >
-                <div className="font-bold flex items-center gap-1">
-                  <span>🛡️ Admin Sales CRM</span>
+                <div className="font-bold flex items-center gap-1 text-emerald-400">
+                  <span>🛡️ Admin ProTek HQ</span>
                 </div>
-                <div className="text-[10px] opacity-80 truncate">Pusat Server & Tagihan</div>
+                <div className="text-[10px] opacity-80 truncate">Pusat Server & Command Center</div>
               </button>
 
               <button
@@ -203,32 +161,20 @@ export default function LoginPage() {
                 onClick={() => fillQuickAccount("SALES", "sales1@protek.id", "sales123")}
                 className={`p-2.5 rounded-xl border text-xs font-semibold transition-all ${
                   loginRole === "SALES"
-                    ? "bg-[#F97316] text-white border-[#F97316] shadow-sm"
+                    ? "bg-[#F97316] text-white border-[#F97316] shadow-md ring-1 ring-[#F97316]"
                     : "bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200"
                 }`}
               >
                 <div className="font-bold flex items-center gap-1">
                   <span>💼 Mitra Sales (Budi)</span>
                 </div>
-                <div className="text-[10px] opacity-80 truncate">Kunci Leads & Dompet</div>
+                <div className="text-[10px] opacity-80 truncate">Kunci Leads & Dompet Komisi</div>
               </button>
             </div>
           </div>
 
           {/* Role Tab Switcher */}
           <div className="p-1 rounded-xl bg-slate-100 flex items-center text-xs font-bold gap-1">
-            <button
-              type="button"
-              onClick={() => handleRoleSwitch("SUPERADMIN")}
-              className={`flex-1 py-2 rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-                loginRole === "SUPERADMIN"
-                  ? "bg-[#0B1D3A] text-[#38BDF8] shadow-sm font-bold border border-[#38BDF8]/40"
-                  : "text-slate-500 hover:text-slate-900"
-              }`}
-            >
-              <span className="material-symbols-outlined text-[16px]">hub</span>
-              <span>Admin Bisnis</span>
-            </button>
             <button
               type="button"
               onClick={() => handleRoleSwitch("ADMIN")}
@@ -239,7 +185,7 @@ export default function LoginPage() {
               }`}
             >
               <span className="material-symbols-outlined text-[16px]">admin_panel_settings</span>
-              <span>Admin Sales</span>
+              <span>Admin ProTek</span>
             </button>
             <button
               type="button"
@@ -261,7 +207,7 @@ export default function LoginPage() {
               <span>Otentikasi Aman (JWT Bearer)</span>
             </div>
             <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-bold">
-              {loginRole === "SALES" ? "AKSES SALES" : "AKSES SERVER OWNER"}
+              {loginRole === "SALES" ? "AKSES SALES" : "AKSES ADMIN HQ"}
             </span>
           </div>
 

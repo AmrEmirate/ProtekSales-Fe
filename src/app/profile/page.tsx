@@ -8,7 +8,7 @@ import { api } from "@/services/api";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { salesProfile, outlets, availableBalance, hasWithdrawnThisMonth, hasPendingWithdrawal } = useApp();
+  const { salesProfile, outlets, availableBalance, hasWithdrawnThisMonth, hasPendingWithdrawal, currentUserRole } = useApp();
   const [phone, setPhone] = useState(salesProfile.phone);
   const [bankAccount, setBankAccount] = useState(salesProfile.bankAccount);
   const [savedNotice, setSavedNotice] = useState(false);
@@ -33,17 +33,19 @@ export default function ProfilePage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-            <Link href="/" className="hover:text-[#F97316]">Dashboard</Link>
+            <Link href={currentUserRole === "ADMIN" ? "/admin" : "/"} className="hover:text-[#F97316]">Dashboard</Link>
             <span>/</span>
             <span className="text-[#102A43]">Pengaturan</span>
             <span>/</span>
             <span className="text-[#102A43]">Profil & KPI</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold font-display text-[#102A43]">
-            Profil Mitra Sales, KPI & Tiering Komisi
+            {currentUserRole === "ADMIN" ? "Profil Administrator HQ ProTek" : "Profil Mitra Sales, KPI & Tiering Komisi"}
           </h1>
           <p className="text-xs text-slate-500">
-            Identitas keanggotaan resmi PT Pro Teknologi, jenjang komisi recurring, dan device binding hardware
+            {currentUserRole === "ADMIN"
+              ? "Identitas resmi Administrator PT Pro Teknologi dan akses pusat kendali sistem"
+              : "Identitas keanggotaan resmi PT Pro Teknologi, jenjang komisi recurring, dan device binding hardware"}
           </p>
         </div>
 

@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { api } from "@/services/api";
-import { useApp } from "@/context/AppContext";
 
 export interface BusinessTenant {
   id: string;
@@ -28,8 +27,6 @@ export interface BusinessTenant {
 }
 
 export default function BusinessCommandCenterPage() {
-  const { currentUserRole, switchRole } = useApp();
-
   // State
   const [tenants, setTenants] = useState<BusinessTenant[]>([]);
   const [isLoading, setIsLoading] = useState(true);

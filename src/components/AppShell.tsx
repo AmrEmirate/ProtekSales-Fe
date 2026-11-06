@@ -33,19 +33,8 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
       return;
     }
 
-    if (currentUserRole === "ADMIN") {
-      if (pathname.startsWith("/admin/command-center")) {
-        router.replace("/admin");
-        return;
-      }
-      if (pathname === "/") {
-        router.replace("/admin");
-        return;
-      }
-    }
-
-    if (currentUserRole === "SUPERADMIN" && pathname === "/") {
-      router.replace("/admin/command-center");
+    if (currentUserRole === "ADMIN" && pathname === "/") {
+      router.replace("/admin");
       return;
     }
 
@@ -54,8 +43,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
 
   const isUnauthorized =
     (currentUserRole === "SALES" && pathname.startsWith("/admin")) ||
-    (currentUserRole === "ADMIN" && (pathname.startsWith("/admin/command-center") || pathname === "/")) ||
-    (currentUserRole === "SUPERADMIN" && pathname === "/");
+    (currentUserRole === "ADMIN" && pathname === "/");
 
   if (isCheckingAuth || isUnauthorized) {
     return (

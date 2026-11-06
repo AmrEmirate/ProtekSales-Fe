@@ -17,52 +17,24 @@ export const BottomNav: React.FC = () => {
     highlight?: boolean;
   }[] = [];
 
-  if (currentUserRole === "SUPERADMIN") {
+  if (currentUserRole === "ADMIN") {
     navItems = [
+      {
+        href: "/admin",
+        label: "Admin HQ",
+        icon: "admin_panel_settings",
+        isActive: pathname === "/admin",
+        highlight: true,
+      },
       {
         href: "/admin/command-center",
-        label: "Bisnis SaaS",
+        label: "Command",
         icon: "hub",
         isActive: pathname.startsWith("/admin/command-center"),
-        highlight: true,
-      },
-      {
-        href: "/admin",
-        label: "Admin HQ",
-        icon: "admin_panel_settings",
-        isActive: pathname === "/admin",
       },
       {
         href: "/leads/ui-custom",
-        label: "Desain UMKM",
-        icon: "palette",
-        isActive: pathname.startsWith("/leads/ui-custom"),
-      },
-      {
-        href: "/outlets",
-        label: "Outlet Klien",
-        icon: "storefront",
-        isActive: pathname.startsWith("/outlets"),
-      },
-      {
-        href: "/profile",
-        label: "Profil",
-        icon: "badge",
-        isActive: pathname.startsWith("/profile"),
-      },
-    ];
-  } else if (currentUserRole === "ADMIN") {
-    navItems = [
-      {
-        href: "/admin",
-        label: "Admin HQ",
-        icon: "admin_panel_settings",
-        isActive: pathname === "/admin",
-        highlight: true,
-      },
-      {
-        href: "/leads/ui-custom",
-        label: "Desain UMKM",
+        label: "Desain UI",
         icon: "palette",
         isActive: pathname.startsWith("/leads/ui-custom"),
       },
