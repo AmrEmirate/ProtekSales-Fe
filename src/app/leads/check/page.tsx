@@ -248,8 +248,17 @@ export default function LeadCheckPage() {
             )}
 
             {notificationMsg && (
-              <div className="p-3 rounded-xl bg-slate-900 text-white text-xs font-semibold animate-in fade-in">
-                {notificationMsg}
+              <div className="p-3.5 rounded-xl bg-slate-900 text-white text-xs font-semibold animate-in fade-in space-y-2">
+                <div>{notificationMsg}</div>
+                {notificationMsg.includes("Sukses") && (
+                  <Link
+                    href={`/leads/ui-custom?name=${encodeURIComponent(outletName || "Outlet Baru")}&phone=${waInput.replace(/[^0-9]/g, "")}&category=${encodeURIComponent(category)}`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F97316] text-white text-xs font-bold shadow hover:bg-orange-600 transition"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">brush</span>
+                    <span>Lanjut Buat UI Kasir & Akuntansi</span>
+                  </Link>
+                )}
               </div>
             )}
           </div>

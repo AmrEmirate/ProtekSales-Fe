@@ -121,6 +121,11 @@ class ApiService {
     longitude?: number;
     notes?: string;
     photoUrl?: string;
+    salesType?: "OFFLINE" | "ONLINE";
+    outletCount?: number;
+    outcome?: "AGREED" | "NOT_AGREED" | "PENDING" | "FOLLOW_UP";
+    rejectionReason?: string;
+    followUpDate?: string;
   }) {
     const res = await this.request<{ success: boolean; message: string; data: any }>("/leads/check-in", {
       method: "POST",
@@ -554,7 +559,20 @@ class ApiService {
     return res;
   }
 
-  async approveUiDesign(id: string) {
+  async approveUiDesign(
+    id: string,
+    payload?: {
+      subdomain?: string;
+      domainType?: "SUBDOMAIN" | "HOSTINGER_CUSTOM";
+      customDomain?: string;
+      ownerUsername?: string;
+      ownerPassword?: string;
+      ownerPin?: string;
+      planCode?: string;
+      outletCount?: number;
+      salesType?: "OFFLINE" | "ONLINE";
+    }
+  ) {
     const res = await this.request<{
       success: boolean;
       message: string;
@@ -564,9 +582,25 @@ class ApiService {
         tenantSlug: string;
         posUrl: string;
         licenseKey: string;
+        customDomain?: string;
+        credentials?: {
+          username: string;
+          password?: string;
+          pin?: string;
+        };
+        billing?: {
+          planCode: string;
+          monthlyFee: number;
+          outletCount: number;
+          subscriptionStatus: string;
+          invoiceNumber: string;
+        };
+        hostinger?: any;
+        feBundle?: any;
       };
     }>(`/ui-design/${id}/approve`, {
       method: "POST",
+      body: JSON.stringify(payload || {}),
     });
     return res;
   }

@@ -299,8 +299,15 @@ export default function DashboardPage() {
                 </div>
 
                 {lockSuccessMsg && (
-                  <div className="p-3 rounded-xl bg-emerald-100 text-emerald-900 text-xs font-bold border border-emerald-400 animate-in fade-in">
-                    {lockSuccessMsg}
+                  <div className="p-3 rounded-xl bg-emerald-100 text-emerald-900 text-xs font-bold border border-emerald-400 animate-in fade-in space-y-2">
+                    <div>{lockSuccessMsg}</div>
+                    <Link
+                      href={`/leads/ui-custom?name=${encodeURIComponent(outletName || "Outlet Baru")}&phone=${waNumber.replace(/[^0-9]/g, "")}`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-700 text-white text-xs font-bold shadow hover:bg-emerald-800 transition"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">brush</span>
+                      <span>Lanjut Buat UI Kasir & Akuntansi</span>
+                    </Link>
                   </div>
                 )}
               </div>

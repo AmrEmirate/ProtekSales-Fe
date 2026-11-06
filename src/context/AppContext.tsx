@@ -17,6 +17,13 @@ export interface Lead {
   lastContact: string;
   stage: "Kunjungan Baru" | "Demo Presentasi" | "Follow Up" | "Deal POS";
   imageUrl?: string;
+  salesType?: "OFFLINE" | "ONLINE";
+  outletCount?: number;
+  outcome?: "AGREED" | "NOT_AGREED" | "PENDING" | "FOLLOW_UP";
+  rejectionReason?: string;
+  followUpDate?: string;
+  notes?: string;
+  subdomain?: string;
 }
 
 export interface Outlet {
@@ -103,7 +110,19 @@ interface AppContextType {
   offlineQueueCount: number;
   refreshData: () => Promise<void>;
   toggleOffline: () => void;
-  lockLead: (name: string, phone: string, address: string, category: string) => Promise<boolean>;
+  lockLead: (
+    name: string,
+    phone: string,
+    address: string,
+    category: string,
+    options?: {
+      salesType?: "OFFLINE" | "ONLINE";
+      outletCount?: number;
+      outcome?: "AGREED" | "NOT_AGREED" | "PENDING" | "FOLLOW_UP";
+      rejectionReason?: string;
+      followUpDate?: string;
+    }
+  ) => Promise<boolean>;
   toggleOutletLicense: (outletId: string) => Promise<void>;
   addVisit: (visit: Omit<Visit, "id">) => Promise<void>;
   requestWithdrawal: (amount: number, bank: string, account: string) => Promise<boolean>;
@@ -234,6 +253,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             if (l.status === "DEMO") stageName = "Demo Presentasi";
             if (l.status === "DEAL") stageName = "Deal POS";
 
+            // Parse metadata tag dari notes
+            const notesStr = l.notes || "";
+            const isOnline = notesStr.includes("[Channel: ONLINE]");
+            const outletsMatch = notesStr.match(/\[Outlets:\s*(\d+)\]/);
+            const outletCount = outletsMatch ? parseInt(outletsMatch[1], 10) : 1;
+            const reasonMatch = notesStr.match(/\[Alasan:\s*([^\]]+)\]/);
+            const rejectionReason = reasonMatch ? reasonMatch[1] : undefined;
+            const reminderMatch = notesStr.match(/\[Pengingat:\s*([^\]]+)\]/);
+            const followUpDate = reminderMatch ? reminderMatch[1] : undefined;
+
             return {
               id: l.id,
               name: l.storeName,
@@ -247,6 +276,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               status: l.status === "DEAL" ? "DEAL" : "LOCKED",
               lastContact: "Baru saja",
               stage: stageName,
+              salesType: isOnline ? "ONLINE" : "OFFLINE",
+              outletCount,
+              rejectionReason,
+              followUpDate,
+              notes: notesStr,
             };
           });
           setLeads(mappedLeads);
@@ -340,7 +374,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     name: string,
     phone: string,
     address: string,
-    category: string
+    category: string,
+    options?: {
+      salesType?: "OFFLINE" | "ONLINE";
+      outletCount?: number;
+      outcome?: "AGREED" | "NOT_AGREED" | "PENDING" | "FOLLOW_UP";
+      rejectionReason?: string;
+      followUpDate?: string;
+    }
   ): Promise<boolean> => {
     try {
       const sanitizedPhone = phone.replace(/[^0-9]/g, "");
@@ -353,6 +394,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           phone: sanitizedPhone,
           address: address || "Jakarta",
           notes: `Kategori: ${category}. Didaftarkan melalui Lead Protection Engine.`,
+          salesType: options?.salesType,
+          outletCount: options?.outletCount,
+          outcome: options?.outcome,
+          rejectionReason: options?.rejectionReason,
+          followUpDate: options?.followUpDate,
         });
       }
 
@@ -366,9 +412,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         lockedBy: "Budi Santoso (Anda)",
         isCurrentUser: true,
         daysRemaining: 30,
-        status: "LOCKED",
+        status: options?.outcome === "AGREED" ? "LOCKED" : "LOCKED",
         lastContact: "Baru saja dikunci",
-        stage: "Kunjungan Baru",
+        stage: options?.outcome === "AGREED" ? "Demo Presentasi" : "Kunjungan Baru",
+        salesType: options?.salesType || "OFFLINE",
+        outletCount: options?.outletCount || 1,
+        rejectionReason: options?.rejectionReason,
+        followUpDate: options?.followUpDate,
       };
 
       setLeads((prev) => [newLead, ...prev]);
