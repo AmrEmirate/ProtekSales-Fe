@@ -64,3 +64,15 @@ docker run --rm -v "$(pwd)":/app -w /app node:22-alpine npm test -- <path_file_t
      - **Dilarang keras menyentuh, mengubah file/kode, mengubah rute proxy/DNS, mencoba menghidupkan, atau mengotak-atiknya.**
      - Biarkan layanan tersebut tetap dalam kondisi tidur/non-aktif (*leave sleeping services untouched*), kecuali jika USER secara eksplisit dan tertulis memberikan perintah untuk mengaktifkan kembali layanan tersebut.
 
+---
+
+## 5. Standar Isolasi Ketat Database Multi-Tenant & Perlindungan Hapus Data (Anti-Hapus Silang Tenant)
+1. **Prinsip Isolasi Mutlak Database per Tenant (Zero Cross-Database Interference):**
+   - Meskipun ProtekSales berbagi basis kode backend atau API core dengan sistem lain, **database fisiknya terpisah khusus (`proteksales_db`)**.
+   - **Dilarang Keras menyentuh, membaca, mengubah, memigrasi, atau menghapus database lain yang tidak bersangkutan (seperti `dimsum_db` atau database tenant UMKM lainnya).** Setiap pengerjaan ProtekSales HANYA boleh beroperasi pada `proteksales_db`.
+2. **Prosedur Pengamanan Ketat Permintaan Hapus Seluruh Data (Data Wipe Guardrail):**
+   - Jika USER meminta untuk *"hapus seluruh data"*, *"reset database"*, atau *"kosongkan data"*:
+     - **Wajib Validasi Database Target**: Agent WAJIB secara eksplisit mengunci koneksi hanya ke `proteksales_db` (`-d proteksales_db`). Dilarang keras menjalankan perintah database tanpa menentukan nama database secara spesifik.
+     - **Larangan Hapus Silang Tenant**: Operasi pembersihan data (`TRUNCATE` / `DELETE`) HANYA boleh dieksekusi pada tabel-tabel di dalam database `proteksales_db`. Dilarang keras menyentuh database tenant lain.
+     - **Verifikasi Integritas**: Sebelum dan sesudah operasi penghapusan, agent wajib memverifikasi bahwa database tenant lain tetap utuh 100% tanpa ada data yang terhapus atau berubah.
+
