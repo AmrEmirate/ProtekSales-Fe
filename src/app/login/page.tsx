@@ -8,18 +8,11 @@ import { api } from "@/services/api";
 export default function LoginPage() {
   const router = useRouter();
 
-  const [email, setEmail] = useState("sales1@protek.id");
-  const [password, setPassword] = useState("sales123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-  // 1-Click Quick Fill Khusus Akun Mitra Sales (Admin tidak ditampilkan di area publik)
-  const fillQuickAccount = (accEmail: string, accPass: string) => {
-    setEmail(accEmail);
-    setPassword(accPass);
-    setErrorMsg(null);
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,42 +125,6 @@ export default function LoginPage() {
 
         {/* Card Form */}
         <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 border border-slate-100">
-          {/* Quick Account Test Fillers (Hanya Akun Sales - 1-Click Fill) */}
-          <div className="space-y-2 pt-1">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-              ⚡ Akun Uji Coba Cepat (1-Click Fill):
-            </span>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left">
-              <button
-                type="button"
-                onClick={() => fillQuickAccount("sales1@protek.id", "sales123")}
-                className="p-3 rounded-xl border text-xs font-semibold transition-all bg-orange-50 hover:bg-orange-100/70 border-orange-200 text-[#102A43] active:scale-98 shadow-sm flex flex-col justify-between"
-              >
-                <div className="font-bold flex items-center gap-1.5 text-[#F97316]">
-                  <span className="material-symbols-outlined text-[16px]">badge</span>
-                  <span>Mitra Sales 1 (Budi)</span>
-                </div>
-                <div className="text-[10px] text-slate-500 mt-1 truncate">
-                  Kunci Leads & Dompet Komisi
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => fillQuickAccount("sales2@protek.id", "sales123")}
-                className="p-3 rounded-xl border text-xs font-semibold transition-all bg-sky-50 hover:bg-sky-100/70 border-sky-200 text-[#102A43] active:scale-98 shadow-sm flex flex-col justify-between"
-              >
-                <div className="font-bold flex items-center gap-1.5 text-sky-700">
-                  <span className="material-symbols-outlined text-[16px]">storefront</span>
-                  <span>Mitra Sales 2 (Dewi)</span>
-                </div>
-                <div className="text-[10px] text-slate-500 mt-1 truncate">
-                  Penjualan Offline & Multi-Outlet
-                </div>
-              </button>
-            </div>
-          </div>
-
           {/* Secure Authentication Badge */}
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs">
