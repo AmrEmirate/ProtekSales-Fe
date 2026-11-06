@@ -20,11 +20,14 @@ export default function OutletsListPage() {
   const lunasCount = outlets.filter((o) => o.status === "LUNAS").length;
   const h3Count = outlets.filter((o) => o.status === "H-3").length;
   const suspendedCount = outlets.filter((o) => o.status === "SUSPENDED").length;
+  const directAdminCount = outlets.filter((o) => !!o.isDirectAdmin).length;
   const totalMrr = outlets.reduce((sum, o) => sum + o.mrr, 0);
 
   const filteredOutlets = outlets.filter((out) => {
     const matchesFilter =
       activeFilter === "ALL" ||
+      (activeFilter === "DIRECT_ADMIN" && out.isDirectAdmin) ||
+      (activeFilter === "SALES" && !out.isDirectAdmin) ||
       (activeFilter === "LUNAS" && out.status === "LUNAS") ||
       (activeFilter === "H-3" && out.status === "H-3") ||
       (activeFilter === "SUSPENDED" && out.status === "SUSPENDED");
@@ -133,6 +136,28 @@ export default function OutletsListPage() {
             }`}
           >
             Semua ({outlets.length})
+          </button>
+          <button
+            onClick={() => setActiveFilter("DIRECT_ADMIN")}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1 ${
+              activeFilter === "DIRECT_ADMIN"
+                ? "bg-amber-600 text-white shadow-sm"
+                : "bg-white text-amber-800 hover:bg-amber-50 border border-amber-200 shadow-sm"
+            }`}
+          >
+            <span>👑 Binaan Admin HQ</span>
+            <span>({directAdminCount})</span>
+          </button>
+          <button
+            onClick={() => setActiveFilter("SALES")}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1 ${
+              activeFilter === "SALES"
+                ? "bg-[#F97316] text-white shadow-sm"
+                : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200 shadow-sm"
+            }`}
+          >
+            <span>💼 Mitra Sales</span>
+            <span>({outlets.length - directAdminCount})</span>
           </button>
           <button
             onClick={() => setActiveFilter("LUNAS")}
@@ -248,9 +273,16 @@ export default function OutletsListPage() {
                         <h3 className="text-sm sm:text-base font-bold text-[#102A43] font-display truncate">
                           {outlet.name}
                         </h3>
-                        <span className="text-[11px] text-slate-500 truncate">
-                          {outlet.packageType} • {outlet.code}
-                        </span>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[11px] text-slate-500 truncate">
+                            {outlet.packageType} • {outlet.code}
+                          </span>
+                          {outlet.isDirectAdmin && (
+                            <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[10px] font-bold">
+                              👑 Admin Direct
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -298,21 +330,37 @@ export default function OutletsListPage() {
                     <div className="flex flex-col">
                       <span
                         className={`text-[10px] font-semibold uppercase ${
-                          isSuspended ? "text-slate-500" : isH3 ? "text-amber-700" : "text-emerald-700"
+                          outlet.isDirectAdmin
+                            ? "text-amber-700"
+                            : isSuspended
+                            ? "text-slate-500"
+                            : isH3
+                            ? "text-amber-700"
+                            : "text-emerald-700"
                         }`}
                       >
-                        {isSuspended ? "Hak Komisi" : isH3 ? "Batas Bayar" : "Komisi Anda (25%)"}
+                        {outlet.isDirectAdmin
+                          ? "Alokasi Pendapatan"
+                          : isSuspended
+                          ? "Hak Komisi"
+                          : isH3
+                          ? "Batas Bayar"
+                          : "Komisi Anda (25%)"}
                       </span>
                       <span
                         className={`text-xs sm:text-sm font-bold font-display tabular-nums ${
-                          isSuspended
+                          outlet.isDirectAdmin
+                            ? "text-amber-800 font-bold"
+                            : isSuspended
                             ? "text-slate-400"
                             : isH3
                             ? "text-amber-800"
                             : "text-emerald-700"
                         }`}
                       >
-                        {isSuspended
+                        {outlet.isDirectAdmin
+                          ? "100% Kas Pusat"
+                          : isSuspended
                           ? "Ditahan (Pending)"
                           : isH3
                           ? outlet.dueDate
@@ -320,6 +368,25 @@ export default function OutletsListPage() {
                       </span>
                     </div>
                   </div>
+
+                  {/* Channel Attribution Tag */}
+                  {outlet.isDirectAdmin ? (
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold">
+                      <div className="flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[16px] text-amber-600">crown</span>
+                        <span>Outlet Binaan Langsung Admin HQ</span>
+                      </div>
+                      <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded">HQ Direct</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 text-xs">
+                      <div className="flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[16px] text-slate-500">badge</span>
+                        <span>Binaan: {outlet.salesName || "Mitra Sales"}</span>
+                      </div>
+                      <span className="text-[10px] text-slate-500">Bagi Hasil Sales</span>
+                    </div>
+                  )}
 
                   {/* Warning / License Status Callout */}
                   {isLunas && (

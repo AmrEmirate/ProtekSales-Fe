@@ -8,7 +8,7 @@ import { useApp } from "@/context/AppContext";
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { refreshData } = useApp();
+  const { refreshData, currentUserRole } = useApp();
 
   const [deviceType, setDeviceType] = useState<"sunmi" | "windows" | "tablet">("sunmi");
   const [serialNumber, setSerialNumber] = useState("");
@@ -97,6 +97,24 @@ export default function OnboardingPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column (7 Cols): Setup Form */}
         <div className="lg:col-span-7 space-y-5">
+          {/* Admin Direct Ownership Notice */}
+          {currentUserRole === "ADMIN" && (
+            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 text-amber-950 text-xs flex items-center justify-between shadow-sm">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold shrink-0">
+                  <span className="material-symbols-outlined text-[18px]">crown</span>
+                </div>
+                <div>
+                  <span className="font-bold block text-amber-900">Outlet Binaan Langsung Admin HQ (amremi)</span>
+                  <span className="text-[11px] text-amber-800/80">Outlet masuk ke portofolio Admin pusat. Pendapatan 100% kas perusahaan.</span>
+                </div>
+              </div>
+              <span className="px-2.5 py-1 rounded-full bg-amber-200/60 text-amber-900 text-[10px] font-bold shrink-0">
+                100% Kas HQ
+              </span>
+            </div>
+          )}
+
           {/* Step 1: Device Selection */}
           <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-4">
             <div className="flex items-center gap-2 border-b border-slate-100 pb-3">

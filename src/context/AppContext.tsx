@@ -43,6 +43,8 @@ export interface Outlet {
   licenseActive: boolean;
   notes: string;
   imageUrl?: string;
+  isDirectAdmin?: boolean;
+  salesName?: string;
 }
 
 export interface Visit {
@@ -317,6 +319,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 : "Terputus (Suspended)",
             licenseActive: o.license?.status === "ACTIVE",
             notes: "Lisensi resmi cloud POS",
+            isDirectAdmin: !!(o.isDirectAdmin || o.sales?.role === "ADMIN" || o.sales?.email?.includes("amremi")),
+            salesName: o.sales?.role === "ADMIN" ? "👑 Admin HQ (Direct Deal)" : o.sales?.name || "Mitra Sales",
           }));
           setOutlets(mappedOutlets);
         }

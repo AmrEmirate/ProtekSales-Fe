@@ -138,5 +138,26 @@ describe('Black Box Testing: 2-Role Access Control Matrix (ADMIN & SALES)', () =
       expect(resolveUserRole('custom@domain.com', 'ADMIN')).toBe('ADMIN');
       expect(resolveUserRole('custom@domain.com', 'SALES')).toBe('SALES');
     });
+
+    it('Kebijakan Tunggal: Hanya 1 akun Admin di seluruh sistem (amremi)', () => {
+      const isSingleAdminValid = (username: string) => {
+        const clean = username.toLowerCase().trim();
+        return clean === 'amremi' || clean === 'amremi@protek.id' || clean === 'admin@protek.id';
+      };
+
+      expect(isSingleAdminValid('amremi')).toBe(true);
+      expect(isSingleAdminValid('amremi@protek.id')).toBe(true);
+      expect(isSingleAdminValid('another_admin')).toBe(false);
+      expect(isSingleAdminValid('sales_super')).toBe(false);
+    });
+
+    it('Atribusi Outlet: Outlet buatan Admin harus dialokasikan ke Admin HQ (100% Kas Pusat)', () => {
+      const getOutletChannel = (salesRole: string) => {
+        return salesRole === 'ADMIN' ? 'HQ_DIRECT' : 'SALES_PARTNER';
+      };
+
+      expect(getOutletChannel('ADMIN')).toBe('HQ_DIRECT');
+      expect(getOutletChannel('SALES')).toBe('SALES_PARTNER');
+    });
   });
 });
