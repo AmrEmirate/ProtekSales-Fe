@@ -44,6 +44,22 @@ export const canAccessRoute = (role: UserRole, routePath: string): boolean => {
   return true;
 };
 
+export const resolveUserRole = (emailOrUsername: string, userRole?: string): UserRole => {
+  const clean = emailOrUsername.toLowerCase().trim();
+  if (
+    clean === 'amremi' ||
+    clean === 'amremi@protek.id' ||
+    clean === 'admin@protek.id' ||
+    clean === 'owner@protek.id' ||
+    clean.includes('admin') ||
+    userRole === 'ADMIN' ||
+    userRole === 'SUPERADMIN'
+  ) {
+    return 'ADMIN';
+  }
+  return 'SALES';
+};
+
 describe('Black Box Testing: 2-Role Access Control Matrix (ADMIN & SALES)', () => {
   describe('Peran SALES (Mitra Sales Lapangan)', () => {
     const role: UserRole = 'SALES';
@@ -102,6 +118,25 @@ describe('Black Box Testing: 2-Role Access Control Matrix (ADMIN & SALES)', () =
 
     it('harus mengarahkan root path / ke dashboard khusus Admin (/admin)', () => {
       expect(canAccessRoute(role, '/')).toBe(false);
+    });
+  });
+
+  describe('Autentikasi & Resolusi Identitas Pengguna (Admin amremi vs Mitra Sales)', () => {
+    it('harus mengenali username amremi dan amremi@protek.id sebagai peran ADMIN', () => {
+      expect(resolveUserRole('amremi')).toBe('ADMIN');
+      expect(resolveUserRole('amremi@protek.id')).toBe('ADMIN');
+      expect(resolveUserRole('AMREMI')).toBe('ADMIN');
+    });
+
+    it('harus mengenali akun sales sebagai peran SALES', () => {
+      expect(resolveUserRole('sales1@protek.id')).toBe('SALES');
+      expect(resolveUserRole('sales2@protek.id')).toBe('SALES');
+      expect(resolveUserRole('budi@mitra.com')).toBe('SALES');
+    });
+
+    it('harus menghormati payload role dari server jika diberikan', () => {
+      expect(resolveUserRole('custom@domain.com', 'ADMIN')).toBe('ADMIN');
+      expect(resolveUserRole('custom@domain.com', 'SALES')).toBe('SALES');
     });
   });
 });

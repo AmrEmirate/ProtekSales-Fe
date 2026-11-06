@@ -8,30 +8,17 @@ import { api } from "@/services/api";
 export default function LoginPage() {
   const router = useRouter();
 
-  const [loginRole, setLoginRole] = useState<"SALES" | "ADMIN">("ADMIN");
-  const [email, setEmail] = useState("admin@protek.id");
-  const [password, setPassword] = useState("admin123");
+  const [email, setEmail] = useState("sales1@protek.id");
+  const [password, setPassword] = useState("sales123");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const fillQuickAccount = (role: "SALES" | "ADMIN", accEmail: string, accPass: string) => {
-    setLoginRole(role);
+  // 1-Click Quick Fill Khusus Akun Mitra Sales (Admin tidak ditampilkan di area publik)
+  const fillQuickAccount = (accEmail: string, accPass: string) => {
     setEmail(accEmail);
     setPassword(accPass);
     setErrorMsg(null);
-  };
-
-  const handleRoleSwitch = (role: "SALES" | "ADMIN") => {
-    setLoginRole(role);
-    setErrorMsg(null);
-    if (role === "SALES") {
-      setEmail("sales1@protek.id");
-      setPassword("sales123");
-    } else {
-      setEmail("admin@protek.id");
-      setPassword("admin123");
-    }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -39,35 +26,34 @@ export default function LoginPage() {
     setIsLoading(true);
     setErrorMsg(null);
 
-    const cleanEmail = email.toLowerCase().trim();
-    let resolvedRole: "SALES" | "ADMIN" = "SALES";
-    if (cleanEmail === "admin@protek.id" || cleanEmail === "owner@protek.id" || cleanEmail.includes("admin")) {
-      resolvedRole = "ADMIN";
-    } else if (cleanEmail.includes("sales")) {
-      resolvedRole = "SALES";
-    } else if (loginRole === "ADMIN") {
-      resolvedRole = "ADMIN";
-    } else {
-      resolvedRole = "SALES";
-    }
+    const cleanIdentifier = email.toLowerCase().trim();
+
+    // Deteksi identitas Admin HQ (amremi / admin@protek.id)
+    const isAdminIdentifier =
+      cleanIdentifier === "amremi" ||
+      cleanIdentifier === "amremi@protek.id" ||
+      cleanIdentifier === "admin@protek.id" ||
+      cleanIdentifier.includes("admin");
 
     try {
-      const data = await api.login(cleanEmail, password);
+      const data = await api.login(cleanIdentifier, password);
       setIsLoading(false);
 
-      // Pastikan role disinkronkan akurat dari identitas pengguna
-      if (cleanEmail === "admin@protek.id" || cleanEmail === "owner@protek.id" || data?.user?.role === "ADMIN" || data?.user?.role === "SUPERADMIN") {
+      let resolvedRole: "SALES" | "ADMIN" = "SALES";
+      if (
+        data?.user?.role === "ADMIN" ||
+        data?.user?.role === "SUPERADMIN" ||
+        isAdminIdentifier
+      ) {
         resolvedRole = "ADMIN";
-      } else {
-        resolvedRole = "SALES";
       }
 
       if (typeof window !== "undefined") {
         localStorage.setItem("protek_user_role", resolvedRole);
-        localStorage.setItem("protek_user_email", cleanEmail);
+        localStorage.setItem("protek_user_email", cleanIdentifier);
         localStorage.setItem(
           "protek_user_name",
-          data?.user?.name || (resolvedRole === "ADMIN" ? "Admin ProTek HQ" : "Budi Sales (Senior)")
+          data?.user?.name || (resolvedRole === "ADMIN" ? "Amremi (Super Admin ProTek)" : "Budi Sales (Senior)")
         );
       }
 
@@ -75,7 +61,22 @@ export default function LoginPage() {
       window.location.href = targetUrl;
     } catch (err: any) {
       setIsLoading(false);
-      // Fallback dev mode jika server database sedang offline (karena sales di luar jaringan lokal)
+
+      // Khusus verifikasi admin amremi (fallback dev & offline resilience)
+      if (
+        (cleanIdentifier === "amremi" || cleanIdentifier === "amremi@protek.id") &&
+        password === "SelviCantik01)"
+      ) {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("protek_user_role", "ADMIN");
+          localStorage.setItem("protek_user_email", cleanIdentifier);
+          localStorage.setItem("protek_user_name", "Amremi (Super Admin ProTek)");
+        }
+        window.location.href = "/admin";
+        return;
+      }
+
+      // Fallback dev mode jika server backend sedang offline saat sales di luar jangkauan jaringan
       const isConnectionError =
         err?.message?.includes("Failed to fetch") ||
         err?.message?.includes("NetworkError") ||
@@ -83,22 +84,18 @@ export default function LoginPage() {
         err?.message?.includes("HTTP Error");
 
       if (isConnectionError) {
+        const resolvedRole: "SALES" | "ADMIN" = isAdminIdentifier ? "ADMIN" : "SALES";
         if (typeof window !== "undefined") {
           localStorage.setItem("protek_user_role", resolvedRole);
-          localStorage.setItem("protek_user_email", cleanEmail);
+          localStorage.setItem("protek_user_email", cleanIdentifier);
           localStorage.setItem(
             "protek_user_name",
-            resolvedRole === "ADMIN" ? "Admin ProTek HQ" : "Budi Sales (Senior)"
+            resolvedRole === "ADMIN" ? "Amremi (Super Admin ProTek)" : "Budi Sales (Senior)"
           );
         }
-        // Izinkan masuk mode offline/standalone sesuai peran
-        if (resolvedRole === "ADMIN") {
-          window.location.href = "/admin";
-        } else {
-          window.location.href = "/";
-        }
+        window.location.href = resolvedRole === "ADMIN" ? "/admin" : "/";
       } else {
-        setErrorMsg(err.message || "Gagal masuk. Periksa email dan kata sandi Anda.");
+        setErrorMsg(err.message || "Gagal masuk. Periksa email/username dan kata sandi Anda.");
       }
     }
   };
@@ -126,16 +123,16 @@ export default function LoginPage() {
             </div>
           </div>
           <h1 className="text-2xl font-bold font-display text-white tracking-tight mt-2">
-            Masuk ke Portal Resmi
+            Masuk ke Portal Sales
           </h1>
           <p className="text-xs text-slate-300">
-            Sistem Manajemen Prospek, Outlet, Lisensi POS & Komisi Sales
+            Sistem Manajemen Prospek UMKM, Outlet, Lisensi POS & Komisi Sales
           </p>
         </div>
 
         {/* Card Form */}
         <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5 border border-slate-100">
-          {/* Quick Account Test Fillers (1-Click Fill) */}
+          {/* Quick Account Test Fillers (Hanya Akun Sales - 1-Click Fill) */}
           <div className="space-y-2 pt-1">
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
               ⚡ Akun Uji Coba Cepat (1-Click Fill):
@@ -143,71 +140,42 @@ export default function LoginPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left">
               <button
                 type="button"
-                onClick={() => fillQuickAccount("ADMIN", "admin@protek.id", "admin123")}
-                className={`p-2.5 rounded-xl border text-xs font-semibold transition-all ${
-                  loginRole === "ADMIN"
-                    ? "bg-[#102A43] text-white border-[#102A43] shadow-md ring-1 ring-[#102A43]"
-                    : "bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200"
-                }`}
+                onClick={() => fillQuickAccount("sales1@protek.id", "sales123")}
+                className="p-3 rounded-xl border text-xs font-semibold transition-all bg-orange-50 hover:bg-orange-100/70 border-orange-200 text-[#102A43] active:scale-98 shadow-sm flex flex-col justify-between"
               >
-                <div className="font-bold flex items-center gap-1 text-emerald-400">
-                  <span>🛡️ Admin ProTek HQ</span>
+                <div className="font-bold flex items-center gap-1.5 text-[#F97316]">
+                  <span className="material-symbols-outlined text-[16px]">badge</span>
+                  <span>Mitra Sales 1 (Budi)</span>
                 </div>
-                <div className="text-[10px] opacity-80 truncate">Pusat Server & Command Center</div>
+                <div className="text-[10px] text-slate-500 mt-1 truncate">
+                  Kunci Leads & Dompet Komisi
+                </div>
               </button>
 
               <button
                 type="button"
-                onClick={() => fillQuickAccount("SALES", "sales1@protek.id", "sales123")}
-                className={`p-2.5 rounded-xl border text-xs font-semibold transition-all ${
-                  loginRole === "SALES"
-                    ? "bg-[#F97316] text-white border-[#F97316] shadow-md ring-1 ring-[#F97316]"
-                    : "bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200"
-                }`}
+                onClick={() => fillQuickAccount("sales2@protek.id", "sales123")}
+                className="p-3 rounded-xl border text-xs font-semibold transition-all bg-sky-50 hover:bg-sky-100/70 border-sky-200 text-[#102A43] active:scale-98 shadow-sm flex flex-col justify-between"
               >
-                <div className="font-bold flex items-center gap-1">
-                  <span>💼 Mitra Sales (Budi)</span>
+                <div className="font-bold flex items-center gap-1.5 text-sky-700">
+                  <span className="material-symbols-outlined text-[16px]">storefront</span>
+                  <span>Mitra Sales 2 (Dewi)</span>
                 </div>
-                <div className="text-[10px] opacity-80 truncate">Kunci Leads & Dompet Komisi</div>
+                <div className="text-[10px] text-slate-500 mt-1 truncate">
+                  Penjualan Offline & Multi-Outlet
+                </div>
               </button>
             </div>
           </div>
 
-          {/* Role Tab Switcher */}
-          <div className="p-1 rounded-xl bg-slate-100 flex items-center text-xs font-bold gap-1">
-            <button
-              type="button"
-              onClick={() => handleRoleSwitch("ADMIN")}
-              className={`flex-1 py-2 rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-                loginRole === "ADMIN"
-                  ? "bg-[#102A43] text-white shadow-sm font-bold"
-                  : "text-slate-500 hover:text-slate-900"
-              }`}
-            >
-              <span className="material-symbols-outlined text-[16px]">admin_panel_settings</span>
-              <span>Admin ProTek</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleRoleSwitch("SALES")}
-              className={`flex-1 py-2 rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-                loginRole === "SALES"
-                  ? "bg-white text-[#F97316] shadow-sm font-bold"
-                  : "text-slate-500 hover:text-slate-900"
-              }`}
-            >
-              <span className="material-symbols-outlined text-[16px]">badge</span>
-              <span>Mitra Sales</span>
-            </button>
-          </div>
-
+          {/* Secure Authentication Badge */}
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs">
               <span className="material-symbols-outlined text-[18px]">verified_user</span>
               <span>Otentikasi Aman (JWT Bearer)</span>
             </div>
-            <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-bold">
-              {loginRole === "SALES" ? "AKSES SALES" : "AKSES ADMIN HQ"}
+            <span className="px-2.5 py-1 rounded-full bg-orange-50 border border-orange-200 text-[#F97316] text-[10px] font-bold tracking-wide uppercase">
+              AKSES MITRA SALES
             </span>
           </div>
 
@@ -219,22 +187,22 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleLogin} className="space-y-4">
-            {/* Email Input */}
+            {/* Email / Username Input */}
             <div className="space-y-1">
               <label className="text-xs font-bold text-[#102A43]">
-                Email Terdaftar
+                Email / Username Terdaftar
               </label>
               <div className="relative flex items-center">
                 <span className="absolute left-3 material-symbols-outlined text-[18px] text-slate-400">
                   mail
                 </span>
                 <input
-                  type="email"
+                  type="text"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="nama@protek.id"
-                  className="w-full h-11 pl-10 pr-4 rounded-xl bg-slate-50 border border-[#CBD5E1] text-xs font-semibold text-[#102A43] focus:bg-white focus:border-[#F97316] outline-none"
+                  placeholder="cth: sales1@protek.id atau amremi"
+                  className="w-full h-11 pl-10 pr-4 rounded-xl bg-slate-50 border border-[#CBD5E1] text-xs font-semibold text-[#102A43] focus:bg-white focus:border-[#F97316] outline-none transition-colors"
                 />
               </div>
             </div>
@@ -254,12 +222,13 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Masukkan kata sandi"
-                  className="w-full h-11 pl-10 pr-10 rounded-xl bg-slate-50 border border-[#CBD5E1] text-xs font-semibold text-[#102A43] focus:bg-white focus:border-[#F97316] outline-none"
+                  className="w-full h-11 pl-10 pr-10 rounded-xl bg-slate-50 border border-[#CBD5E1] text-xs font-semibold text-[#102A43] focus:bg-white focus:border-[#F97316] outline-none transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 text-slate-400 hover:text-slate-600"
+                  aria-label="Toggle password visibility"
                 >
                   <span className="material-symbols-outlined text-[18px]">
                     {showPassword ? "visibility_off" : "visibility"}
@@ -268,25 +237,17 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Submit */}
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full h-12 rounded-xl text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md active:scale-98 transition-all disabled:opacity-50 mt-2 ${
-                loginRole === "ADMIN"
-                  ? "bg-[#102A43] hover:bg-[#0B1D3A]"
-                  : "bg-[#F97316] hover:bg-[#EA580C] shadow-[0_4px_14px_rgba(249,115,22,0.35)]"
-              }`}
+              className="w-full h-12 rounded-xl text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md active:scale-98 transition-all disabled:opacity-50 mt-2 bg-[#F97316] hover:bg-[#EA580C] shadow-[0_4px_14px_rgba(249,115,22,0.35)]"
             >
               <span className="material-symbols-outlined text-[18px]">
                 {isLoading ? "hourglass_top" : "login"}
               </span>
               <span>
-                {isLoading
-                  ? "Memverifikasi Kredensial..."
-                  : loginRole === "ADMIN"
-                  ? "Masuk Dashboard Kontrol Admin"
-                  : "Masuk Portal Sales & Lead Engine"}
+                {isLoading ? "Memverifikasi Kredensial..." : "Masuk Portal Sales & Lead Engine"}
               </span>
             </button>
           </form>

@@ -207,6 +207,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const userEmail = (profile.user.email || "").toLowerCase().trim();
           let resolvedRole: UserRole = "SALES";
           if (
+            userEmail === "amremi" ||
+            userEmail === "amremi@protek.id" ||
             userEmail === "owner@protek.id" ||
             userEmail === "admin@protek.id" ||
             userEmail.includes("admin") ||
@@ -223,12 +225,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             localStorage.setItem("protek_user_email", userEmail);
             localStorage.setItem(
               "protek_user_name",
-              profile.user.name || (resolvedRole === "ADMIN" ? "Admin ProTek" : "Budi Santoso")
+              profile.user.name || (resolvedRole === "ADMIN" ? "Amremi (Super Admin ProTek)" : "Budi Santoso")
             );
           }
           setSalesProfile((prev) => ({
             ...prev,
-            name: profile.user.name || (resolvedRole === "ADMIN" ? "Admin ProTek" : prev.name),
+            name: profile.user.name || (resolvedRole === "ADMIN" ? "Amremi (Super Admin ProTek)" : prev.name),
             phone: profile.user.phone ? `+${profile.user.phone}` : prev.phone,
             bankAccount: profile.user.bankAccountNumber || prev.bankAccount,
             bankName: profile.user.bankName || prev.bankName,
