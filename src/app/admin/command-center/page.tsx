@@ -11,10 +11,12 @@ export interface BusinessTenant {
   customDomain?: string | null;
   posUrl: string;
   logoUrl?: string | null;
-  plan: "ENTERPRISE" | "GROWTH" | "STARTER";
+  plan: string;
+  planName?: string;
+  planDescription?: string;
   status: "ACTIVE" | "SUSPENDED" | "REVIEW";
   ownerName: string;
-  ownerEmail: string;
+  ownerEmail?: string;
   ownerPhone: string;
   maxOutlets: number;
   usedOutlets: number;
@@ -25,6 +27,12 @@ export interface BusinessTenant {
   createdAt: string;
   cluster: string;
   licenseId?: string;
+  outlets?: any[];
+  bank?: {
+    bankName?: string;
+    accountNumber?: string;
+    accountName?: string;
+  } | null;
 }
 
 export default function BusinessCommandCenterPage() {
@@ -32,6 +40,7 @@ export default function BusinessCommandCenterPage() {
   const [tenants, setTenants] = useState<BusinessTenant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTab, setSelectedTab] = useState<"ALL" | "ACTIVE" | "REVIEW" | "SUSPENDED">("ALL");
   const [selectedPlanFilter, setSelectedPlanFilter] = useState<string>("ALL");
@@ -48,15 +57,18 @@ export default function BusinessCommandCenterPage() {
   const [formSlug, setFormSlug] = useState("");
   const [formEmail, setFormEmail] = useState("");
   const [formPhone, setFormPhone] = useState("");
-  const [formPlan, setFormPlan] = useState<"ENTERPRISE" | "GROWTH" | "STARTER">("GROWTH");
+  const [formPlan, setFormPlan] = useState<string>("GROWTH");
   const [formMaxOutlets, setFormMaxOutlets] = useState("5");
   const [formPricePerOutlet, setFormPricePerOutlet] = useState("350000");
   const [formCustomDomain, setFormCustomDomain] = useState("");
+  const [formCity, setFormCity] = useState("Bandung");
+  const [formAddress, setFormAddress] = useState("Jakarta 124");
 
   // Edit Form State
   const [editMaxOutlets, setEditMaxOutlets] = useState("5");
   const [editPricePerOutlet, setEditPricePerOutlet] = useState("350000");
-  const [editPlan, setEditPlan] = useState<"ENTERPRISE" | "GROWTH" | "STARTER">("GROWTH");
+  const [editPlan, setEditPlan] = useState<string>("GROWTH");
+  const [editCustomDomain, setEditCustomDomain] = useState("");
 
   // Telemetry Metrics
   const [telemetry, setTelemetry] = useState({
@@ -73,353 +85,198 @@ export default function BusinessCommandCenterPage() {
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  // Real businesses baseline (Hanya bisnis riil aktif, Dimsum Intan)
-  const defaultBusinesses: BusinessTenant[] = useMemo(() => [
-    {
-      id: "tenant-dimsum-intan",
-      name: "Dimsum Intan Resto & Food Truck",
-      slug: "dimsumintan",
-      customDomain: "dimsumintan.vimtk.cloud",
-      posUrl: "https://dimsumintan.vimtk.cloud",
-      logoUrl: "/qris.jpeg",
-      plan: "GROWTH",
-      status: "ACTIVE",
-      ownerName: "Ibu Intan Permata",
-      ownerEmail: "owner@dimsumintan.vimtk.cloud",
-      ownerPhone: "081284525304",
-      maxOutlets: 5,
-      usedOutlets: 4,
-      pricePerOutlet: 350000,
-      activePosCount: 3,
-      monthlyGmv: 0,
-      lastHeartbeat: "Live Cloud POS",
-      createdAt: "2026-10-25",
-      cluster: "DKI Jakarta & Sekitarnya",
-      licenseId: "1c0284ba-fba7-4750-a39a-0dad443ec16d",
-    },
-  ], []);
-
-  // Fetch / Sync real tenants from Cloud POS BE and persistent storage
+  // Fetch / Sync real tenants from Cloud POS Database directly
   const fetchTenants = useCallback(async () => {
     setIsLoading(true);
     try {
-      // 1. Ambil telemetry & daftar outlet riil
-      let outletsList: any[] = [];
-      try {
-        const [health, analytics, outlets] = await Promise.all([
-          api.getCloudPosHealth().catch(() => null),
-          api.getCloudPosAnalytics().catch(() => null),
-          api.getOutlets().catch(() => []),
-        ]);
-        if (Array.isArray(outlets)) {
-          outletsList = outlets;
-        }
-        if (health) {
-          setTelemetry((prev) => ({
-            ...prev,
-            status: health.online ? "HEALTHY" : "DEGRADED",
-            dbLatencyMs: health.latencyMs || 1,
-          }));
-        }
-        if (analytics) {
-          setTelemetry((prev) => ({
-            ...prev,
-            onlinePosCount: analytics.totalUsers || analytics.totalOutlets || prev.onlinePosCount,
-          }));
-        }
-      } catch {
-        // Fallback live telemetry
+      const [health, analytics, cloudData] = await Promise.all([
+        api.getCloudPosHealth().catch(() => null),
+        api.getCloudPosAnalytics().catch(() => null),
+        api.getCloudPosTenants().catch(() => null),
+      ]);
+
+      if (health) {
+        setTelemetry((prev) => ({
+          ...prev,
+          status: health.online ? "HEALTHY" : "DEGRADED",
+          dbLatencyMs: health.latencyMs || 1,
+        }));
       }
 
-      // 2. Ambil data tenant tersimpan di localStorage (dengan sanitasi ketat anti-dummy)
-      let loadedList = [...defaultBusinesses];
-      if (typeof window !== "undefined") {
-        const stored = localStorage.getItem("protek_business_tenants");
-        if (stored) {
-          try {
-            const parsed = JSON.parse(stored);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              // Hapus data dummy lama dan nilai tiruan dari cache browser
-              const filtered = parsed
-                .filter(
-                  (t: any) =>
-                    !["barakahfood", "proship", "otgbracket", "tauheednews", "warungbeku", "demo", "dimsum-intan"].includes(t.slug)
-                )
-                .map((t: any) => {
-                  if (t.slug === "dimsumintan") {
-                    return {
-                      ...t,
-                      monthlyGmv: Number(t.monthlyGmv) === 42800000 ? 0 : Number(t.monthlyGmv) || 0,
-                      activePosCount: t.activePosCount === 6 ? 3 : t.activePosCount || 3,
-                      usedOutlets: t.usedOutlets === 3 ? 4 : t.usedOutlets || 4,
-                      ownerName: t.ownerName === "Intan Permatasari" ? "Ibu Intan Permata" : t.ownerName || "Ibu Intan Permata",
-                      ownerPhone: t.ownerPhone === "+62 812-4455-8899" ? "081284525304" : t.ownerPhone || "081284525304",
-                      ownerEmail: t.ownerEmail === "owner@dimsumintan.com" ? "owner@dimsumintan.vimtk.cloud" : t.ownerEmail || "owner@dimsumintan.vimtk.cloud",
-                      cluster: t.cluster === "Bandung & Jabodetabek" ? "DKI Jakarta & Sekitarnya" : t.cluster || "DKI Jakarta & Sekitarnya",
-                      licenseId: t.licenseId || "1c0284ba-fba7-4750-a39a-0dad443ec16d",
-                    };
-                  }
-                  return t;
-                });
-
-              if (filtered.length > 0) {
-                loadedList = filtered;
-                localStorage.setItem("protek_business_tenants", JSON.stringify(filtered));
-              } else {
-                localStorage.setItem("protek_business_tenants", JSON.stringify(defaultBusinesses));
-              }
-            }
-          } catch {
-            localStorage.removeItem("protek_business_tenants");
-          }
-        }
+      if (analytics) {
+        setTelemetry((prev) => ({
+          ...prev,
+          onlinePosCount: analytics.totalUsers || analytics.totalOutlets || prev.onlinePosCount,
+        }));
       }
 
-      // 3. Gabungkan dengan data sinkronisasi backend Cloud POS riil
-      try {
-        const cloudData = await api.getCloudPosTenants();
-        if (cloudData?.tenants && Array.isArray(cloudData.tenants) && cloudData.tenants.length > 0) {
-          // Sinkronisasi data real-time tenant dari Cloud POS
-          cloudData.tenants.forEach((ct: any) => {
-            // Abaikan demo atau data tiruan
-            if (ct.slug === "demo" || ct.id === "tenant-demo-protek") return;
+      if (cloudData?.tenants && Array.isArray(cloudData.tenants)) {
+        const mappedList: BusinessTenant[] = cloudData.tenants
+          .filter((ct: any) => ct.slug !== "demo" && ct.id !== "tenant-demo-protek")
+          .map((ct: any) => {
+            const mainOutlet = ct.mainOutlet || (Array.isArray(ct.outlets) ? ct.outlets[0] : null);
+            const domainUrl = ct.customDomain
+              ? `https://${ct.customDomain}`
+              : `https://${ct.slug}.vimtk.cloud`;
 
-            const isDimsum =
-              ct.slug === "dimsumintan" ||
-              ct.slug === "dimsum-intan" ||
-              ct.name?.toLowerCase().includes("dimsum intan");
-            const targetSlug = isDimsum ? "dimsumintan" : ct.slug;
+            const locCluster = ct.cluster || (mainOutlet ? `${mainOutlet.city || ''} (${mainOutlet.address || ''})` : 'Pusat');
 
-            // Cari outlet matching dari ProtekSales outlets
-            const matchedOutlet = outletsList.find(
-              (o: any) =>
-                (ct.licenseKey && o.license?.licenseKey === ct.licenseKey) ||
-                (ct.mainOutlet?.phone && o.phone === ct.mainOutlet.phone) ||
-                (isDimsum && o.name?.toLowerCase().includes("dimsum intan"))
-            );
-
-            const resolvedLicenseId =
-              matchedOutlet?.license?.id ||
-              ct.protekOutlet?.licenseId ||
-              ct.protekOutlet?.id ||
-              ct.licenseKey ||
-              "1c0284ba-fba7-4750-a39a-0dad443ec16d";
-
-            const resolvedStatus: "ACTIVE" | "SUSPENDED" =
-              (matchedOutlet?.license?.status || ct.status) === "ACTIVE" ? "ACTIVE" : "SUSPENDED";
-
-            const existingIdx = loadedList.findIndex(
-              (t) => t.slug === targetSlug || t.id === ct.id
-            );
-
-            if (existingIdx >= 0) {
-              loadedList[existingIdx] = {
-                ...loadedList[existingIdx],
-                id: ct.id || loadedList[existingIdx].id,
-                name: isDimsum ? "Dimsum Intan Resto & Food Truck" : ct.name || loadedList[existingIdx].name,
-                slug: targetSlug,
-                customDomain: ct.customDomain || (isDimsum ? "dimsumintan.vimtk.cloud" : loadedList[existingIdx].customDomain),
-                posUrl: ct.customDomain ? `https://${ct.customDomain}` : `https://${targetSlug}.vimtk.cloud`,
-                usedOutlets: ct.outletsCount || 4,
-                pricePerOutlet: ct.pricePerOutlet || loadedList[existingIdx].pricePerOutlet || 350000,
-                status: resolvedStatus,
-                activePosCount: ct.usersCount || (isDimsum ? 3 : 1),
-                monthlyGmv: Number(ct.totalGmv) || 0,
-                ownerName: isDimsum ? "Ibu Intan Permata" : (ct.ownerName || loadedList[existingIdx].ownerName),
-                ownerPhone: ct.mainOutlet?.phone || ct.ownerPhone || (isDimsum ? "081284525304" : loadedList[existingIdx].ownerPhone),
-                ownerEmail: ct.ownerEmail || (isDimsum ? "owner@dimsumintan.vimtk.cloud" : loadedList[existingIdx].ownerEmail),
-                cluster: isDimsum ? "DKI Jakarta & Sekitarnya" : (ct.mainOutlet?.address || "Nasional"),
-                lastHeartbeat: "Live Cloud POS",
-                licenseId: resolvedLicenseId,
-              };
-            } else if (ct.name && !isDimsum) {
-              loadedList.push({
-                id: ct.id || `tnt-${ct.slug}`,
-                name: ct.name,
-                slug: ct.slug || ct.name.toLowerCase().replace(/\s+/g, ""),
-                customDomain: ct.customDomain || `${ct.slug}.vimtk.cloud`,
-                posUrl: ct.customDomain ? `https://${ct.customDomain}` : `https://${ct.slug}.vimtk.cloud`,
-                plan: (ct.plan as any) || "GROWTH",
-                status: resolvedStatus,
-                ownerName: ct.ownerName || "Merchant Owner",
-                ownerEmail: ct.ownerEmail || `${ct.slug}@merchant.id`,
-                ownerPhone: ct.mainOutlet?.phone || ct.ownerPhone || "+62 812-0000-0000",
-                maxOutlets: ct.maxOutlets || 5,
-                usedOutlets: ct.outletsCount || 1,
-                pricePerOutlet: ct.pricePerOutlet || 350000,
-                activePosCount: ct.usersCount || 1,
-                monthlyGmv: Number(ct.totalGmv) || 0,
-                lastHeartbeat: "Live Cloud POS",
-                createdAt: ct.createdAt || new Date().toISOString().split("T")[0],
-                cluster: ct.mainOutlet?.address || "Nasional",
-                licenseId: resolvedLicenseId,
-              });
-            }
+            return {
+              id: ct.id || `tnt-${ct.slug}`,
+              name: ct.name,
+              slug: ct.slug,
+              customDomain: ct.customDomain || null,
+              posUrl: domainUrl,
+              logoUrl: ct.logoUrl || null,
+              plan: ct.plan || "GROWTH",
+              planName: ct.planName || ct.plan,
+              planDescription: ct.planDescription,
+              status: ct.status === "ACTIVE" ? "ACTIVE" : "SUSPENDED",
+              ownerName: ct.ownerName || "Owner Toko",
+              ownerEmail: ct.ownerEmail || `${ct.slug}@vimtk.cloud`,
+              ownerPhone: ct.ownerPhone || mainOutlet?.phone || "-",
+              maxOutlets: Number(ct.maxOutlets) || 5,
+              usedOutlets: Number(ct.usedOutlets || ct.outletsCount) || 1,
+              pricePerOutlet: Number(ct.pricePerOutlet) || 100000,
+              activePosCount: Number(ct.activePosCount || ct.usersCount) || 1,
+              monthlyGmv: Number(ct.totalGmv) || 0,
+              lastHeartbeat: ct.lastOrderAt ? "Ada Transaksi" : "Live Cloud POS",
+              createdAt: ct.createdAt ? String(ct.createdAt).split("T")[0] : new Date().toISOString().split("T")[0],
+              cluster: locCluster,
+              licenseId: ct.licenseId || ct.protekOutlet?.licenseId || ct.licenseKey,
+              outlets: ct.outlets || [],
+              bank: ct.bank || null,
+            };
           });
-        }
-      } catch {
-        // Fallback jika backend sedang reload
+
+        setTenants(mappedList);
+      } else {
+        setTenants([]);
       }
-
-      // Pastikan hasil akhir disanitasi: buang demo & dummy slugs
-      const sanitized = loadedList.filter(
-        (t) =>
-          !["barakahfood", "proship", "otgbracket", "tauheednews", "warungbeku", "demo", "dimsum-intan"].includes(t.slug)
-      );
-
-      if (typeof window !== "undefined") {
-        localStorage.setItem("protek_business_tenants", JSON.stringify(sanitized));
-      }
-
-      setTenants(sanitized);
-    } catch {
-      setTenants(defaultBusinesses);
+    } catch (err: any) {
+      console.error("[Fetch Tenants Error]", err);
+      showToast("Gagal mengambil data tenant dari database.", "error");
     } finally {
       setIsLoading(false);
     }
-  }, [defaultBusinesses]);
+  }, []);
 
   useEffect(() => {
     fetchTenants();
   }, [fetchTenants]);
 
-  const saveTenants = (updatedList: BusinessTenant[]) => {
-    setTenants(updatedList);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("protek_business_tenants", JSON.stringify(updatedList));
-    }
-  };
-
   // Sync Cloud POS action
   const handleSyncCloudPos = async () => {
     setIsSyncing(true);
     try {
-      await api.syncCloudPosTenants();
-      showToast("Sinkronisasi Cloud POS Mesh selesai. Data tenant diperbarui!", "success");
+      const res = await api.syncCloudPosTenants();
+      showToast(res.message || "Sinkronisasi Cloud POS selesai. Data database diperbarui!", "success");
       await fetchTenants();
     } catch (err: any) {
-      showToast(err.message || "Gagal menghubungi Cloud POS Hub. Menggunakan data tersimpan.", "info");
+      showToast(err.message || "Gagal menghubungi Cloud POS Hub.", "info");
     } finally {
       setIsSyncing(false);
     }
   };
 
-  // Create new tenant
-  const handleCreateTenant = (e: React.FormEvent) => {
+  // Create new tenant directly in DB
+  const handleCreateTenant = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim() || !formSlug.trim()) {
       showToast("Nama bisnis dan slug wajib diisi!", "error");
       return;
     }
+    setIsSubmitting(true);
+    try {
+      const res = await api.createCloudPosTenant({
+        name: formName.trim(),
+        slug: formSlug.trim(),
+        customDomain: formCustomDomain.trim() || undefined,
+        plan: formPlan,
+        maxOutlets: parseInt(formMaxOutlets, 10) || 5,
+        pricePerOutlet: parseInt(formPricePerOutlet, 10) || 100000,
+        ownerEmail: formEmail.trim(),
+        ownerPhone: formPhone.trim(),
+        ownerName: formName.trim() + " Owner",
+        city: formCity.trim(),
+        address: formAddress.trim(),
+      });
 
-    const cleanSlug = formSlug.toLowerCase().replace(/[^a-z0-9-]/g, "");
-    const maxO = parseInt(formMaxOutlets, 10) || 5;
-    const priceO = parseInt(formPricePerOutlet, 10) || 350000;
-
-    const newTenant: BusinessTenant = {
-      id: `tnt-${cleanSlug}-${Date.now().toString().slice(-4)}`,
-      name: formName.trim(),
-      slug: cleanSlug,
-      customDomain: formCustomDomain.trim() || `${cleanSlug}.vimtk.cloud`,
-      posUrl: `https://${formCustomDomain.trim() || `${cleanSlug}.vimtk.cloud`}`,
-      plan: formPlan,
-      status: "ACTIVE",
-      ownerName: formEmail.split("@")[0] || "Pemilik Bisnis",
-      ownerEmail: formEmail.trim() || `${cleanSlug}@owner.com`,
-      ownerPhone: formPhone.trim() || "+62 812-xxxx-xxxx",
-      maxOutlets: maxO,
-      usedOutlets: 1,
-      pricePerOutlet: priceO,
-      activePosCount: 1,
-      monthlyGmv: 0,
-      lastHeartbeat: "Baru dibuat",
-      createdAt: new Date().toISOString().split("T")[0],
-      cluster: "DKI Jakarta & Sekitarnya",
-    };
-
-    const updated = [newTenant, ...tenants];
-    saveTenants(updated);
-    setIsAddModalOpen(false);
-    showToast(`Bisnis "${newTenant.name}" berhasil didaftarkan dan diaktifkan!`, "success");
-
-    // Reset Form
-    setFormName("");
-    setFormSlug("");
-    setFormEmail("");
-    setFormPhone("");
-    setFormCustomDomain("");
+      showToast(res.message || `Bisnis "${formName}" berhasil dibuat di database!`, "success");
+      setIsAddModalOpen(false);
+      setFormName("");
+      setFormSlug("");
+      setFormEmail("");
+      setFormPhone("");
+      setFormCustomDomain("");
+      await fetchTenants();
+    } catch (err: any) {
+      showToast(err.message || "Gagal membuat tenant di database.", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  // Toggle Status (Suspend / Activate) dengan Sinkronisasi Backend & Cloud POS Killswitch
+  // Toggle Status (Suspend / Activate) dengan Sinkronisasi Database
   const handleToggleStatus = async (tenant: BusinessTenant) => {
     const nextStatus: "ACTIVE" | "SUSPENDED" = tenant.status === "ACTIVE" ? "SUSPENDED" : "ACTIVE";
-    const targetLicense = tenant.licenseId || tenant.id;
-
-    // Optimistic UI update
-    const updated = tenants.map((t) => (t.id === tenant.id ? { ...t, status: nextStatus } : t));
-    saveTenants(updated);
-    if (selectedTenant && selectedTenant.id === tenant.id) {
-      setSelectedTenant({ ...selectedTenant, status: nextStatus });
-    }
-
     try {
-      if (targetLicense) {
-        await api.toggleKillswitch(
-          targetLicense,
-          nextStatus === "SUSPENDED",
-          `Admin Command Center: Bisnis diubah ke status ${nextStatus}`
-        );
-      }
+      await api.updateCloudPosTenant(tenant.id, {
+        status: nextStatus,
+      });
       showToast(
         nextStatus === "ACTIVE"
-          ? `Bisnis ${tenant.name} berhasil diaktifkan kembali!`
-          : `Bisnis ${tenant.name} berhasil ditangguhkan (Killswitch aktif).`,
+          ? `Bisnis ${tenant.name} berhasil diaktifkan kembali di database!`
+          : `Bisnis ${tenant.name} berhasil disuspend (Killswitch aktif di database).`,
         nextStatus === "ACTIVE" ? "success" : "info"
       );
+      if (selectedTenant && selectedTenant.id === tenant.id) {
+        setSelectedTenant({ ...selectedTenant, status: nextStatus });
+      }
+      await fetchTenants();
     } catch (err: any) {
-      console.warn("[Killswitch Warning]", err);
-      showToast(
-        nextStatus === "ACTIVE"
-          ? `Bisnis ${tenant.name} diaktifkan (Mode Standalone).`
-          : `Bisnis ${tenant.name} ditangguhkan (Mode Standalone).`,
-        "info"
-      );
+      showToast(err.message || "Gagal memperbarui status tenant di database.", "error");
     }
   };
 
-  // Save Edit Quota
-  const handleSaveEdit = (e: React.FormEvent) => {
+  // Save Edit Quota & Plan in DB
+  const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedTenant) return;
+    setIsSubmitting(true);
+    try {
+      const maxO = parseInt(editMaxOutlets, 10) || selectedTenant.maxOutlets;
+      const priceO = parseInt(editPricePerOutlet, 10) || selectedTenant.pricePerOutlet;
 
-    const maxO = parseInt(editMaxOutlets, 10) || selectedTenant.maxOutlets;
-    const priceO = parseInt(editPricePerOutlet, 10) || selectedTenant.pricePerOutlet;
+      const res = await api.updateCloudPosTenant(selectedTenant.id, {
+        plan: editPlan,
+        maxOutlets: maxO,
+        pricePerOutlet: priceO,
+        customDomain: editCustomDomain.trim() || undefined,
+      });
 
-    const updated = tenants.map((t) =>
-      t.id === selectedTenant.id
-        ? {
-            ...t,
-            maxOutlets: maxO,
-            pricePerOutlet: priceO,
-            plan: editPlan,
-          }
-        : t
-    );
-
-    saveTenants(updated);
-    setIsEditModalOpen(false);
-    setSelectedTenant((prev) => (prev ? { ...prev, maxOutlets: maxO, pricePerOutlet: priceO, plan: editPlan } : null));
-    showToast(`Paket & Kuota untuk ${selectedTenant.name} berhasil diperbarui!`, "success");
+      showToast(res.message || `Paket & Kuota ${selectedTenant.name} berhasil diperbarui di database!`, "success");
+      setIsEditModalOpen(false);
+      await fetchTenants();
+    } catch (err: any) {
+      showToast(err.message || "Gagal memperbarui kuota tenant di database.", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  // Delete Tenant
-  const handleDeleteTenant = (tenantId: string) => {
-    if (!confirm("Apakah Anda yakin ingin menghapus bisnis ini secara permanen dari Command Center?")) return;
-    const updated = tenants.filter((t) => t.id !== tenantId);
-    saveTenants(updated);
-    setIsDetailModalOpen(false);
-    setSelectedTenant(null);
-    showToast("Bisnis berhasil dihapus dari direktori multi-tenant.", "info");
+  // Delete / Suspend Tenant
+  const handleDeleteTenant = async (tenantId: string) => {
+    if (!confirm("Apakah Anda yakin ingin menonaktifkan bisnis ini dari Command Center?")) return;
+    try {
+      const res = await api.deleteCloudPosTenant(tenantId);
+      showToast(res.message || "Bisnis berhasil dinonaktifkan di database.", "info");
+      setIsDetailModalOpen(false);
+      setSelectedTenant(null);
+      await fetchTenants();
+    } catch (err: any) {
+      showToast(err.message || "Gagal menonaktifkan tenant di database.", "error");
+    }
   };
 
   // Filtered List
@@ -873,6 +730,7 @@ export default function BusinessCommandCenterPage() {
                               setEditMaxOutlets(String(tenant.maxOutlets));
                               setEditPricePerOutlet(String(tenant.pricePerOutlet));
                               setEditPlan(tenant.plan);
+                              setEditCustomDomain(tenant.customDomain || "");
                               setIsEditModalOpen(true);
                             }}
                             className="p-1.5 rounded-lg bg-[#0B1D3A] hover:bg-[#1E3E62] text-slate-300 hover:text-white transition-colors cursor-pointer"
@@ -1161,6 +1019,19 @@ export default function BusinessCommandCenterPage() {
                   className="w-full p-2.5 rounded-xl bg-[#0B1D3A] border border-[#1E3E62] text-white font-mono focus:outline-none focus:border-[#38BDF8]"
                 />
               </div>
+
+              <div>
+                <label className="font-bold text-slate-300 block mb-1">
+                  Custom Domain Pribadi
+                </label>
+                <input
+                  type="text"
+                  value={editCustomDomain}
+                  onChange={(e) => setEditCustomDomain(e.target.value)}
+                  placeholder="Contoh: pos.dimsumintan.com"
+                  className="w-full p-2.5 rounded-xl bg-[#0B1D3A] border border-[#1E3E62] text-white focus:outline-none focus:border-[#38BDF8]"
+                />
+              </div>
             </div>
 
             <div className="flex justify-end gap-2.5 pt-3 border-t border-[#1E3E62]">
@@ -1245,9 +1116,21 @@ export default function BusinessCommandCenterPage() {
                 <span className="font-mono text-slate-300">{selectedTenant.ownerEmail} • {selectedTenant.ownerPhone}</span>
               </div>
               <div className="flex justify-between">
+                <span className="text-slate-400">Paket Langganan:</span>
+                <span className="font-bold text-emerald-400">{selectedTenant.planName || selectedTenant.plan}</span>
+              </div>
+              <div className="flex justify-between">
                 <span className="text-slate-400">Wilayah / Cluster:</span>
                 <span className="font-medium text-slate-300">{selectedTenant.cluster}</span>
               </div>
+              {selectedTenant.bank?.bankName && (
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Rekening Bank:</span>
+                  <span className="font-mono text-slate-300">
+                    {selectedTenant.bank.bankName} - {selectedTenant.bank.accountNumber} ({selectedTenant.bank.accountName})
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-slate-400">Subdomain Sistem:</span>
                 <a

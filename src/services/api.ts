@@ -486,6 +486,66 @@ class ApiService {
     return res.data;
   }
 
+  async createCloudPosTenant(data: {
+    name: string;
+    slug?: string;
+    customDomain?: string;
+    plan?: string;
+    maxOutlets?: number;
+    pricePerOutlet?: number;
+    ownerName?: string;
+    ownerPhone?: string;
+    ownerEmail?: string;
+    ownerUsername?: string;
+    ownerPassword?: string;
+    city?: string;
+    address?: string;
+  }) {
+    const res = await this.request<{
+      success: boolean;
+      message: string;
+      data: any;
+    }>("/admin/cloudpos/tenants", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return res;
+  }
+
+  async updateCloudPosTenant(
+    id: string,
+    data: {
+      name?: string;
+      customDomain?: string;
+      plan?: string;
+      maxOutlets?: number;
+      pricePerOutlet?: number;
+      status?: "ACTIVE" | "SUSPENDED";
+      ownerName?: string;
+      phone?: string;
+    }
+  ) {
+    const res = await this.request<{
+      success: boolean;
+      message: string;
+      data: any;
+    }>(`/admin/cloudpos/tenants/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+    return res;
+  }
+
+  async deleteCloudPosTenant(id: string) {
+    const res = await this.request<{
+      success: boolean;
+      message: string;
+    }>(`/admin/cloudpos/tenants/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    });
+    return res;
+  }
+
   async syncCloudPosTenants() {
     const res = await this.request<{
       success: boolean;
