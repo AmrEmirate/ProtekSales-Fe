@@ -202,10 +202,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return;
       }
 
+      let currentUserId: string | undefined;
+
       // 1. Fetch Profile & Sinkronisasi Role Pengguna (ADMIN atau SALES)
       try {
         const profile = await api.getProfile();
         if (profile?.user) {
+          currentUserId = profile.user.id;
           const userEmail = (profile.user.email || "").toLowerCase().trim();
           let resolvedRole: UserRole = "SALES";
           if (
@@ -245,7 +248,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       // 2. Fetch Real Leads
       try {
-        const backendLeads = await api.getMyLeads();
+        const backendLeads = await api.getMyLeads("all");
         if (Array.isArray(backendLeads)) {
           const mappedLeads: Lead[] = backendLeads.map((l: any) => {
             const protectedUntil = new Date(l.protectedUntil);
@@ -269,18 +272,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             const reminderMatch = notesStr.match(/\[Pengingat:\s*([^\]]+)\]/);
             const followUpDate = reminderMatch ? reminderMatch[1] : undefined;
 
+            const isMine = currentUserId ? l.salesId === currentUserId : true;
+            const salesOwner = l.sales?.role === "ADMIN"
+              ? "👑 Admin HQ (Direct Deal)"
+              : l.sales?.name || (isMine ? "Anda (Sales)" : "Mitra Sales");
+
             return {
               id: l.id,
               name: l.storeName,
-              category: "Retail / Kelontong",
+              category: "Outlet Kuliner & Retail",
               phone: l.phone,
               address: l.address,
-              city: "DKI Jakarta",
-              lockedBy: l.sales?.name || "Budi Santoso (Anda)",
-              isCurrentUser: true,
+              city: "Bandung / Jabodetabek",
+              lockedBy: salesOwner,
+              isCurrentUser: isMine,
               daysRemaining: diffDays,
               status: l.status === "DEAL" ? "DEAL" : "LOCKED",
-              lastContact: "Baru saja",
+              lastContact: l.visits?.[0]?.notes || "Aktivasi sistem",
               stage: stageName,
               salesType: isOnline ? "ONLINE" : "OFFLINE",
               outletCount,
@@ -295,7 +303,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       // 3. Fetch Real Outlets
       try {
-        const backendOutlets = await api.getOutlets();
+        const backendOutlets = await api.getOutlets("all");
         if (Array.isArray(backendOutlets)) {
           const mappedOutlets: Outlet[] = backendOutlets.map((o: any) => ({
             id: o.id,

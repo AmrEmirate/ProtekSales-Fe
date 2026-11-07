@@ -21,6 +21,7 @@ export default function LeadCheckPage() {
   } | null>(null);
   const [searchFilter, setSearchFilter] = useState("");
   const [notificationMsg, setNotificationMsg] = useState<string | null>(null);
+  const [activeFilterTab, setActiveFilterTab] = useState<"ALL" | "APPROVED" | "LOCKED">("ALL");
 
   const handleCheck = async () => {
     if (!waInput.trim()) return;
@@ -65,18 +66,23 @@ export default function LeadCheckPage() {
     }
   };
 
-  const filteredLeads = leads.filter(
-    (l) =>
+  const filteredLeads = leads.filter((l) => {
+    const matchesSearch =
       l.name.toLowerCase().includes(searchFilter.toLowerCase()) ||
       l.phone.includes(searchFilter) ||
-      l.address.toLowerCase().includes(searchFilter.toLowerCase())
-  );
+      l.address.toLowerCase().includes(searchFilter.toLowerCase());
+    if (!matchesSearch) return false;
+
+    if (activeFilterTab === "APPROVED") return l.status === "DEAL";
+    if (activeFilterTab === "LOCKED") return l.status !== "DEAL";
+    return true;
+  });
 
   const totalLeadsCount = leads.length;
-  const newVisitCount = leads.filter((l) => l.stage === "Kunjungan Baru" || !l.stage).length;
-  const demoCount = leads.filter((l) => l.stage === "Demo Presentasi").length;
-  const dealCount = leads.filter((l) => l.stage === "Deal POS" || l.status === "DEAL").length;
-  const lockedCount = leads.filter((l) => l.status === "LOCKED" || l.daysRemaining > 0).length;
+  const dealCount = leads.filter((l) => l.status === "DEAL" || l.stage === "Deal POS").length;
+  const newVisitCount = leads.filter((l) => (l.stage === "Kunjungan Baru" || !l.stage) && l.status !== "DEAL").length;
+  const demoCount = leads.filter((l) => l.stage === "Demo Presentasi" && l.status !== "DEAL").length;
+  const lockedCount = leads.filter((l) => l.status !== "DEAL" && (l.status === "LOCKED" || l.daysRemaining > 0)).length;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -275,7 +281,9 @@ export default function LeadCheckPage() {
           {/* Pipeline Mini-Cards matching real leads from database */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-bold font-display text-[#102A43] text-sm">Pipeline Prospek Saya</span>
+              <span className="font-bold font-display text-[#102A43] text-sm">
+                Status Outlet &amp; Prospek Terdaftar
+              </span>
               <span className="font-bold text-[#F97316]">Total: {totalLeadsCount} Outlet</span>
             </div>
 
@@ -302,135 +310,208 @@ export default function LeadCheckPage() {
 
               <div className="rounded-xl bg-white p-3 shadow-sm border border-slate-200 flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] text-slate-500 block font-semibold">Menunggu Deal</span>
-                  <span className="text-lg font-bold font-display text-amber-600">{dealCount}</span>
+                  <span className="text-[10px] text-slate-500 block font-semibold">Terkunci Aktif</span>
+                  <span className="text-lg font-bold font-display text-amber-600">{lockedCount}</span>
                 </div>
                 <div className="w-8 h-8 rounded-lg bg-[#FEF3C7] flex items-center justify-center text-amber-700">
-                  <span className="material-symbols-outlined text-[18px]">handshake</span>
+                  <span className="material-symbols-outlined text-[18px]">lock_clock</span>
                 </div>
               </div>
 
-              <div className="rounded-xl bg-white p-3 shadow-sm border border-slate-200 flex items-center justify-between">
+              <div className="rounded-xl bg-white p-3 shadow-sm border border-emerald-200 bg-emerald-50/50 flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] text-slate-500 block font-semibold">Terkunci Aktif</span>
-                  <span className="text-lg font-bold font-display text-emerald-600">{lockedCount}</span>
+                  <span className="text-[10px] text-emerald-800 block font-semibold">Disetujui / Approved</span>
+                  <span className="text-lg font-bold font-display text-emerald-700">{dealCount}</span>
                 </div>
-                <div className="w-8 h-8 rounded-lg bg-[#DCFCE7] flex items-center justify-center text-emerald-700">
-                  <span className="material-symbols-outlined text-[18px]">lock_clock</span>
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-800">
+                  <span className="material-symbols-outlined text-[18px]">verified</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* List of Locked Leads */}
+          {/* List of Locked & Approved Leads */}
           <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-3">
               <div>
                 <h3 className="text-sm font-bold text-[#102A43] font-display">
-                  Koleksi Terkunci Saya
+                  Daftar Klien Approved &amp; Prospek Terkunci
                 </h3>
-                <p className="text-xs text-slate-500">Pantau batas hari proteksi sebelum bebas diklaim</p>
+                <p className="text-xs text-slate-500">
+                  Pantau status toko yang sudah aktif berlangganan maupun batas masa proteksi
+                </p>
               </div>
 
-              <div className="relative w-full sm:w-56">
-                <input
-                  type="text"
-                  value={searchFilter}
-                  onChange={(e) => setSearchFilter(e.target.value)}
-                  placeholder="Cari prospek..."
-                  className="w-full h-8 pl-7 pr-3 rounded-lg bg-slate-50 border border-slate-200 text-xs text-[#102A43] outline-none"
-                />
-                <span className="material-symbols-outlined absolute left-2 top-1.5 text-[15px] text-slate-400">
-                  search
-                </span>
+              <div className="flex items-center gap-2">
+                <div className="relative w-full sm:w-48">
+                  <input
+                    type="text"
+                    value={searchFilter}
+                    onChange={(e) => setSearchFilter(e.target.value)}
+                    placeholder="Cari nama toko / WA..."
+                    className="w-full h-8 pl-7 pr-3 rounded-lg bg-slate-50 border border-slate-200 text-xs text-[#102A43] outline-none"
+                  />
+                  <span className="material-symbols-outlined absolute left-2 top-1.5 text-[15px] text-slate-400">
+                    search
+                  </span>
+                </div>
               </div>
+            </div>
+
+            {/* Sub-filter tabs */}
+            <div className="flex items-center gap-1.5 border-b border-slate-100 pb-2">
+              <button
+                type="button"
+                onClick={() => setActiveFilterTab("ALL")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                  activeFilterTab === "ALL"
+                    ? "bg-[#102A43] text-white shadow-xs"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                Semua ({totalLeadsCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveFilterTab("APPROVED")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                  activeFilterTab === "APPROVED"
+                    ? "bg-emerald-700 text-white shadow-xs"
+                    : "bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200"
+                }`}
+              >
+                <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                <span>Approved / Deal ({dealCount})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveFilterTab("LOCKED")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                  activeFilterTab === "LOCKED"
+                    ? "bg-amber-700 text-white shadow-xs"
+                    : "bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200"
+                }`}
+              >
+                <span className="material-symbols-outlined text-[14px]">lock_clock</span>
+                <span>Sedang Terkunci ({lockedCount})</span>
+              </button>
             </div>
 
             <div className="space-y-3">
               {filteredLeads.length === 0 ? (
                 <div className="p-8 text-center rounded-xl bg-slate-50 border border-slate-200 space-y-2">
                   <span className="material-symbols-outlined text-slate-400 text-[32px]">folder_open</span>
-                  <p className="text-xs font-bold text-slate-700">Belum ada prospek yang dikunci</p>
+                  <p className="text-xs font-bold text-slate-700">Belum ada data toko pada kategori ini</p>
                   <p className="text-[11px] text-slate-400">
                     Gunakan formulir di sebelah kiri untuk mengecek nomor WhatsApp dan mengunci prospek baru.
                   </p>
                 </div>
               ) : (
                 filteredLeads.map((lead) => {
-                const isUrgent = lead.daysRemaining <= 7;
-                return (
-                  <div
-                    key={lead.id}
-                    className="rounded-xl bg-white p-4 shadow-sm border border-slate-200 flex flex-col gap-2.5 hover:shadow-md transition-all"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-11 h-11 rounded-lg overflow-hidden shrink-0 bg-slate-100 border border-slate-200">
-                          {lead.imageUrl ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={lead.imageUrl}
-                              alt={lead.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : null}
-                        </div>
-                        <div className="min-w-0">
-                          <h4 className="text-sm font-bold text-[#102A43] truncate font-display">
-                            {lead.name}
-                          </h4>
-                          <div className="text-xs text-slate-500 truncate">
-                            {lead.address}
+                  const isDeal = lead.status === "DEAL";
+                  const isUrgent = !isDeal && lead.daysRemaining <= 7;
+                  return (
+                    <div
+                      key={lead.id}
+                      className={`rounded-xl p-4 shadow-sm border transition-all flex flex-col gap-2.5 ${
+                        isDeal
+                          ? "bg-emerald-50/40 border-emerald-200 hover:border-emerald-300"
+                          : "bg-white border-slate-200 hover:shadow-md"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div
+                            className={`w-11 h-11 rounded-lg overflow-hidden shrink-0 flex items-center justify-center font-bold text-sm border ${
+                              isDeal
+                                ? "bg-emerald-600 text-white border-emerald-700 shadow-sm"
+                                : "bg-slate-100 text-[#102A43] border-slate-200"
+                            }`}
+                          >
+                            {lead.name.slice(0, 2).toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <h4 className="text-sm font-bold text-[#102A43] truncate font-display">
+                                {lead.name}
+                              </h4>
+                              {isDeal && (
+                                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold border border-emerald-300">
+                                  Resmi Aktif
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-xs text-slate-500 truncate mt-0.5">
+                              {lead.address} • Pemegang: <strong className="text-slate-700">{lead.lockedBy}</strong>
+                            </div>
                           </div>
                         </div>
+
+                        <div className="shrink-0">
+                          {isDeal ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-600 text-white shadow-xs">
+                              <span className="material-symbols-outlined text-[14px]">verified</span>
+                              <span>Approved / Deal</span>
+                            </span>
+                          ) : (
+                            <span
+                              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                                isUrgent
+                                  ? "bg-[#FEF3C7] text-[#B45309]"
+                                  : "bg-[#DCFCE7] text-[#15803D]"
+                              }`}
+                            >
+                              <span className="material-symbols-outlined text-[14px]">
+                                {isUrgent ? "warning" : "shield"}
+                              </span>
+                              <span>Sisa {lead.daysRemaining} Hari</span>
+                            </span>
+                          )}
+                        </div>
                       </div>
 
-                      <div
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold shrink-0 ${
-                          isUrgent
-                            ? "bg-[#FEF3C7] text-[#B45309]"
-                            : "bg-[#DCFCE7] text-[#15803D]"
-                        }`}
-                      >
-                        <span className="material-symbols-outlined text-[14px]">
-                          {isUrgent ? "warning" : "shield"}
-                        </span>
-                        <span>Sisa {lead.daysRemaining} Hari</span>
+                      <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-xs">
+                        <div className="flex items-center gap-1 text-slate-500">
+                          <span className="material-symbols-outlined text-[15px] text-slate-400">
+                            {isDeal ? "task_alt" : "schedule"}
+                          </span>
+                          <span>{lead.lastContact || (isDeal ? "Klien aktif Cloud POS" : "Baru saja")}</span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <a
+                            href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, "")}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#edf4ff] text-[#102A43] hover:bg-[#e3efff] text-xs font-semibold transition-colors"
+                          >
+                            <span className="material-symbols-outlined text-[15px] text-emerald-600">chat</span>
+                            <span>WhatsApp</span>
+                          </a>
+
+                          {isDeal ? (
+                            <Link
+                              href="/outlets/detail"
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-bold shadow-xs transition-all"
+                            >
+                              <span className="material-symbols-outlined text-[15px]">storefront</span>
+                              <span>Lihat Outlet</span>
+                            </Link>
+                          ) : (
+                            <Link
+                              href="/leads/check-in"
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#F97316] text-white hover:bg-[#EA580C] text-xs font-semibold shadow-sm transition-all"
+                            >
+                              <span className="material-symbols-outlined text-[15px]">add_location_alt</span>
+                              <span>Check-in</span>
+                            </Link>
+                          )}
+                        </div>
                       </div>
                     </div>
-
-                    <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-xs">
-                      <div className="flex items-center gap-1 text-slate-500">
-                        <span className="material-symbols-outlined text-[15px] text-slate-400">
-                          schedule
-                        </span>
-                        <span>Kunjungan: {lead.lastContact}</span>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <a
-                          href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, "")}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#edf4ff] text-[#102A43] hover:bg-[#e3efff] text-xs font-semibold transition-colors"
-                        >
-                          <span className="material-symbols-outlined text-[15px] text-emerald-600">chat</span>
-                          <span>WhatsApp</span>
-                        </a>
-
-                        <Link
-                          href="/leads/check-in"
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#F97316] text-white hover:bg-[#EA580C] text-xs font-semibold shadow-sm transition-all"
-                        >
-                          <span className="material-symbols-outlined text-[15px]">add_location_alt</span>
-                          <span>Check-in</span>
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            )}
+                  );
+                })
+              )}
             </div>
           </div>
         </div>

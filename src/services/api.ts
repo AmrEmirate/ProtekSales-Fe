@@ -157,8 +157,9 @@ class ApiService {
     return res.data;
   }
 
-  async getMyLeads() {
-    const res = await this.request<{ success: boolean; data: any[] }>("/leads");
+  async getMyLeads(scope?: string) {
+    const url = scope ? `/leads?scope=${scope}` : "/leads";
+    const res = await this.request<{ success: boolean; data: any[] }>(url);
     return res.data;
   }
 
@@ -197,8 +198,9 @@ class ApiService {
   // ==========================================
   // 3. OUTLETS & LICENSES
   // ==========================================
-  async getOutlets() {
-    const res = await this.request<{ success: boolean; data: any[] }>("/outlets");
+  async getOutlets(scope?: string) {
+    const url = scope ? `/outlets?scope=${scope}` : "/outlets";
+    const res = await this.request<{ success: boolean; data: any[] }>(url);
     return res.data;
   }
 
