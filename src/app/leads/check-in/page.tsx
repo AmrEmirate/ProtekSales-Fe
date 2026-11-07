@@ -164,8 +164,17 @@ export default function CheckInPage() {
   ];
 
   // Sampel produk kasir dinamis untuk live preview
-  const previewProducts: PosPreviewItem[] =
-    category === "Retail / Minimarket"
+  const isBakso = outletName.toLowerCase().includes("bakso");
+  const previewProducts: PosPreviewItem[] = isBakso
+    ? [
+        { id: "b1", name: "Bakso Urat Jumbo Mantap", price: 25000, category: "Bakso Kuah" },
+        { id: "b2", name: "Bakso Halus Spesial", price: 20000, category: "Bakso Kuah" },
+        { id: "b3", name: "Bakso Telur Gurih", price: 22000, category: "Bakso Kuah" },
+        { id: "b4", name: "Mie Ayam Bakso Komplit", price: 22000, category: "Mie Ayam" },
+        { id: "b5", name: "Es Teh Manis Melati", price: 5000, category: "Minuman" },
+        { id: "b6", name: "Kerupuk Putih Kaleng", price: 2000, category: "Ekstra" },
+      ]
+    : category === "Retail / Minimarket"
       ? [
           { id: "p1", name: "Minyak Goreng 2L Pouch", price: 34000, category: "Sembako" },
           { id: "p2", name: "Beras Premium 5kg", price: 72000, category: "Sembako" },
