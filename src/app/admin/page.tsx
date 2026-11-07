@@ -116,6 +116,7 @@ export default function AdminDashboardPage() {
     password: "",
     phone: "",
     tier: "SILVER",
+    useOrganization: false,
     commissionRate: 20,
     orgCommissionRate: 10,
     organizationName: "",
@@ -143,6 +144,19 @@ export default function AdminDashboardPage() {
       return;
     }
 
+    if (newSalesForm.useOrganization && !newSalesForm.organizationName.trim()) {
+      setSalesError("Mohon isi Nama Organisasi jika memilih menggunakan organisasi.");
+      return;
+    }
+
+    const finalSalesRate = Number(newSalesForm.commissionRate) || 20;
+    const finalOrgRate = newSalesForm.useOrganization
+      ? Number(newSalesForm.orgCommissionRate) || 10
+      : 0;
+    const finalOrgName = newSalesForm.useOrganization
+      ? newSalesForm.organizationName.trim()
+      : undefined;
+
     try {
       setIsSubmittingSales(true);
       await api.createSalesAccount({
@@ -151,16 +165,20 @@ export default function AdminDashboardPage() {
         password: newSalesForm.password,
         phone: newSalesForm.phone,
         tier: newSalesForm.tier,
-        commissionRate: Number(newSalesForm.commissionRate) || 20,
-        orgCommissionRate: Number(newSalesForm.orgCommissionRate) || 10,
-        organizationName: newSalesForm.organizationName || undefined,
+        commissionRate: finalSalesRate,
+        orgCommissionRate: finalOrgRate,
+        organizationName: finalOrgName,
         bankName: newSalesForm.bankName,
         bankAccountNumber: newSalesForm.bankAccountNumber,
         bankAccountHolder: newSalesForm.bankAccountHolder,
         npwp: newSalesForm.npwp,
       });
 
-      setActionNotice(`Berhasil menambahkan mitra sales "${newSalesForm.name}" (Sales ${newSalesForm.commissionRate}% + Organisasi ${newSalesForm.orgCommissionRate}%)!`);
+      setActionNotice(
+        newSalesForm.useOrganization
+          ? `Berhasil menambahkan mitra sales "${newSalesForm.name}" (Sales ${finalSalesRate}% + Organisasi "${finalOrgName}" ${finalOrgRate}%)!`
+          : `Berhasil menambahkan mitra sales mandiri "${newSalesForm.name}" (Sales ${finalSalesRate}%, Tanpa Organisasi 0%)!`
+      );
       setIsAddSalesModalOpen(false);
       setNewSalesForm({
         name: "",
@@ -168,6 +186,7 @@ export default function AdminDashboardPage() {
         password: "",
         phone: "",
         tier: "SILVER",
+        useOrganization: false,
         commissionRate: 20,
         orgCommissionRate: 10,
         organizationName: "",
@@ -961,15 +980,51 @@ export default function AdminDashboardPage() {
                             <span className="text-[11px] text-slate-500">{sales.email} • +{sales.phone}</span>
                           </td>
                           <td className="py-3.5 px-4">
-                            <input
-                              type="text"
-                              placeholder="Nama Organisasi"
-                              value={currentOrgName}
-                              onChange={(e) =>
-                                setSalesOrgNameInputs((prev) => ({ ...prev, [sales.id]: e.target.value }))
-                              }
-                              className="w-36 h-8 px-2.5 rounded-lg border border-slate-300 text-xs font-medium focus:border-indigo-600 outline-none"
-                            />
+                            <div className="flex flex-col gap-1.5">
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSalesOrgRateInputs((prev) => ({ ...prev, [sales.id]: 0 }));
+                                    setSalesOrgNameInputs((prev) => ({ ...prev, [sales.id]: "" }));
+                                  }}
+                                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-colors ${
+                                    currentOrgRate <= 0
+                                      ? "bg-slate-800 text-white"
+                                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                  }`}
+                                >
+                                  Mandiri (0%)
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSalesOrgRateInputs((prev) => ({
+                                      ...prev,
+                                      [sales.id]: currentOrgRate > 0 ? currentOrgRate : 10,
+                                    }));
+                                  }}
+                                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-colors ${
+                                    currentOrgRate > 0
+                                      ? "bg-indigo-600 text-white"
+                                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                  }`}
+                                >
+                                  Pakai Organisasi
+                                </button>
+                              </div>
+                              {currentOrgRate > 0 && (
+                                <input
+                                  type="text"
+                                  placeholder="Nama Organisasi"
+                                  value={currentOrgName}
+                                  onChange={(e) =>
+                                    setSalesOrgNameInputs((prev) => ({ ...prev, [sales.id]: e.target.value }))
+                                  }
+                                  className="w-40 h-8 px-2.5 rounded-lg border border-slate-300 text-xs font-medium focus:border-indigo-600 outline-none"
+                                />
+                              )}
+                            </div>
                           </td>
                           <td className="py-3.5 px-4 text-slate-700">
                             <span className="font-bold">{sales._count?.leads || 0}</span> Prospek &bull;{" "}
@@ -980,9 +1035,15 @@ export default function AdminDashboardPage() {
                               <span className="px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-800 font-bold text-[11px] w-fit">
                                 Sales: {(sales.commissionRate ?? 20).toFixed(0)}%
                               </span>
-                              <span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-bold text-[11px] w-fit">
-                                Organisasi: {(sales.orgCommissionRate ?? 10).toFixed(0)}%
-                              </span>
+                              {(sales.orgCommissionRate ?? 0) > 0 ? (
+                                <span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-bold text-[11px] w-fit">
+                                  Organisasi ({sales.organizationName || "Mitra"}): {(sales.orgCommissionRate ?? 10).toFixed(0)}%
+                                </span>
+                              ) : (
+                                <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold text-[11px] w-fit">
+                                  Mandiri (Tanpa Organisasi — 0%)
+                                </span>
+                              )}
                             </div>
                           </td>
                           <td className="py-3.5 px-4 text-center">
@@ -1752,8 +1813,21 @@ export default function AdminDashboardPage() {
                             {sales.tier || "Mitra Sales"}
                           </span>
                         </td>
-                        <td className="py-3.5 px-4 font-bold text-emerald-700">
-                          {(sales.commissionRate || 25).toFixed(1)}% Recurring
+                        <td className="py-3.5 px-4">
+                          <div className="flex flex-col gap-1">
+                            <span className="font-bold text-emerald-700">
+                              Sales: {(sales.commissionRate ?? 20).toFixed(0)}% Recurring
+                            </span>
+                            {(sales.orgCommissionRate ?? 0) > 0 ? (
+                              <span className="text-[11px] font-bold text-indigo-700">
+                                Organisasi ({sales.organizationName || "Mitra"}): {(sales.orgCommissionRate ?? 10).toFixed(0)}%
+                              </span>
+                            ) : (
+                              <span className="text-[11px] font-medium text-slate-500">
+                                Mandiri (Tanpa Organisasi — 0%)
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="py-3.5 px-4 text-slate-700">
                           <span className="font-bold block">{sales.bankName || "-"}</span>
@@ -2295,29 +2369,90 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              {/* Bagian 2: Tier & Komisi */}
+              {/* Bagian 2: Pilihan Organisasi & Skema Komisi */}
               <div className="bg-slate-50/70 p-4 rounded-2xl border border-slate-200/80 space-y-3.5">
                 <div className="flex items-center gap-2 pb-1 border-b border-slate-200">
                   <span className="material-symbols-outlined text-[18px] text-[#102A43]">percent</span>
                   <h4 className="text-xs font-bold text-[#102A43] uppercase tracking-wider">
-                    Tier & Skema Komisi Recurring
+                    Skema Kemitraan (Pakai Organisasi atau Mandiri) &amp; Komisi
                   </h4>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Nama Organisasi (Opsional)
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="misal: Komunitas UMKM Bandung"
-                      value={newSalesForm.organizationName}
-                      onChange={(e) => setNewSalesForm({ ...newSalesForm, organizationName: e.target.value })}
-                      className="w-full h-11 px-3.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white font-medium"
-                    />
-                  </div>
+                {/* Pilihan Pakai Organisasi atau Tidak */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-2">
+                    Apakah Mitra Sales Ini Menggunakan Organisasi? <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setNewSalesForm({
+                          ...newSalesForm,
+                          useOrganization: false,
+                          orgCommissionRate: 0,
+                          organizationName: "",
+                        })
+                      }
+                      className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex items-start gap-3 ${
+                        !newSalesForm.useOrganization
+                          ? "bg-blue-50/80 border-blue-600 ring-2 ring-blue-100"
+                          : "bg-white border-slate-200 hover:border-slate-300"
+                      }`}
+                    >
+                      <span
+                        className={`material-symbols-outlined text-[20px] mt-0.5 ${
+                          !newSalesForm.useOrganization ? "text-blue-600" : "text-slate-400"
+                        }`}
+                      >
+                        {!newSalesForm.useOrganization ? "radio_button_checked" : "radio_button_unchecked"}
+                      </span>
+                      <div>
+                        <div className="text-xs font-bold text-slate-900">
+                          Tidak Pakai Organisasi (Sales Mandiri)
+                        </div>
+                        <div className="text-[11px] text-slate-500 mt-0.5">
+                          Komisi hanya untuk Sales ({newSalesForm.commissionRate}%), bagian organisasi 0% (HQ {Math.max(0, 100 - newSalesForm.commissionRate)}%).
+                        </div>
+                      </div>
+                    </button>
 
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setNewSalesForm({
+                          ...newSalesForm,
+                          useOrganization: true,
+                          orgCommissionRate: newSalesForm.orgCommissionRate > 0 ? newSalesForm.orgCommissionRate : 10,
+                        })
+                      }
+                      className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex items-start gap-3 ${
+                        newSalesForm.useOrganization
+                          ? "bg-indigo-50/80 border-indigo-600 ring-2 ring-indigo-100"
+                          : "bg-white border-slate-200 hover:border-slate-300"
+                      }`}
+                    >
+                      <span
+                        className={`material-symbols-outlined text-[20px] mt-0.5 ${
+                          newSalesForm.useOrganization ? "text-indigo-600" : "text-slate-400"
+                        }`}
+                      >
+                        {newSalesForm.useOrganization ? "radio_button_checked" : "radio_button_unchecked"}
+                      </span>
+                      <div>
+                        <div className="text-xs font-bold text-slate-900">
+                          Pakai Organisasi / Komunitas Mitra
+                        </div>
+                        <div className="text-[11px] text-slate-500 mt-0.5">
+                          Bagi hasil 3 arah: Sales ({newSalesForm.commissionRate}%) + Organisasi ({newSalesForm.orgCommissionRate || 10}%) + HQ ({Math.max(0, 100 - newSalesForm.commissionRate - (newSalesForm.orgCommissionRate || 10))}%).
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Input Persentase Komisi Sales & Organisasi */}
+                <div className={`grid grid-cols-1 ${newSalesForm.useOrganization ? "sm:grid-cols-3" : "sm:grid-cols-1"} gap-3`}>
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <label className="block text-xs font-bold text-slate-700">
@@ -2343,30 +2478,48 @@ export default function AdminDashboardPage() {
                     </div>
                   </div>
 
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="block text-xs font-bold text-slate-700">
-                        Bagian Organisasi (%)
-                      </label>
-                    </div>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="0.5"
-                        required
-                        value={newSalesForm.orgCommissionRate}
-                        onChange={(e) =>
-                          setNewSalesForm({ ...newSalesForm, orgCommissionRate: parseFloat(e.target.value) || 0 })
-                        }
-                        className="w-full h-11 px-3.5 pr-8 text-xs font-bold text-indigo-700 rounded-xl border border-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white"
-                      />
-                      <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-                        %
-                      </span>
-                    </div>
-                  </div>
+                  {newSalesForm.useOrganization && (
+                    <>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                          Nama Organisasi <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="misal: Komunitas UMKM Bandung"
+                          value={newSalesForm.organizationName}
+                          onChange={(e) => setNewSalesForm({ ...newSalesForm, organizationName: e.target.value })}
+                          className="w-full h-11 px-3.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 bg-white font-medium"
+                        />
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="block text-xs font-bold text-slate-700">
+                            Bagian Organisasi (%)
+                          </label>
+                        </div>
+                        <div className="relative">
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="0.5"
+                            required
+                            value={newSalesForm.orgCommissionRate}
+                            onChange={(e) =>
+                              setNewSalesForm({ ...newSalesForm, orgCommissionRate: parseFloat(e.target.value) || 0 })
+                            }
+                            className="w-full h-11 px-3.5 pr-8 text-xs font-bold text-indigo-700 rounded-xl border border-slate-300 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 bg-white"
+                          />
+                          <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                            %
+                          </span>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 

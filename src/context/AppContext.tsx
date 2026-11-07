@@ -232,11 +232,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           }
           setSalesProfile((prev) => ({
             ...prev,
-            name: profile.user.name || (resolvedRole === "ADMIN" ? "Amremi (Super Admin ProTek)" : prev.name),
-            phone: profile.user.phone ? `+${profile.user.phone}` : prev.phone,
-            bankAccount: profile.user.bankAccountNumber || prev.bankAccount,
-            bankName: profile.user.bankName || prev.bankName,
-            tier: profile.user.tier || (resolvedRole === "ADMIN" ? "Administrator HQ" : prev.tier),
+            id: profile.user.id ? `SLS-${String(profile.user.id).slice(0, 6).toUpperCase()}` : prev.id,
+            name: profile.user.name || (resolvedRole === "ADMIN" ? "Amremi (Super Admin ProTek)" : "Sales Baru"),
+            phone: profile.user.phone ? `+${profile.user.phone}` : "-",
+            bankAccount: profile.user.bankAccountNumber || "-",
+            bankName: profile.user.bankName || "Belum Diatur",
+            tier: profile.user.tier || (resolvedRole === "ADMIN" ? "Administrator HQ" : "Silver"),
+            targetPercent: 0,
           }));
         }
       } catch {}
