@@ -211,18 +211,32 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, isSidebarCollap
           <div className={`w-9 h-9 rounded-xl text-white flex items-center justify-center font-bold text-xs transition-all ${
             currentUserRole === "ADMIN"
               ? "bg-[#0F766E] border border-teal-400 group-hover:ring-2 group-hover:ring-teal-400"
+              : currentUserRole === "ORGANISASI"
+              ? "bg-[#2563EB] border border-blue-400 group-hover:ring-2 group-hover:ring-blue-400"
               : "bg-[#102A43] group-hover:ring-2 group-hover:ring-[#F97316]"
           }`}>
-            {currentUserRole === "ADMIN" ? "🛡️" : "BS"}
+            {currentUserRole === "ADMIN" ? "🛡️" : currentUserRole === "ORGANISASI" ? "🏢" : "💼"}
           </div>
           <div className="hidden xl:flex flex-col text-left">
             <span className="text-xs font-bold text-[#102A43] leading-none">
-              {currentUserRole === "ADMIN" ? "Admin ProTek" : salesProfile.name}
+              {currentUserRole === "ADMIN"
+                ? "Admin ProTek"
+                : currentUserRole === "ORGANISASI"
+                ? salesProfile.name
+                : salesProfile.name}
             </span>
             <span className={`text-[10px] font-semibold ${
-              currentUserRole === "ADMIN" ? "text-emerald-600" : "text-[#F97316]"
+              currentUserRole === "ADMIN"
+                ? "text-emerald-600"
+                : currentUserRole === "ORGANISASI"
+                ? "text-blue-600"
+                : "text-[#F97316]"
             }`}>
-              {currentUserRole === "ADMIN" ? "ADMINISTRATOR HQ" : salesProfile.tier}
+              {currentUserRole === "ADMIN"
+                ? "ADMINISTRATOR HQ"
+                : currentUserRole === "ORGANISASI"
+                ? "ORGANISASI (HAK 10%)"
+                : "SALES (KOMISI 20% NET)"}
             </span>
           </div>
         </Link>

@@ -75,6 +75,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
         ],
       },
     ];
+  } else if (currentUserRole === "ORGANISASI") {
+    navSections = [
+      {
+        title: "PORTAL ORGANISASI",
+        items: [
+          { href: "/organization", label: "Ringkasan Organisasi", icon: "corporate_fare", badge: "10%" },
+          { href: "/organization/sales", label: "Daftar Sales Binaan", icon: "group" },
+          { href: "/organization/outlets", label: "Outlet Hasil Sales", icon: "storefront" },
+        ],
+      },
+      {
+        title: "HAK BAGI HASIL (10%)",
+        items: [
+          { href: "/commission/wallet", label: "Dompet Organisasi", icon: "account_balance_wallet" },
+          { href: "/commission/withdraw", label: "Tarik Hak 10%", icon: "payments" },
+          { href: "/commission/history", label: "Riwayat Penarikan", icon: "receipt" },
+        ],
+      },
+      {
+        title: "AKUN",
+        items: [
+          { href: "/profile", label: "Profil Organisasi", icon: "badge" },
+        ],
+      },
+    ];
   } else {
     // SALES ROLE (Akses operasional mitra sales lapangan)
     navSections = [
@@ -106,7 +131,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {
         title: "KOMISI & PENCAIRAN",
         items: [
-          { href: "/commission/wallet", label: "Dompet Komisi", icon: "account_balance_wallet" },
+          { href: "/commission/wallet", label: "Dompet Komisi (20% Net)", icon: "account_balance_wallet" },
           { href: "/commission/withdraw", label: "Tarik Saldo Komisi", icon: "payments" },
           { href: "/commission/history", label: "Riwayat Penarikan", icon: "receipt" },
         ],
@@ -201,9 +226,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-md ${
               currentUserRole === "ADMIN"
                 ? "bg-gradient-to-tr from-[#0F766E] to-[#10B981]"
+                : currentUserRole === "ORGANISASI"
+                ? "bg-gradient-to-tr from-[#2563EB] to-[#3B82F6]"
                 : "bg-gradient-to-tr from-[#F97316] to-[#FF8A00]"
             }`}>
-              {currentUserRole === "ADMIN" ? "AD" : "BS"}
+              {currentUserRole === "ADMIN" ? "AD" : currentUserRole === "ORGANISASI" ? "ORG" : "SLS"}
             </div>
             {!isCollapsed && (
               <div className="flex flex-col min-w-0 flex-1">
@@ -216,18 +243,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold border ${
                     currentUserRole === "ADMIN"
                       ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                      : currentUserRole === "ORGANISASI"
+                      ? "bg-blue-500/20 text-blue-300 border-blue-500/30"
                       : "bg-orange-500/20 text-orange-300 border-orange-500/30"
                   }`}>
                     {currentUserRole === "ADMIN"
                       ? "ADMIN"
-                      : salesProfile.tier.split(" ")[0]}
+                      : currentUserRole === "ORGANISASI"
+                      ? "ORGANISASI"
+                      : "SALES"}
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-slate-300">
-                  <span className={`${currentUserRole === "ADMIN" ? "text-emerald-400" : "text-[#F97316]"} font-semibold truncate`}>
+                  <span className={`${
+                    currentUserRole === "ADMIN"
+                      ? "text-emerald-400"
+                      : currentUserRole === "ORGANISASI"
+                      ? "text-blue-400"
+                      : "text-[#F97316]"
+                  } font-semibold truncate`}>
                     {currentUserRole === "ADMIN"
                       ? "Pusat Server & HQ"
-                      : `Target: ${salesProfile.targetPercent}%`}
+                      : currentUserRole === "ORGANISASI"
+                      ? "Hak Bagi Hasil 10%"
+                      : "Komisi 20% Net"}
                   </span>
                 </div>
               </div>

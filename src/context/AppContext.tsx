@@ -48,7 +48,7 @@ export interface Outlet {
   posSerial: string;
   packageType: string;
   mrr: number;
-  status: "LUNAS" | "H-3" | "SUSPENDED";
+  status: "LUNAS" | "H-3" | "SUSPENDED" | "MENUNGGAK" | "BELUM LUNAS";
   dueDate: string;
   lastHeartbeat: string;
   licenseActive: boolean;
@@ -94,7 +94,7 @@ export interface NotificationItem {
   actionUrl?: string;
 }
 
-export type UserRole = "ADMIN" | "SALES";
+export type UserRole = "ADMIN" | "SALES" | "ORGANISASI";
 
 interface AppContextType {
   currentUserRole: UserRole;
@@ -103,6 +103,7 @@ interface AppContextType {
     name: string;
     id: string;
     tier: string;
+    organizationName?: string;
     targetPercent: number;
     phone: string;
     bankAccount: string;
@@ -236,6 +237,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             userData.role === "SUPERADMIN"
           ) {
             resolvedRole = "ADMIN";
+          } else if (userData.role === "ORGANISASI" || userEmail.includes("organisasi") || userEmail.includes("org")) {
+            resolvedRole = "ORGANISASI";
           } else {
             resolvedRole = "SALES";
           }
@@ -246,17 +249,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             localStorage.setItem("protek_user_email", userEmail);
             localStorage.setItem(
               "protek_user_name",
-              userData.name || (resolvedRole === "ADMIN" ? "Amremi (Super Admin ProTek)" : "Sales Baru")
+              userData.name || (resolvedRole === "ADMIN" ? "Amremi (Super Admin ProTek)" : resolvedRole === "ORGANISASI" ? "Mitra Organisasi" : "Sales Baru")
             );
           }
           setSalesProfile((prev) => ({
             ...prev,
-            id: userData.id ? `SLS-${String(userData.id).slice(0, 6).toUpperCase()}` : prev.id,
-            name: userData.name || (resolvedRole === "ADMIN" ? "Amremi (Super Admin ProTek)" : "Sales Baru"),
+            id: userData.id
+              ? (resolvedRole === "ORGANISASI"
+                  ? `ORG-${String(userData.id).slice(0, 6).toUpperCase()}`
+                  : `SLS-${String(userData.id).slice(0, 6).toUpperCase()}`)
+              : prev.id,
+            name: userData.name || (resolvedRole === "ADMIN" ? "Amremi (Super Admin ProTek)" : resolvedRole === "ORGANISASI" ? "Mitra Organisasi" : "Sales Baru"),
             phone: userData.phone ? `+${userData.phone}` : "-",
             bankAccount: userData.bankAccountNumber || "-",
             bankName: userData.bankName || "Belum Diatur",
-            tier: userData.tier || (resolvedRole === "ADMIN" ? "Administrator HQ" : "Silver"),
+            organizationName: userData.organizationName || undefined,
+            tier: resolvedRole === "ADMIN" ? "Administrator HQ" : resolvedRole === "ORGANISASI" ? "Mitra Organisasi (10%)" : "Mitra Sales (20% Net)",
             targetPercent: 0,
           }));
         }
@@ -318,10 +326,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       } catch {}
 
-      // 3. Fetch Real Outlets: Khusus akun itu sendiri jika Sales, atau semua jika Admin
+      // 3. Fetch Real Outlets: Khusus akun itu sendiri jika Sales/Organisasi, atau semua jika Admin
       try {
         const isSales = userRole === "SALES";
-        const backendOutlets = await api.getOutlets(isSales ? undefined : "all");
+        const isOrg = userRole === "ORGANISASI";
+        const backendOutlets = await api.getOutlets(isSales || isOrg ? undefined : "all");
         if (Array.isArray(backendOutlets)) {
           // Filter ketat: Sales hanya boleh melihat outlet binaan akun miliknya sendiri
           const filteredOutlets = isSales
@@ -339,38 +348,50 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               })
             : backendOutlets;
 
-          const mappedOutlets: Outlet[] = filteredOutlets.map((o: any) => ({
-            id: o.id,
-            name: o.name,
-            code: `#PRO-${o.id.slice(0, 4).toUpperCase()}`,
-            category: "Outlet Resmi",
-            owner: o.ownerName,
-            phone: o.phone,
-            address: o.address,
-            posSerial: o.license?.licenseKey || "POS-REG-2026",
-            packageType:
-              o.monthlyFee >= 400000
-                ? "Paket 1: Hemat (4 Cabang + 1 Semua Cabang)"
-                : "Paket 1: Hemat (Rp 100rb/Cabang)",
-            mrr: o.monthlyFee || 100000,
-            status:
-              o.license?.status === "SUSPENDED"
-                ? "SUSPENDED"
-                : o.invoices?.[0]?.status === "OVERDUE"
-                ? "H-3"
-                : "LUNAS",
-            dueDate: "Tgl 20",
-            lastHeartbeat:
-              o.license?.status === "ACTIVE"
-                ? "Aktif Normal (Cloud Connected)"
-                : "Terputus (Suspended)",
-            licenseActive: o.license?.status === "ACTIVE",
-            notes: "Lisensi resmi cloud POS",
-            isDirectAdmin: !!(o.isDirectAdmin || o.sales?.role === "ADMIN" || o.sales?.email?.includes("amremi")),
-            salesName: o.sales?.role === "ADMIN" ? "👑 Admin HQ (Direct Deal)" : o.sales?.name || "Mitra Sales",
-            branches: Array.isArray(o.branches) ? o.branches : [],
-            canToggleKillSwitch: !!o.canToggleKillSwitch,
-          }));
+          const mappedOutlets: Outlet[] = filteredOutlets.map((o: any) => {
+            const latestInvStatus = o.latestInvoice?.status || o.invoices?.[0]?.status;
+            let displayStatus: "LUNAS" | "H-3" | "MENUNGGAK" | "BELUM LUNAS" | "SUSPENDED" = "BELUM LUNAS";
+
+            if (o.license?.status === "SUSPENDED") {
+              displayStatus = "SUSPENDED";
+            } else if (latestInvStatus === "PAID" || o.paymentIndicator === "PAID") {
+              displayStatus = "LUNAS";
+            } else if (latestInvStatus === "OVERDUE" || o.paymentIndicator === "OVERDUE") {
+              displayStatus = "MENUNGGAK";
+            } else if (o.paymentIndicator === "DUE_SOON") {
+              displayStatus = "H-3";
+            } else {
+              displayStatus = "BELUM LUNAS";
+            }
+
+            return {
+              id: o.id,
+              name: o.name,
+              code: `#PRO-${o.id.slice(0, 4).toUpperCase()}`,
+              category: "Outlet Resmi",
+              owner: o.ownerName,
+              phone: o.phone,
+              address: o.address,
+              posSerial: o.license?.licenseKey || "POS-REG-2026",
+              packageType:
+                o.monthlyFee >= 400000
+                  ? "Paket 1: Hemat (4 Cabang + 1 Semua Cabang)"
+                  : "Paket 1: Hemat (Rp 100rb/Cabang)",
+              mrr: o.monthlyFee || 100000,
+              status: displayStatus,
+              dueDate: o.latestInvoice?.dueDate ? new Date(o.latestInvoice.dueDate).toLocaleDateString("id-ID") : "Tgl 20",
+              lastHeartbeat:
+                o.license?.status === "ACTIVE"
+                  ? "Aktif Normal (Cloud Connected)"
+                  : "Terputus (Suspended)",
+              licenseActive: o.license?.status === "ACTIVE",
+              notes: "Lisensi resmi cloud POS",
+              isDirectAdmin: !!(o.isDirectAdmin || o.sales?.role === "ADMIN" || o.sales?.email?.includes("amremi")),
+              salesName: o.sales?.role === "ADMIN" ? "👑 Admin HQ (Direct Deal)" : o.sales?.name || "Mitra Sales",
+              branches: Array.isArray(o.branches) ? o.branches : [],
+              canToggleKillSwitch: !!o.canToggleKillSwitch,
+            };
+          });
           setOutlets(mappedOutlets);
         }
       } catch {}

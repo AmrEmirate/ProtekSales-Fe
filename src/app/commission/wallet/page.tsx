@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useApp } from "@/context/AppContext";
 
 export default function CommissionWalletPage() {
-  const { availableBalance, escrowBalance, mutations, salesProfile, outlets } = useApp();
+  const { currentUserRole, availableBalance, escrowBalance, mutations, salesProfile, outlets } = useApp();
   const [filterType, setFilterType] = useState<"ALL" | "INCOME" | "WITHDRAW">("ALL");
 
   const totalMrr = outlets.reduce((acc, curr) => acc + curr.mrr, 0);
@@ -24,15 +24,17 @@ export default function CommissionWalletPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-            <Link href="/" className="hover:text-[#F97316]">Dashboard</Link>
+            <Link href={currentUserRole === "ORGANISASI" ? "/organization" : "/"} className="hover:text-[#F97316]">Dashboard</Link>
             <span>/</span>
             <span className="text-[#102A43]">Finansial</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold font-display text-[#102A43]">
-            Dompet Komisi Sales & Recurring Revenue
+            {currentUserRole === "ORGANISASI" ? "Dompet Bagi Hasil Organisasi (Hak 10% Net)" : "Dompet Komisi Sales (Hak 20% Net)"}
           </h1>
           <p className="text-xs text-slate-500">
-            Saldo komisi berulang dari {outlets.length} outlet binaan yang siap dicairkan ke rekening bank Anda
+            {currentUserRole === "ORGANISASI"
+              ? `Saldo bagi hasil 10% dari ${outlets.length} outlet binaan sales yang telah disetujui Admin`
+              : `Saldo komisi berulang 20% dari ${outlets.length} outlet binaan yang siap dicairkan ke rekening bank Anda`}
           </p>
         </div>
 

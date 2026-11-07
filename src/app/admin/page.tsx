@@ -434,8 +434,8 @@ export default function AdminDashboardPage() {
   // Actions
   const handleVerifyInvoice = async (invoiceId: string) => {
     try {
-      await api.verifyInvoicePayment(invoiceId, "Diverifikasi oleh Super Admin PT Pro Teknologi");
-      setActionNotice("Pembayaran berhasil diverifikasi! Komisi sales otomatis berstatus READY.");
+      await api.verifyInvoicePayment(invoiceId, "Diverifikasi & diapprove oleh Super Admin PT Pro Teknologi");
+      setActionNotice("Pembayaran berhasil di-approve! Dana masuk kas perusahaan, komisi 20% sales & 10% organisasi otomatis cair ke saldo.");
       await loadAdminData();
     } catch {
       // Local fallback state
@@ -1342,16 +1342,16 @@ export default function AdminDashboardPage() {
                                 <span>Tagih WA</span>
                               </a>
 
-                              {/* Verify Payment Button */}
+                              {/* Approve Payment Button */}
                               {inv.status !== "PAID" && (
                                 <button
                                   type="button"
                                   onClick={() => handleVerifyInvoice(inv.id)}
-                                  className="px-3 py-1.5 rounded-lg bg-[#102A43] hover:bg-[#0B1D3A] text-white font-bold text-xs flex items-center gap-1 transition-all"
-                                  title="Verifikasi Lunas"
+                                  className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1 shadow-xs transition-all active:scale-95"
+                                  title="Approve Pembayaran & Cairkan Komisi (20% Sales & 10% Org)"
                                 >
-                                  <span className="material-symbols-outlined text-[16px]">verified</span>
-                                  <span>Verifikasi</span>
+                                  <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                                  <span>Approve Pembayaran</span>
                                 </button>
                               )}
                             </div>
@@ -1807,8 +1807,8 @@ export default function AdminDashboardPage() {
                           <span className="text-[11px] text-slate-500 block">+{sales.phone}</span>
                         </td>
                         <td className="py-3.5 px-4">
-                          <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold text-[10px]">
-                            {sales.tier || "Mitra Sales"}
+                          <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 font-bold text-[10px]">
+                            {sales.role || "SALES"}
                           </span>
                         </td>
                         <td className="py-3.5 px-4">

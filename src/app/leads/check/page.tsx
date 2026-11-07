@@ -1,13 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useApp } from "@/context/AppContext";
 import { api } from "@/services/api";
 import { maskPhoneNumber } from "@/lib/formatters";
 
 export default function LeadCheckPage() {
-  const { leads, lockLead, currentUserRole } = useApp();
+  const { leads, lockLead, currentUserRole, refreshData } = useApp();
+
+  useEffect(() => {
+    refreshData();
+  }, [refreshData]);
 
   const [waInput, setWaInput] = useState("");
   const [outletName, setOutletName] = useState("");

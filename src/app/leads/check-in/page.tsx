@@ -15,7 +15,7 @@ interface PosPreviewItem {
 
 export default function CheckInPage() {
   const router = useRouter();
-  const { addVisit } = useApp();
+  const { addVisit, refreshData } = useApp();
 
   // Wizard Steps: 1 = Data UMKM, 2 = Referensi & Buat UI, 3 = Approve & Input Akun, 4 = Sukses
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
@@ -368,6 +368,7 @@ export default function CheckInPage() {
 
       setProvisionResult(result);
       setCurrentStep(4);
+      await refreshData().catch(() => {});
 
       addVisit({
         outletName,
@@ -1376,6 +1377,14 @@ export default function CheckInPage() {
                 <span className="material-symbols-outlined text-[18px]">chat</span>
                 <span>Kirim Kredensial via WhatsApp Pemilik</span>
               </a>
+
+              <Link
+                href="/leads/check"
+                className="px-4 h-12 rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm"
+              >
+                <span className="material-symbols-outlined text-[18px]">verified_user</span>
+                <span>Lihat Status Terverifikasi</span>
+              </Link>
 
               <Link
                 href="/outlets"

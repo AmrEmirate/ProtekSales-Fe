@@ -309,6 +309,18 @@ export default function OutletsListPage() {
                         SUSPENDED
                       </span>
                     )}
+                    {outlet.status === "BELUM LUNAS" && (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-[11px] font-bold shrink-0">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
+                        BELUM LUNAS
+                      </span>
+                    )}
+                    {outlet.status === "MENUNGGAK" && (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-100 text-red-800 text-[11px] font-bold shrink-0">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-600" />
+                        MENUNGGAK
+                      </span>
+                    )}
                   </div>
 
                   {/* Financial Metrics Pill Group */}
@@ -682,6 +694,8 @@ export default function OutletsListPage() {
                             ? "bg-[#DCFCE7] text-[#15803D]"
                             : outlet.status === "H-3"
                             ? "bg-[#FEF3C7] text-[#B45309]"
+                            : outlet.status === "BELUM LUNAS"
+                            ? "bg-amber-100 text-amber-800"
                             : "bg-[#FEE2E2] text-[#B91C1C]"
                         }`}
                       >
@@ -691,6 +705,8 @@ export default function OutletsListPage() {
                               ? "bg-[#15803D]"
                               : outlet.status === "H-3"
                               ? "bg-[#B45309]"
+                              : outlet.status === "BELUM LUNAS"
+                              ? "bg-amber-600"
                               : "bg-[#B91C1C]"
                           }`}
                         />

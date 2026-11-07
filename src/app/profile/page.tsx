@@ -14,7 +14,6 @@ export default function ProfilePage() {
   const [savedNotice, setSavedNotice] = useState(false);
 
   const activeOutlets = outlets.length;
-  const toPlatinum = 31 - activeOutlets;
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,12 +39,14 @@ export default function ProfilePage() {
             <span className="text-[#102A43]">Profil & KPI</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold font-display text-[#102A43]">
-            {currentUserRole === "ADMIN" ? "Profil Administrator HQ ProTek" : "Profil Mitra Sales, KPI & Tiering Komisi"}
+            {currentUserRole === "ADMIN" ? "Profil Administrator HQ ProTek" : currentUserRole === "ORGANISASI" ? "Profil Mitra Organisasi" : "Profil Mitra Sales & Skema Komisi Net"}
           </h1>
           <p className="text-xs text-slate-500">
             {currentUserRole === "ADMIN"
               ? "Identitas resmi Administrator PT Pro Teknologi dan akses pusat kendali sistem"
-              : "Identitas keanggotaan resmi PT Pro Teknologi dan skema komisi recurring bulanan"}
+              : currentUserRole === "ORGANISASI"
+              ? "Identitas kemitraan organisasi dan pemantauan hak bagi hasil 10%"
+              : "Identitas keanggotaan resmi PT Pro Teknologi dengan komisi net 20% tanpa sistem peringkat"}
           </p>
         </div>
 
@@ -74,95 +75,81 @@ export default function ProfilePage() {
               <h2 className="text-xl sm:text-2xl font-bold font-display text-white">
                 {salesProfile.name}
               </h2>
-              <span className="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-900 text-xs font-bold">
-                {salesProfile.tier}
+              <span className="px-2.5 py-0.5 rounded-full bg-orange-500 text-white text-xs font-bold shadow-sm">
+                {currentUserRole === "ADMIN" ? "ADMINISTRATOR HQ" : currentUserRole === "ORGANISASI" ? "MITRA ORGANISASI (10%)" : "MITRA SALES (20% NET)"}
               </span>
             </div>
             <p className="text-xs text-slate-300">
-              ID Mitra: <strong>{salesProfile.id}</strong> • Area Operasional: DKI Jakarta & Tangerang
+              ID Akun: <strong>{salesProfile.id}</strong> {salesProfile.organizationName ? `• Organisasi: ${salesProfile.organizationName}` : ""}
             </p>
             <div className="flex items-center gap-3 pt-1 text-[11px] text-slate-300">
               <span className="flex items-center gap-1 text-emerald-400 font-bold">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                98.8% Kepatuhan GPS
+                Terdaftar Resmi
               </span>
               <span>•</span>
-              <span>Bergabung sejak Maret 2024</span>
+              <span>Komisi Net Tanpa Peringkat</span>
             </div>
           </div>
         </div>
 
         <div className="flex flex-col md:items-end justify-center shrink-0 p-4 rounded-2xl bg-[#0B1D3A]/60 border border-[#1E3E62]">
-          <span className="text-xs text-slate-400 font-semibold uppercase">Peringkat Nasional</span>
+          <span className="text-xs text-slate-400 font-semibold uppercase">Skema Bagi Hasil</span>
           <div className="text-2xl font-bold font-display text-orange-400 mt-0.5">
-            #4 dari 120+ Sales
+            {currentUserRole === "ORGANISASI" ? "10% Net" : currentUserRole === "ADMIN" ? "100% Kas Pusat" : "20% Net"}
           </div>
-          <Link
-            href="/commission/leaderboard"
-            className="text-[11px] text-white underline hover:text-orange-300 mt-1 font-semibold"
-          >
-            Lihat Papan Peringkat &rarr;
-          </Link>
+          <div className="text-[11px] text-slate-300 mt-1 font-semibold">
+            {currentUserRole === "ORGANISASI" ? "Hak Bagi Hasil Organisasi" : currentUserRole === "ADMIN" ? "Penerimaan Tagihan Pusat" : "Pasti • Tanpa Sistem Peringkat"}
+          </div>
         </div>
       </div>
 
       {/* Main Grid: 12 Columns for Desktop & Tablet */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column (6 Cols): Tier Progression & KPI Performance */}
+        {/* Left Column (6 Cols): Skema Komisi & KPI Performance */}
         <div className="lg:col-span-6 space-y-6">
-          {/* Tier Progression */}
+          {/* Skema Komisi Net */}
           <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <h3 className="text-base font-bold text-[#102A43] font-display">
-                  Jenjang Karir & Komisi Berulang
+                  Skema Bagi Hasil Resmi (Net)
                 </h3>
-                <p className="text-xs text-slate-500">Skema persentase bagi hasil lisensi bulanan</p>
+                <p className="text-xs text-slate-500">Ketentuan hak komisi tanpa sistem peringkat</p>
               </div>
-              <span className="px-2.5 py-1 rounded-full bg-orange-50 text-[#F97316] text-xs font-bold border border-orange-200">
-                {activeOutlets} Outlet Aktif
+              <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200">
+                Net &amp; Transparan
               </span>
             </div>
 
-            {/* Progress Bar */}
-            <div className="space-y-2">
-              <div className="w-full bg-slate-100 h-3.5 rounded-full overflow-hidden p-0.5 border border-slate-200">
-                <div
-                  className="bg-gradient-to-r from-orange-400 via-orange-500 to-[#F97316] h-full rounded-full transition-all duration-500"
-                  style={{ width: `${Math.min(100, Math.max(5, Math.round((activeOutlets / 31) * 100)))}%` }}
-                />
+            <div className="space-y-3">
+              <div className="p-3 rounded-xl bg-orange-50 border border-orange-200 text-xs">
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-[#102A43]">Komisi Sales Lapangan:</span>
+                  <span className="font-bold text-orange-600 text-sm">20% Net</span>
+                </div>
+                <p className="text-[11px] text-slate-600 mt-1">
+                  Setiap sales menerima komisi flat 20% dari nilai invoice tagihan bulanan UMKM yang didaftarkannya. Tidak ada peringkat, tidak bisa diturunkan.
+                </p>
               </div>
 
-              <div className="grid grid-cols-3 text-xs pt-1">
-                <div className="text-left">
-                  <div className="font-bold text-slate-600">Silver (20%)</div>
-                  <div className="text-[10px] text-slate-400">0 - 15 Outlet</div>
+              <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-xs">
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-[#102A43]">Hak Organisasi:</span>
+                  <span className="font-bold text-blue-600 text-sm">10% Net</span>
                 </div>
-                <div className="text-center">
-                  <div className="font-bold text-[#F97316]">
-                    {activeOutlets >= 31 ? "PLATINUM (30%)" : activeOutlets >= 16 ? "GOLD (25%)" : "SILVER (20%)"}
-                  </div>
-                  <div className="text-[10px] text-orange-600 font-bold">
-                    Posisi Anda ({activeOutlets} Outlet)
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="font-bold text-slate-600">Platinum (30%)</div>
-                  <div className="text-[10px] text-slate-400">31+ Outlet</div>
-                </div>
+                <p className="text-[11px] text-slate-600 mt-1">
+                  Organisasi menerima bagi hasil 10% dari tagihan outlet yang didaftarkan oleh mitra sales binaannya.
+                </p>
               </div>
-            </div>
 
-            <div className="p-3.5 rounded-xl bg-orange-50/80 border border-orange-200 text-xs text-slate-700 flex items-start gap-2.5">
-              <span className="material-symbols-outlined text-[#F97316] text-[20px] shrink-0 mt-0.5">
-                rocket_launch
-              </span>
-              <div>
-                <div className="font-bold text-[#102A43]">
-                  Tinggal {toPlatinum > 0 ? toPlatinum : 1} outlet lagi menuju Platinum Leader!
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-[#102A43]">Alur Pembayaran Langganan:</span>
+                  <span className="font-bold text-emerald-700 text-xs">Perusahaan &rarr; Sales</span>
                 </div>
-                <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed">
-                  Dapatkan kenaikan bagi hasil menjadi 30% komisi berulang (recurring) untuk seluruh outlet binaan Anda mulai bulan depan.
+                <p className="text-[11px] text-slate-600 mt-1">
+                  UMKM melakukan pembayaran ke rekening perusahaan PT Pro Teknologi. Setelah Admin memverifikasi dan meng-approve pembayaran, komisi otomatis masuk ke saldo siap tarik sales dan organisasi.
                 </p>
               </div>
             </div>
