@@ -76,6 +76,31 @@ describe('White Box Testing: api.ts (REST API Client)', () => {
       expect(phoneParam).not.toContain('-');
       expect(phoneParam).not.toContain(' ');
     });
+
+    it('should support multi-criteria search by phone, store name, and address', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          success: true,
+          message: 'Toko bebas',
+          data: { canClaim: true },
+        }),
+      });
+      globalThis.fetch = mockFetch;
+
+      await api.checkLeadAvailability({
+        phone: '0812-3456-7890',
+        name: 'Toko Berkah',
+        address: 'Jl. Riau No. 45',
+      });
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const calledUrl = mockFetch.mock.calls[0][0] as string;
+      const url = new URL(calledUrl);
+      expect(url.searchParams.get('phone')).toBe('081234567890');
+      expect(url.searchParams.get('name')).toBe('Toko Berkah');
+      expect(url.searchParams.get('address')).toBe('Jl. Riau No. 45');
+    });
   });
 
   describe('Authorization Headers & Error Handlers', () => {

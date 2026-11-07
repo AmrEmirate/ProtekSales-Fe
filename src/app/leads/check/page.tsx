@@ -25,27 +25,30 @@ export default function LeadCheckPage() {
   const [activeFilterTab, setActiveFilterTab] = useState<"ALL" | "APPROVED" | "LOCKED">("ALL");
 
   const handleCheck = async () => {
-    if (!waInput.trim()) return;
+    if (!waInput.trim() && !outletName.trim() && !address.trim()) {
+      setNotificationMsg("Silakan masukkan salah satu kriteria: No. WhatsApp, Nama Toko, atau Alamat.");
+      return;
+    }
     setIsChecking(true);
     setNotificationMsg(null);
     try {
-      const data = await api.checkLeadAvailability(waInput);
+      const data = await api.checkLeadAvailability({
+        phone: waInput.trim() || undefined,
+        name: outletName.trim() || undefined,
+        address: address.trim() || undefined,
+      });
       if (data) {
         setCheckResult({
           canClaim: data.canClaim,
           message: data.message,
-          claimedBy: data.lead?.claimedBy,
+          claimedBy: data.lead?.claimedBy || (data.outlet?.sales?.name ? `${data.outlet.sales.name} (Merchant Resmi)` : undefined),
           protectedUntil: data.lead?.protectedUntil,
         });
       }
-    } catch {
-      const sanitized = waInput.replace(/[^0-9]/g, "");
-      const isFree = Boolean(sanitized);
+    } catch (err: any) {
       setCheckResult({
-        canClaim: isFree,
-        message: isFree
-          ? "Nomor terverifikasi valid & siap diajukan untuk proteksi."
-          : "Format nomor WhatsApp tidak valid.",
+        canClaim: false,
+        message: err.message || "Gagal memeriksa status prospek ke server.",
       });
     } finally {
       setIsChecking(false);
@@ -160,11 +163,33 @@ export default function LeadCheckPage() {
                   type="text"
                   value={outletName}
                   onChange={(e) => setOutletName(e.target.value)}
-                  placeholder="Contoh: Toko Berkah Sentosa"
+                  placeholder="Contoh: Dimsum Intan / Toko Berkah"
                   className="w-full bg-transparent px-3 text-[#001d32] text-xs font-medium focus:outline-none"
                 />
               </div>
             </div>
+
+            {/* Outlet Address */}
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-[#102A43]">
+                Alamat Lengkap Outlet
+              </label>
+              <div className="flex items-start rounded-xl bg-[#edf4ff] px-3 py-2.5 shadow-inner">
+                <span className="material-symbols-outlined text-slate-400 text-[20px] mt-0.5">location_on</span>
+                <textarea
+                  rows={2}
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Contoh: Jl. Jakarta No. 124, Kebonwaru, Bandung"
+                  className="w-full bg-transparent px-3 text-[#001d32] text-xs font-medium focus:outline-none resize-none"
+                />
+              </div>
+            </div>
+
+            {/* Helper Text */}
+            <p className="text-[11px] text-slate-500 leading-tight">
+              💡 <em>Pencarian multi-kriteria: Masukkan No. WA, Nama Toko, atau Alamat untuk cek status proteksi di database.</em>
+            </p>
 
             {/* Check Button */}
             <div className="pt-2">
@@ -177,7 +202,7 @@ export default function LeadCheckPage() {
                 <span className="material-symbols-outlined text-[18px]">
                   {isChecking ? "hourglass_top" : "manage_search"}
                 </span>
-                <span>{isChecking ? "Memeriksa ke Server..." : "Cek Ketersediaan Nomor Toko"}</span>
+                <span>{isChecking ? "Memeriksa ke Server..." : "Cek Ketersediaan (No. HP / Nama / Alamat)"}</span>
               </button>
             </div>
 
@@ -191,8 +216,10 @@ export default function LeadCheckPage() {
                         <span className="material-symbols-outlined text-[18px]">verified</span>
                       </div>
                       <div>
-                        <span className="text-xs font-bold text-[#00152a] block">{outletName}</span>
-                        <p className="text-[11px] text-slate-600">+62 {waInput} • Bebas Diklaim</p>
+                        <span className="text-xs font-bold text-[#00152a] block">{outletName || "Outlet Terverifikasi"}</span>
+                        <p className="text-[11px] text-slate-600">
+                          {waInput ? `+62 ${waInput}` : "No. WA Belum Diisi"} {address ? `• ${address}` : ""} • Bebas Diklaim
+                        </p>
                       </div>
                     </div>
                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#16A34A] text-white text-[10px] font-bold shadow-sm">
@@ -202,7 +229,7 @@ export default function LeadCheckPage() {
                   </div>
 
                   <p className="text-xs text-[#00152a] leading-relaxed">
-                    Outlet belum pernah didaftarkan. Mengunci sekarang memberikan perlindungan penuh hingga <strong>30 hari kalender</strong> ke depan.
+                    {checkResult.message || "Outlet belum pernah didaftarkan. Mengunci sekarang memberikan perlindungan penuh hingga 30 hari kalender ke depan."}
                   </p>
 
                   <div className="flex items-center gap-2 pt-1">
@@ -224,9 +251,9 @@ export default function LeadCheckPage() {
                         <span className="material-symbols-outlined text-[18px]">lock</span>
                       </div>
                       <div>
-                        <span className="text-xs font-bold text-[#00152a] block">{outletName}</span>
+                        <span className="text-xs font-bold text-[#00152a] block">{outletName || "Outlet Terdaftar"}</span>
                         <p className="text-[11px] text-slate-600">
-                          {currentUserRole === "ADMIN" ? `+62 ${waInput}` : maskPhoneNumber(waInput)} • Sedang Diklaim
+                          {waInput ? (currentUserRole === "ADMIN" ? `+62 ${waInput}` : maskPhoneNumber(waInput)) : "Nomor Dirahasiakan"} {address ? `• ${address}` : ""} • Sedang Diklaim
                         </p>
                       </div>
                     </div>
@@ -235,6 +262,10 @@ export default function LeadCheckPage() {
                       TERKUNCI
                     </span>
                   </div>
+
+                  <p className="text-xs font-semibold text-red-800 bg-red-100/70 p-2 rounded-lg border border-red-200">
+                    {checkResult.message}
+                  </p>
 
                   <div className="rounded-lg bg-white p-2.5 text-xs space-y-1 border border-red-200">
                     <div className="flex justify-between">
@@ -513,47 +544,17 @@ export default function LeadCheckPage() {
                           <span>{lead.lastContact || (isDeal ? "Klien aktif Cloud POS" : "Baru saja")}</span>
                         </div>
 
-                        <div className="flex items-center gap-2">
-                          {currentUserRole === "ADMIN" || lead.isCurrentUser ? (
-                            <a
-                              href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, "")}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#edf4ff] text-[#102A43] hover:bg-[#e3efff] text-xs font-semibold transition-colors"
-                            >
-                              <span className="material-symbols-outlined text-[15px] text-emerald-600">chat</span>
-                              <span>WhatsApp</span>
-                            </a>
-                          ) : (
-                            <button
-                              type="button"
-                              disabled
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-400 text-xs font-medium border border-slate-200 cursor-not-allowed"
-                              title="Nomor telepon disembunyikan demi privasi klien resmi"
-                            >
-                              <span className="material-symbols-outlined text-[14px]">lock</span>
-                              <span>Nomor Terproteksi</span>
-                            </button>
-                          )}
-
-                          {isDeal ? (
-                            <Link
-                              href="/outlets/detail"
-                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-bold shadow-xs transition-all"
-                            >
-                              <span className="material-symbols-outlined text-[15px]">storefront</span>
-                              <span>Lihat Outlet</span>
-                            </Link>
-                          ) : (
+                        {!isDeal && (
+                          <div className="flex items-center gap-2">
                             <Link
                               href="/leads/check-in"
                               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#F97316] text-white hover:bg-[#EA580C] text-xs font-semibold shadow-sm transition-all"
                             >
                               <span className="material-symbols-outlined text-[15px]">add_location_alt</span>
-                              <span>Check-in</span>
+                              <span>Check-in Kunjungan</span>
                             </Link>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );

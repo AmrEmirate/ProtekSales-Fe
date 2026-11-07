@@ -91,8 +91,25 @@ class ApiService {
   // ==========================================
   // 2. LEADS (LEAD PROTECTION & PIPELINE)
   // ==========================================
-  async checkLeadAvailability(phone: string) {
-    const sanitized = phone.replace(/[^0-9]/g, "");
+  async checkLeadAvailability(params: string | { phone?: string; name?: string; address?: string }) {
+    let query = "";
+    if (typeof params === "string") {
+      const sanitized = params.replace(/[^0-9]/g, "");
+      query = `phone=${encodeURIComponent(sanitized)}`;
+    } else {
+      const q = new URLSearchParams();
+      if (params.phone) {
+        const sanitized = params.phone.replace(/[^0-9]/g, "");
+        if (sanitized) q.append("phone", sanitized);
+      }
+      if (params.name && params.name.trim()) {
+        q.append("name", params.name.trim());
+      }
+      if (params.address && params.address.trim()) {
+        q.append("address", params.address.trim());
+      }
+      query = q.toString();
+    }
     const res = await this.request<{
       success: boolean;
       message: string;
@@ -107,8 +124,9 @@ class ApiService {
           status: string;
           claimedBy: string;
         };
+        outlet?: any;
       };
-    }>(`/leads/check?phone=${encodeURIComponent(sanitized)}`);
+    }>(`/leads/check?${query}`);
     return res.data;
   }
 
