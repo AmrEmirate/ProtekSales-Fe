@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { maskPhoneNumber } from '../../lib/formatters';
 
 export interface CommissionCalculationParams {
   packageType: 'STARTER' | 'GROWTH' | 'ENTERPRISE';
@@ -154,5 +155,11 @@ describe('White Box Testing: Sales Commission Mathematical Engine & PPh 21 Withh
     expect(orgAmount).toBe(40000);
     expect(hqAmount).toBe(280000);
     expect(salesAmount + orgAmount + hqAmount).toBe(monthlyBill);
+  });
+
+  it('masks sensitive mobile phone numbers for sales privacy', () => {
+    expect(maskPhoneNumber('081284525304')).toBe('0812-****-5304');
+    expect(maskPhoneNumber('6281284525304')).toBe('6281-****-5304');
+    expect(maskPhoneNumber(undefined)).toBe('-');
   });
 });

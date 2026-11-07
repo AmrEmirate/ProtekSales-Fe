@@ -4,9 +4,10 @@ import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useApp } from "@/context/AppContext";
 import { api } from "@/services/api";
+import { maskPhoneNumber } from "@/lib/formatters";
 
 export default function OutletDetailPage() {
-  const { outlets, toggleOutletLicense } = useApp();
+  const { outlets, toggleOutletLicense, currentUserRole } = useApp();
   const [selectedOutletId, setSelectedOutletId] = useState(outlets[0]?.id || "");
   const [cloudPosData, setCloudPosData] = useState<any>(null);
   const [isLoadingCloud, setIsLoadingCloud] = useState(false);
@@ -126,24 +127,31 @@ export default function OutletDetailPage() {
                 {outlet.name}
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Owner: <strong>{outlet.owner}</strong> • {outlet.phone}
+                Owner: <strong>{outlet.owner}</strong> • {currentUserRole === "ADMIN" ? outlet.phone : maskPhoneNumber(outlet.phone)}
               </p>
               <p className="text-xs text-slate-400 mt-0.5">{outlet.address}</p>
             </div>
           </div>
 
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 shrink-0">
-            <a
-              href={`https://wa.me/${outlet.phone.replace(/[^0-9]/g, "")}?text=Halo%20${encodeURIComponent(
-                outlet.owner
-              )}`}
-              target="_blank"
-              rel="noreferrer"
-              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
-            >
-              <span className="material-symbols-outlined text-[18px]">chat</span>
-              <span>Hubungi WhatsApp</span>
-            </a>
+            {currentUserRole === "ADMIN" ? (
+              <a
+                href={`https://wa.me/${outlet.phone.replace(/[^0-9]/g, "")}?text=Halo%20${encodeURIComponent(
+                  outlet.owner
+                )}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <span className="material-symbols-outlined text-[18px]">chat</span>
+                <span>Hubungi WhatsApp</span>
+              </a>
+            ) : (
+              <div className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-500 text-xs font-semibold">
+                <span className="material-symbols-outlined text-[16px] text-slate-400">lock</span>
+                <span>Kontak Terlindungi (Privasi Klien)</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -185,14 +193,16 @@ export default function OutletDetailPage() {
           </div>
         </div>
 
-        {/* Right Column (6 Cols): Remote Kill-Switch Action Panel */}
+        {/* Right Column (6 Cols): Remote Kill-Switch Panel (Admin Only vs Sales Guard) */}
         <div className="lg:col-span-6 bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-4 flex flex-col justify-between">
           <div className="space-y-3">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-red-600 text-[22px]">power_settings_new</span>
+                <span className={`material-symbols-outlined text-[22px] ${currentUserRole === "ADMIN" ? "text-red-600" : "text-slate-600"}`}>
+                  {currentUserRole === "ADMIN" ? "power_settings_new" : "shield_lock"}
+                </span>
                 <h3 className="text-base font-bold text-[#102A43] font-display">
-                  Remote Kill-Switch Lisensi
+                  {currentUserRole === "ADMIN" ? "Remote Kill-Switch Lisensi (Admin HQ)" : "Status Pengoperasian Lisensi POS"}
                 </h3>
               </div>
               <span
@@ -206,31 +216,55 @@ export default function OutletDetailPage() {
               </span>
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed">
-              {outlet.licenseActive
-                ? "Lisensi software POS berjalan normal di outlet. Jika terdapat kendala penunggakan melewati grace period atau sengketa, Anda dapat memutus lisensi secara remote."
-                : "Aplikasi POS di outlet saat ini dinonaktifkan secara remote. Merchant tidak dapat menginput penjualan sebelum tagihan diselesaikan atau saklar diaktifkan kembali."}
-            </p>
+            {currentUserRole === "ADMIN" ? (
+              <>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  {outlet.licenseActive
+                    ? "Lisensi software POS berjalan normal di outlet. Jika terdapat kendala penunggakan melewati grace period atau sengketa, Anda dapat memutus lisensi secara remote."
+                    : "Aplikasi POS di outlet saat ini dinonaktifkan secara remote. Merchant tidak dapat menginput penjualan sebelum tagihan diselesaikan atau saklar diaktifkan kembali."}
+                </p>
 
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-              <div className="text-xs">
-                <div className="font-bold text-slate-900">Saklar Penonaktifan Cepat</div>
-                <div className="text-[11px] text-slate-500">Klik untuk beralih mode aktif / suspend</div>
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                  <div className="text-xs">
+                    <div className="font-bold text-slate-900">Saklar Penonaktifan Cepat</div>
+                    <div className="text-[11px] text-slate-500">Klik untuk beralih mode aktif / suspend</div>
+                  </div>
+
+                  <button
+                    onClick={() => toggleOutletLicense(outlet.id)}
+                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
+                      outlet.licenseActive ? "bg-emerald-600" : "bg-red-600"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                        outlet.licenseActive ? "translate-x-6" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="space-y-3">
+                <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-1.5">
+                  <div className="font-bold flex items-center gap-1.5 text-amber-800">
+                    <span className="material-symbols-outlined text-[16px]">lock</span>
+                    <span>Wewenang Khusus Administrator Pusat (Admin HQ)</span>
+                  </div>
+                  <p className="text-[11px] leading-relaxed text-amber-800/90">
+                    Fitur <strong>Remote Kill-Switch</strong> lisensi hanya dapat dioperasikan oleh Administrator Pusat ProTek. Akun Sales tidak diizinkan mengubah status saklar kasir demi mencegah gangguan operasional toko klien secara sepihak.
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
+                  <span className="text-slate-500 font-medium">Status Operasional Kasir</span>
+                  <span className="font-bold text-emerald-700 flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    {outlet.licenseActive ? "Kasir Siap Pakai" : "Lisensi Kasir Ditangguhkan"}
+                  </span>
+                </div>
               </div>
-
-              <button
-                onClick={() => toggleOutletLicense(outlet.id)}
-                className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
-                  outlet.licenseActive ? "bg-emerald-600" : "bg-red-600"
-                }`}
-              >
-                <span
-                  className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
-                    outlet.licenseActive ? "translate-x-6" : "translate-x-1"
-                  }`}
-                />
-              </button>
-            </div>
+            )}
           </div>
 
           <div className="pt-2">
@@ -285,6 +319,87 @@ export default function OutletDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* 3. Daftar 4 Cabang Operasional Terdaftar & Alamat Jalan Lengkap */}
+      {(() => {
+        const branches = (cloudPosData?.outlets && cloudPosData.outlets.length > 0)
+          ? cloudPosData.outlets
+          : (outlet.branches || []);
+
+        return (
+          <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-orange-500 text-[22px]">storefront</span>
+                  <h3 className="text-base font-bold text-[#102A43] font-display">
+                    Daftar {branches.length || 4} Cabang Operasional Terdaftar &amp; Alamat Lengkap
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Lokasi fisik operasional cabang, nama jalan, kota, dan status kasir terminal
+                </p>
+              </div>
+
+              <span className="self-start sm:self-auto px-3 py-1 rounded-full text-xs font-bold bg-orange-50 text-orange-800 border border-orange-200">
+                {branches.length || 4} Cabang (+1 Semua Cabang)
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {branches.length > 0 ? (
+                branches.map((b: any, idx: number) => (
+                  <div
+                    key={b.code || idx}
+                    className="p-4 rounded-xl border border-slate-200 hover:border-orange-300 transition-all bg-slate-50/50 hover:bg-white space-y-2.5"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="px-2 py-0.5 rounded font-mono font-bold text-xs bg-slate-200 text-slate-700">
+                          {b.code || `CB-0${idx + 1}`}
+                        </span>
+                        <h4 className="font-bold text-sm text-[#102A43] truncate font-display">
+                          {b.name}
+                        </h4>
+                      </div>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 shrink-0">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                        Aktif
+                      </span>
+                    </div>
+
+                    <div className="space-y-1 text-xs">
+                      <div className="flex items-start gap-1.5 text-slate-600">
+                        <span className="material-symbols-outlined text-[16px] text-slate-400 shrink-0 mt-0.5">
+                          location_on
+                        </span>
+                        <span className="leading-snug">{b.address}</span>
+                      </div>
+
+                      {b.city && (
+                        <div className="flex items-center gap-1.5 text-slate-500 text-[11px] pl-5">
+                          <span>Wilayah Kota: <strong>{b.city}</strong></span>
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 text-[11px]">
+                        <span className="text-slate-500">Nomor Telepon:</span>
+                        <span className="font-mono font-semibold text-slate-700">
+                          {currentUserRole === "ADMIN" ? (b.phone || outlet.phone) : maskPhoneNumber(b.phone || outlet.phone)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-2 p-6 rounded-xl bg-slate-50 text-center text-xs text-slate-500">
+                  Data cabang sedang dimuat...
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* 4. Live Data Telemetri & Transaksi Real-time dari Cloud POS Engine */}
       <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-5">

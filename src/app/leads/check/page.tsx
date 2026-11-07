@@ -4,9 +4,10 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useApp } from "@/context/AppContext";
 import { api } from "@/services/api";
+import { maskPhoneNumber } from "@/lib/formatters";
 
 export default function LeadCheckPage() {
-  const { leads, lockLead } = useApp();
+  const { leads, lockLead, currentUserRole } = useApp();
 
   const [waInput, setWaInput] = useState("");
   const [outletName, setOutletName] = useState("");
@@ -224,7 +225,9 @@ export default function LeadCheckPage() {
                       </div>
                       <div>
                         <span className="text-xs font-bold text-[#00152a] block">{outletName}</span>
-                        <p className="text-[11px] text-slate-600">+62 {waInput} • Sedang Diklaim</p>
+                        <p className="text-[11px] text-slate-600">
+                          {currentUserRole === "ADMIN" ? `+62 ${waInput}` : maskPhoneNumber(waInput)} • Sedang Diklaim
+                        </p>
                       </div>
                     </div>
                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#DC2626] text-white text-[10px] font-bold shadow-sm">
@@ -443,6 +446,9 @@ export default function LeadCheckPage() {
                             </div>
                             <div className="text-xs text-slate-500 truncate mt-0.5">
                               {lead.address} • Pemegang: <strong className="text-slate-700">{lead.lockedBy}</strong>
+                              <span className="ml-1 text-slate-400">
+                                • WA: {currentUserRole === "ADMIN" || lead.isCurrentUser ? lead.phone : maskPhoneNumber(lead.phone)}
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -470,6 +476,35 @@ export default function LeadCheckPage() {
                         </div>
                       </div>
 
+                      {/* 4 Cabang Operasional Terdaftar & Alamat Jalan */}
+                      {lead.branches && lead.branches.length > 0 && (
+                        <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs space-y-1.5">
+                          <div className="flex items-center justify-between text-[11px] font-bold text-slate-700">
+                            <span className="flex items-center gap-1">
+                              <span className="material-symbols-outlined text-[15px] text-orange-500">storefront</span>
+                              <span>Daftar {lead.branches.length} Cabang Operasional Terdaftar:</span>
+                            </span>
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-orange-100 text-orange-800 border border-orange-200">
+                              {lead.branches.length} Lokasi Jalan
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-0.5">
+                            {lead.branches.map((b) => (
+                              <div key={b.code} className="p-1.5 rounded bg-white border border-slate-100 text-[11px]">
+                                <div className="font-bold text-slate-800 flex items-center gap-1">
+                                  <span className="font-mono text-[9px] px-1 bg-slate-100 rounded text-slate-600 shrink-0">{b.code}</span>
+                                  <span className="truncate">{b.name}</span>
+                                </div>
+                                <div className="text-[10px] text-slate-500 truncate mt-0.5 flex items-center gap-1">
+                                  <span className="material-symbols-outlined text-[13px] text-slate-400 shrink-0">location_on</span>
+                                  <span className="truncate">{b.address}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-xs">
                         <div className="flex items-center gap-1 text-slate-500">
                           <span className="material-symbols-outlined text-[15px] text-slate-400">
@@ -479,15 +514,27 @@ export default function LeadCheckPage() {
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <a
-                            href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, "")}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#edf4ff] text-[#102A43] hover:bg-[#e3efff] text-xs font-semibold transition-colors"
-                          >
-                            <span className="material-symbols-outlined text-[15px] text-emerald-600">chat</span>
-                            <span>WhatsApp</span>
-                          </a>
+                          {currentUserRole === "ADMIN" || lead.isCurrentUser ? (
+                            <a
+                              href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, "")}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#edf4ff] text-[#102A43] hover:bg-[#e3efff] text-xs font-semibold transition-colors"
+                            >
+                              <span className="material-symbols-outlined text-[15px] text-emerald-600">chat</span>
+                              <span>WhatsApp</span>
+                            </a>
+                          ) : (
+                            <button
+                              type="button"
+                              disabled
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-400 text-xs font-medium border border-slate-200 cursor-not-allowed"
+                              title="Nomor telepon disembunyikan demi privasi klien resmi"
+                            >
+                              <span className="material-symbols-outlined text-[14px]">lock</span>
+                              <span>Nomor Terproteksi</span>
+                            </button>
+                          )}
 
                           {isDeal ? (
                             <Link

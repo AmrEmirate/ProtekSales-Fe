@@ -3,6 +3,16 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { api } from "@/services/api";
 
+export interface BranchInfo {
+  id?: string;
+  code: string;
+  name: string;
+  city?: string;
+  address: string;
+  phone?: string;
+  targetDailySales?: number;
+}
+
 export interface Lead {
   id: string;
   name: string;
@@ -24,6 +34,7 @@ export interface Lead {
   followUpDate?: string;
   notes?: string;
   subdomain?: string;
+  branches?: BranchInfo[];
 }
 
 export interface Outlet {
@@ -45,6 +56,8 @@ export interface Outlet {
   imageUrl?: string;
   isDirectAdmin?: boolean;
   salesName?: string;
+  branches?: BranchInfo[];
+  canToggleKillSwitch?: boolean;
 }
 
 export interface Visit {
@@ -295,6 +308,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               rejectionReason,
               followUpDate,
               notes: notesStr,
+              branches: Array.isArray(l.branches) ? l.branches : [],
             };
           });
           setLeads(mappedLeads);
@@ -334,6 +348,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             notes: "Lisensi resmi cloud POS",
             isDirectAdmin: !!(o.isDirectAdmin || o.sales?.role === "ADMIN" || o.sales?.email?.includes("amremi")),
             salesName: o.sales?.role === "ADMIN" ? "👑 Admin HQ (Direct Deal)" : o.sales?.name || "Mitra Sales",
+            branches: Array.isArray(o.branches) ? o.branches : [],
+            canToggleKillSwitch: !!o.canToggleKillSwitch,
           }));
           setOutlets(mappedOutlets);
         }
@@ -463,6 +479,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const toggleOutletLicense = async (outletId: string) => {
     try {
+      if (currentUserRole !== "ADMIN") {
+        alert("Akses Ditolak: Fitur Remote Kill-Switch lisensi hanya memiliki wewenang untuk dioperasikan oleh Administrator Pusat ProTek (Admin HQ).");
+        return;
+      }
+
       const target = outlets.find((o) => o.id === outletId);
       if (!target) return;
 

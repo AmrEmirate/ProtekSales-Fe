@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useApp } from "@/context/AppContext";
 import { api } from "@/services/api";
+import { maskPhoneNumber } from "@/lib/formatters";
 
 export default function DashboardPage() {
   const {
@@ -16,6 +17,7 @@ export default function DashboardPage() {
     lockLead,
     toggleOutletLicense,
     isOffline,
+    currentUserRole,
   } = useApp();
 
   // Lead Checker Interactive State
@@ -392,11 +394,13 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[#102A43]" />
               <h2 className="text-lg font-bold text-[#102A43] font-display">
-                Status Klien Lisensi & Remote Kill-Switch
+                {currentUserRole === "ADMIN" ? "Status Klien Lisensi & Remote Kill-Switch" : "Status Lisensi Software POS Klien"}
               </h2>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Monitoring lisensi POS aktif, peringatan invoice jatuh tempo, dan saklar penonaktifan darurat
+              {currentUserRole === "ADMIN"
+                ? "Monitoring lisensi POS aktif, peringatan invoice jatuh tempo, dan saklar penonaktifan darurat"
+                : "Monitoring lisensi POS aktif dan status pembayaran invoice klien"}
             </p>
           </div>
 
@@ -522,23 +526,33 @@ export default function DashboardPage() {
                     )}
                   </td>
                   <td className="py-3 px-4 text-center">
-                    <button
-                      onClick={() => toggleOutletLicense(outlet.id)}
-                      title={
-                        outlet.licenseActive
-                          ? "Klik untuk mematikan lisensi (Remote Kill-Switch)"
-                          : "Klik untuk menyalakan kembali lisensi"
-                      }
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                        outlet.licenseActive ? "bg-emerald-600" : "bg-red-600"
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          outlet.licenseActive ? "translate-x-6" : "translate-x-1"
+                    {currentUserRole === "ADMIN" ? (
+                      <button
+                        onClick={() => toggleOutletLicense(outlet.id)}
+                        title={
+                          outlet.licenseActive
+                            ? "Klik untuk mematikan lisensi (Remote Kill-Switch)"
+                            : "Klik untuk menyalakan kembali lisensi"
+                        }
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                          outlet.licenseActive ? "bg-emerald-600" : "bg-red-600"
                         }`}
-                      />
-                    </button>
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            outlet.licenseActive ? "translate-x-6" : "translate-x-1"
+                          }`}
+                        />
+                      </button>
+                    ) : (
+                      <span
+                        className={`inline-block px-2.5 py-0.5 rounded text-[10px] font-bold ${
+                          outlet.licenseActive ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {outlet.licenseActive ? "Aktif" : "Suspend"}
+                      </span>
+                    )}
                   </td>
                   <td className="py-3 px-4 text-right">
                     <div className="flex items-center justify-end gap-1.5">
@@ -629,7 +643,9 @@ export default function DashboardPage() {
                           Tersisa {lead.daysRemaining} Hari
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-500 truncate">{lead.category} &bull; +62 {cleanPhone}</p>
+                      <p className="text-[11px] text-slate-500 truncate">
+                        {lead.category} &bull; +62 {currentUserRole === "ADMIN" || lead.isCurrentUser ? cleanPhone : maskPhoneNumber(cleanPhone)}
+                      </p>
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">

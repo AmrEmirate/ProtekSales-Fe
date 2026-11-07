@@ -3,9 +3,10 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useApp, Outlet } from "@/context/AppContext";
+import { maskPhoneNumber } from "@/lib/formatters";
 
 export default function OutletsListPage() {
-  const { outlets, toggleOutletLicense } = useApp();
+  const { outlets, toggleOutletLicense, currentUserRole } = useApp();
 
   const [activeFilter, setActiveFilter] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
@@ -378,6 +379,34 @@ export default function OutletsListPage() {
                     </div>
                   )}
 
+                  {/* Daftar Cabang & Alamat Jalan Terdaftar */}
+                  {outlet.branches && outlet.branches.length > 0 && (
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/90 space-y-1.5 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold text-slate-800 flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[15px] text-orange-500">storefront</span>
+                          <span>{outlet.branches.length} Cabang Operasional Terdaftar:</span>
+                        </span>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-orange-100 text-orange-800 border border-orange-200">
+                          {outlet.branches.length} Titik Jalan
+                        </span>
+                      </div>
+                      <div className="space-y-1 pt-0.5">
+                        {outlet.branches.map((b) => (
+                          <div key={b.code} className="flex items-start gap-1.5 text-[11px] bg-white p-1.5 rounded-lg border border-slate-100">
+                            <span className="font-mono font-bold text-[10px] text-slate-600 px-1 py-0.5 bg-slate-100 rounded shrink-0">
+                              {b.code}
+                            </span>
+                            <div className="min-w-0">
+                              <div className="font-bold text-slate-900 truncate">{b.name}</div>
+                              <div className="text-[10px] text-slate-500 truncate">{b.address}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Warning / License Status Callout */}
                   {isLunas && (
                     <div className="flex items-center justify-between text-xs py-0.5">
@@ -410,23 +439,39 @@ export default function OutletsListPage() {
                     </div>
                   )}
 
-                  {/* Kill Switch Toggle Control */}
-                  <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-xs">
-                    <span className="text-slate-500 font-medium">Saklar Remote POS:</span>
-                    <button
-                      type="button"
-                      onClick={() => setKillSwitchTarget(outlet)}
-                      className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors ${
-                        outlet.licenseActive ? "bg-emerald-600" : "bg-red-600"
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                          outlet.licenseActive ? "translate-x-5" : "translate-x-1"
+                  {/* Kill Switch Toggle Control: Wewenang Eksklusif Admin HQ */}
+                  {currentUserRole === "ADMIN" ? (
+                    <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-xs">
+                      <span className="text-slate-500 font-medium">Saklar Remote POS (Admin HQ):</span>
+                      <button
+                        type="button"
+                        onClick={() => setKillSwitchTarget(outlet)}
+                        className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors ${
+                          outlet.licenseActive ? "bg-emerald-600" : "bg-red-600"
                         }`}
-                      />
-                    </button>
-                  </div>
+                      >
+                        <span
+                          className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                            outlet.licenseActive ? "translate-x-5" : "translate-x-1"
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-xs">
+                      <div className="flex items-center gap-1 text-slate-500 font-medium">
+                        <span className="material-symbols-outlined text-[15px] text-slate-400">shield_lock</span>
+                        <span>Status Lisensi:</span>
+                      </div>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          outlet.licenseActive ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {outlet.licenseActive ? "ONLINE & AKTIF" : "SUSPENDED (TERKUNCI)"}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Actions Matching Original Prototype */}
@@ -547,8 +592,13 @@ export default function OutletsListPage() {
                         <div>
                           <div className="font-bold text-slate-900 text-sm">{outlet.name}</div>
                           <div className="text-[11px] text-slate-500">
-                            {outlet.owner} • {outlet.phone}
+                            {outlet.owner} • {currentUserRole === "ADMIN" ? outlet.phone : maskPhoneNumber(outlet.phone)}
                           </div>
+                          {outlet.branches && outlet.branches.length > 0 && (
+                            <div className="text-[10px] text-orange-600 font-semibold mt-0.5">
+                              {outlet.branches.length} Cabang Operasional Terdaftar
+                            </div>
+                          )}
                         </div>
                       </div>
                     </td>
@@ -589,18 +639,30 @@ export default function OutletsListPage() {
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-center">
-                      <button
-                        onClick={() => setKillSwitchTarget(outlet)}
-                        className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors ${
-                          outlet.licenseActive ? "bg-emerald-600" : "bg-red-600"
-                        }`}
-                      >
-                        <span
-                          className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                            outlet.licenseActive ? "translate-x-5" : "translate-x-1"
+                      {currentUserRole === "ADMIN" ? (
+                        <button
+                          type="button"
+                          onClick={() => setKillSwitchTarget(outlet)}
+                          className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors ${
+                            outlet.licenseActive ? "bg-emerald-600" : "bg-red-600"
                           }`}
-                        />
-                      </button>
+                          title="Saklar Lisensi Remote Admin HQ"
+                        >
+                          <span
+                            className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                              outlet.licenseActive ? "translate-x-5" : "translate-x-1"
+                            }`}
+                          />
+                        </button>
+                      ) : (
+                        <span
+                          className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
+                            outlet.licenseActive ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {outlet.licenseActive ? "Aktif" : "Suspend"}
+                        </span>
+                      )}
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <button
@@ -695,8 +757,8 @@ export default function OutletsListPage() {
         </div>
       )}
 
-      {/* Kill Switch Warning Modal */}
-      {killSwitchTarget && (
+      {/* Kill Switch Warning Modal: Wewenang Khusus Admin HQ */}
+      {killSwitchTarget && currentUserRole === "ADMIN" && (
         <div className="fixed inset-0 z-50 bg-[#0B1D3A]/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
             <div className="flex items-center gap-3 text-red-600">

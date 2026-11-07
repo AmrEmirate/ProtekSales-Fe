@@ -4,9 +4,10 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useApp } from "@/context/AppContext";
 import { api } from "@/services/api";
+import { maskPhoneNumber } from "@/lib/formatters";
 
 export default function PipelinePage() {
-  const { leads, refreshData } = useApp();
+  const { leads, refreshData, currentUserRole } = useApp();
   const [activeFilter, setActiveFilter] = useState<string>("ALL");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
@@ -210,7 +211,9 @@ export default function PipelinePage() {
                       <span className="material-symbols-outlined text-[15px] text-emerald-600">
                         phone
                       </span>
-                      <span className="font-mono">+62 {cleanPhone}</span>
+                      <span className="font-mono">
+                        +62 {currentUserRole === "ADMIN" || lead.isCurrentUser ? cleanPhone : maskPhoneNumber(cleanPhone)}
+                      </span>
                     </div>
                   </div>
 
