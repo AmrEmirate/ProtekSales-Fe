@@ -252,35 +252,43 @@ export default function OutletDetailPage() {
         </div>
       </div>
 
-      {/* Financial Split: Client Bill vs Sales Rep 25% Commission */}
+      {/* Financial Split: Client Bill vs Sales Rep 20% + Organization 10% Commission */}
       <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-4">
         <h3 className="text-base font-bold text-[#102A43] font-display">
-          Alokasi Finansial & Komisi Recurring
+          Alokasi Finansial &amp; Pembagian Komisi (Sales 20% + Organisasi 10%)
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
             <span className="text-slate-500 font-medium">Tagihan Bulanan Merchant</span>
             <div className="text-lg font-bold font-display text-slate-900 mt-1 tabular-nums">
               Rp {outlet.mrr.toLocaleString("id-ID")}
             </div>
-            <span className="text-[10px] text-slate-400">Paket Software + Cloud POS</span>
+            <span className="text-[10px] text-slate-400">4 Cabang × Rp 100.000 (+1 Semua Cabang)</span>
           </div>
 
           <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
-            <span className="text-emerald-800 font-medium">Komisi Sales Anda (25%)</span>
+            <span className="text-emerald-800 font-medium">Komisi Sales (20%)</span>
             <div className="text-lg font-bold font-display text-emerald-700 mt-1 tabular-nums">
-              Rp {Math.round(outlet.mrr * 0.25).toLocaleString("id-ID")}
+              Rp {Math.round(outlet.mrr * 0.2).toLocaleString("id-ID")}
             </div>
-            <span className="text-[10px] text-emerald-600">Berulang setiap bulan selama aktif</span>
+            <span className="text-[10px] text-emerald-600">Berulang setiap bulan untuk sales</span>
+          </div>
+
+          <div className="p-4 rounded-xl bg-indigo-50 border border-indigo-200">
+            <span className="text-indigo-800 font-medium">Bagian Organisasi (10%)</span>
+            <div className="text-lg font-bold font-display text-indigo-700 mt-1 tabular-nums">
+              Rp {Math.round(outlet.mrr * 0.1).toLocaleString("id-ID")}
+            </div>
+            <span className="text-[10px] text-indigo-600">Bagi hasil organisasi mitra</span>
           </div>
 
           <div className="p-4 rounded-xl bg-blue-50 border border-blue-200">
-            <span className="text-blue-800 font-medium">Total Akumulasi Komisi Diterima</span>
+            <span className="text-blue-800 font-medium">Pendapatan Bersih HQ (70%)</span>
             <div className="text-lg font-bold font-display text-blue-700 mt-1 tabular-nums">
-              Rp {(Math.round(outlet.mrr * 0.25) * 8).toLocaleString("id-ID")}
+              Rp {Math.round(outlet.mrr * 0.7).toLocaleString("id-ID")}
             </div>
-            <span className="text-[10px] text-blue-600">Terhitung 8 bulan berjalan</span>
+            <span className="text-[10px] text-blue-600">Masuk ke kas pusat ProTek</span>
           </div>
         </div>
       </div>

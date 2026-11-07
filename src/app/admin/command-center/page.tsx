@@ -21,6 +21,7 @@ export interface BusinessTenant {
   maxOutlets: number;
   usedOutlets: number;
   pricePerOutlet: number;
+  monthlyBill: number;
   activePosCount: number;
   monthlyGmv: number;
   lastHeartbeat: string;
@@ -33,6 +34,51 @@ export interface BusinessTenant {
     accountNumber?: string;
     accountName?: string;
   } | null;
+}
+
+export const OFFICIAL_POS_PACKAGES = [
+  {
+    code: "PAKET_100K",
+    name: "Paket 1: Hemat",
+    fullLabel: "Paket 1: Hemat — Rp 100.000/Cabang (6.000 Tx/Bln)",
+    price: 100000,
+    badgeClass: "bg-teal-900/40 text-teal-300 border-teal-500/40",
+  },
+  {
+    code: "PAKET_150K",
+    name: "Paket 2: Bisnis",
+    fullLabel: "Paket 2: Bisnis — Rp 150.000/Cabang (9.000 Tx/Bln)",
+    price: 150000,
+    badgeClass: "bg-blue-900/40 text-blue-300 border-blue-500/40",
+  },
+  {
+    code: "PAKET_200K",
+    name: "Paket 3: Pro",
+    fullLabel: "Paket 3: Pro — Rp 200.000/Cabang (15.000 Tx/Bln)",
+    price: 200000,
+    badgeClass: "bg-amber-900/40 text-amber-300 border-amber-500/40",
+  },
+  {
+    code: "PAKET_250K",
+    name: "Paket 4: Unlimited",
+    fullLabel: "Paket 4: Unlimited — Rp 250.000/Cabang (Tanpa Batas)",
+    price: 250000,
+    badgeClass: "bg-purple-900/40 text-purple-300 border-purple-500/40",
+  },
+];
+
+export function resolveOfficialPlan(planOrPrice?: string | number) {
+  const upper = String(planOrPrice || "").toUpperCase();
+  const byCode = OFFICIAL_POS_PACKAGES.find((p) => p.code === upper);
+  if (byCode) return byCode;
+  const num = Number(planOrPrice);
+  if (!isNaN(num) && num > 0) {
+    if (num <= 100000) return OFFICIAL_POS_PACKAGES[0];
+    if (num <= 150000) return OFFICIAL_POS_PACKAGES[1];
+    if (num <= 200000) return OFFICIAL_POS_PACKAGES[2];
+    return OFFICIAL_POS_PACKAGES[3];
+  }
+  return OFFICIAL_POS_PACKAGES[0];
 }
 
 export default function BusinessCommandCenterPage() {
@@ -57,17 +103,17 @@ export default function BusinessCommandCenterPage() {
   const [formSlug, setFormSlug] = useState("");
   const [formEmail, setFormEmail] = useState("");
   const [formPhone, setFormPhone] = useState("");
-  const [formPlan, setFormPlan] = useState<string>("GROWTH");
-  const [formMaxOutlets, setFormMaxOutlets] = useState("5");
-  const [formPricePerOutlet, setFormPricePerOutlet] = useState("350000");
+  const [formPlan, setFormPlan] = useState<string>("PAKET_100K");
+  const [formMaxOutlets, setFormMaxOutlets] = useState("4");
+  const [formPricePerOutlet, setFormPricePerOutlet] = useState("100000");
   const [formCustomDomain, setFormCustomDomain] = useState("");
   const [formCity, setFormCity] = useState("Bandung");
   const [formAddress, setFormAddress] = useState("Jakarta 124");
 
   // Edit Form State
-  const [editMaxOutlets, setEditMaxOutlets] = useState("5");
-  const [editPricePerOutlet, setEditPricePerOutlet] = useState("350000");
-  const [editPlan, setEditPlan] = useState<string>("GROWTH");
+  const [editMaxOutlets, setEditMaxOutlets] = useState("4");
+  const [editPricePerOutlet, setEditPricePerOutlet] = useState("100000");
+  const [editPlan, setEditPlan] = useState<string>("PAKET_100K");
   const [editCustomDomain, setEditCustomDomain] = useState("");
 
   // Telemetry Metrics
@@ -121,6 +167,12 @@ export default function BusinessCommandCenterPage() {
 
             const locCluster = ct.cluster || (mainOutlet ? `${mainOutlet.city || ''} (${mainOutlet.address || ''})` : 'Pusat');
 
+            const resolvedPkg = resolveOfficialPlan(ct.plan || ct.pricePerOutlet);
+            const usedCount = Number(ct.usedOutlets || ct.outletsCount) || 4;
+            const maxCount = Number(ct.maxOutlets) || usedCount || 4;
+            const unitPrice = Number(ct.pricePerOutlet) || resolvedPkg.price || 100000;
+            const billableCount = Math.max(1, usedCount || maxCount);
+
             return {
               id: ct.id || `tnt-${ct.slug}`,
               name: ct.name,
@@ -128,16 +180,17 @@ export default function BusinessCommandCenterPage() {
               customDomain: ct.customDomain || null,
               posUrl: domainUrl,
               logoUrl: ct.logoUrl || null,
-              plan: ct.plan || "GROWTH",
-              planName: ct.planName || ct.plan,
+              plan: resolvedPkg.code,
+              planName: ct.planName || resolvedPkg.name,
               planDescription: ct.planDescription,
               status: ct.status === "ACTIVE" ? "ACTIVE" : "SUSPENDED",
               ownerName: ct.ownerName || "Owner Toko",
               ownerEmail: ct.ownerEmail || `${ct.slug}@vimtk.cloud`,
               ownerPhone: ct.ownerPhone || mainOutlet?.phone || "-",
-              maxOutlets: Number(ct.maxOutlets) || 5,
-              usedOutlets: Number(ct.usedOutlets || ct.outletsCount) || 1,
-              pricePerOutlet: Number(ct.pricePerOutlet) || 100000,
+              maxOutlets: maxCount,
+              usedOutlets: usedCount,
+              pricePerOutlet: unitPrice,
+              monthlyBill: Number(ct.monthlyBill) || unitPrice * billableCount,
               activePosCount: Number(ct.activePosCount || ct.usersCount) || 1,
               monthlyGmv: Number(ct.totalGmv) || 0,
               lastHeartbeat: ct.lastOrderAt ? "Ada Transaksi" : "Live Cloud POS",
@@ -569,9 +622,11 @@ export default function BusinessCommandCenterPage() {
               className="py-2 px-3 rounded-xl bg-[#0B1D3A] border border-[#1E3E62] text-xs font-bold text-slate-300 focus:outline-none focus:border-[#38BDF8] cursor-pointer"
             >
               <option value="ALL">Semua Paket</option>
-              <option value="ENTERPRISE">Enterprise</option>
-              <option value="GROWTH">Growth</option>
-              <option value="STARTER">Starter</option>
+              {OFFICIAL_POS_PACKAGES.map((pkg) => (
+                <option key={pkg.code} value={pkg.code}>
+                  {pkg.name} (Rp {(pkg.price / 1000).toLocaleString("id-ID")}rb)
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -582,9 +637,9 @@ export default function BusinessCommandCenterPage() {
             <thead>
               <tr className="bg-[#0C2036] border-b border-[#1E3E62] text-slate-400 font-bold uppercase tracking-wider text-[10px]">
                 <th className="py-3 px-4">Bisnis / Merchant</th>
-                <th className="py-3 px-3">Paket Tier</th>
+                <th className="py-3 px-3">Paket Langganan</th>
                 <th className="py-3 px-3">Kuota Cabang</th>
-                <th className="py-3 px-3">POS Aktif</th>
+                <th className="py-3 px-3">Tagihan Bulanan</th>
                 <th className="py-3 px-3">GMV Bulanan</th>
                 <th className="py-3 px-3">Status</th>
                 <th className="py-3 px-4 text-right">Aksi Manajemen</th>
@@ -604,6 +659,8 @@ export default function BusinessCommandCenterPage() {
                 filteredTenants.map((tenant) => {
                   const quotaPercentage = Math.round((tenant.usedOutlets / (tenant.maxOutlets || 1)) * 100);
                   const isNearQuota = quotaPercentage >= 80;
+                  const pkgInfo = resolveOfficialPlan(tenant.plan || tenant.pricePerOutlet);
+                  const totalMonthlyBill = tenant.pricePerOutlet * Math.max(1, tenant.usedOutlets || tenant.maxOutlets);
 
                   return (
                     <tr
@@ -621,10 +678,7 @@ export default function BusinessCommandCenterPage() {
                               {tenant.name}
                             </div>
                             <div className="text-[11px] text-slate-400 flex items-center gap-1 truncate">
-                              <span className="text-[#38BDF8]">{tenant.slug}.vimtk.cloud</span>
-                              {tenant.customDomain && tenant.customDomain !== `${tenant.slug}.vimtk.cloud` && (
-                                <span className="text-slate-500">• {tenant.customDomain}</span>
-                              )}
+                              <span className="text-[#38BDF8]">{tenant.customDomain || `${tenant.slug}.vimtk.cloud`}</span>
                             </div>
                           </div>
                         </div>
@@ -632,48 +686,48 @@ export default function BusinessCommandCenterPage() {
 
                       {/* Plan Tier */}
                       <td className="py-3 px-3">
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${
-                            tenant.plan === "ENTERPRISE"
-                              ? "bg-purple-900/40 text-purple-300 border-purple-500/40"
-                              : tenant.plan === "GROWTH"
-                              ? "bg-blue-900/40 text-blue-300 border-blue-500/40"
-                              : "bg-teal-900/40 text-teal-300 border-teal-500/40"
-                          }`}
-                        >
-                          {tenant.plan}
-                        </span>
+                        <div className="flex flex-col gap-0.5">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border w-fit ${pkgInfo.badgeClass}`}
+                          >
+                            {tenant.planName || pkgInfo.name}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            Rp {tenant.pricePerOutlet.toLocaleString("id-ID")} / cabang
+                          </span>
+                        </div>
                       </td>
 
                       {/* Quota Progress */}
                       <td className="py-3 px-3">
-                        <div className="space-y-1 w-28">
+                        <div className="space-y-1 w-36">
                           <div className="flex justify-between text-[11px]">
-                            <span className="font-mono text-white font-bold">{tenant.usedOutlets} / {tenant.maxOutlets}</span>
-                            <span className={`text-[10px] font-bold ${isNearQuota ? "text-amber-400" : "text-slate-400"}`}>
-                              {quotaPercentage}%
+                            <span className="font-mono text-white font-bold">
+                              {tenant.usedOutlets} / {tenant.maxOutlets} Cabang
+                            </span>
+                            <span className="text-[10px] font-bold text-emerald-400">
+                              +1 Semua
                             </span>
                           </div>
                           <div className="w-full bg-[#0B1D3A] h-1.5 rounded-full overflow-hidden">
                             <div
-                              className={`h-full rounded-full ${
-                                quotaPercentage >= 100
-                                  ? "bg-red-400"
-                                  : isNearQuota
-                                  ? "bg-amber-400"
-                                  : "bg-emerald-400"
-                              }`}
+                              className="h-full rounded-full bg-emerald-400"
                               style={{ width: `${Math.min(100, quotaPercentage)}%` }}
                             />
                           </div>
+                          <span className="text-[10px] text-slate-400 block">
+                            {tenant.usedOutlets} cabang + 1 pantau semua
+                          </span>
                         </div>
                       </td>
 
-                      {/* Active POS Terminals */}
-                      <td className="py-3 px-3 font-mono text-slate-300">
-                        <div className="flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                          <span>{tenant.activePosCount} POS</span>
+                      {/* Monthly Bill (Tagihan Bulanan) */}
+                      <td className="py-3 px-3">
+                        <div className="font-mono font-bold text-emerald-400 text-xs">
+                          Rp {totalMonthlyBill.toLocaleString("id-ID")} / bln
+                        </div>
+                        <div className="text-[10px] text-slate-400">
+                          {tenant.usedOutlets} cabang × Rp {(tenant.pricePerOutlet / 1000).toLocaleString("id-ID")}rb
                         </div>
                       </td>
 
@@ -843,12 +897,19 @@ export default function BusinessCommandCenterPage() {
                   </label>
                   <select
                     value={formPlan}
-                    onChange={(e) => setFormPlan(e.target.value as any)}
+                    onChange={(e) => {
+                      const code = e.target.value;
+                      setFormPlan(code);
+                      const pkg = resolveOfficialPlan(code);
+                      setFormPricePerOutlet(String(pkg.price));
+                    }}
                     className="w-full p-2.5 rounded-xl bg-[#0B1D3A] border border-[#1E3E62] text-white focus:outline-none focus:border-[#38BDF8]"
                   >
-                    <option value="STARTER">Starter (Maks 2 Cabang)</option>
-                    <option value="GROWTH">Growth (Maks 10 Cabang)</option>
-                    <option value="ENTERPRISE">Enterprise (Multi-Cabang)</option>
+                    {OFFICIAL_POS_PACKAGES.map((pkg) => (
+                      <option key={pkg.code} value={pkg.code}>
+                        {pkg.fullLabel}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -979,18 +1040,25 @@ export default function BusinessCommandCenterPage() {
                 </label>
                 <select
                   value={editPlan}
-                  onChange={(e) => setEditPlan(e.target.value as any)}
+                  onChange={(e) => {
+                    const code = e.target.value;
+                    setEditPlan(code);
+                    const pkg = resolveOfficialPlan(code);
+                    setEditPricePerOutlet(String(pkg.price));
+                  }}
                   className="w-full p-2.5 rounded-xl bg-[#0B1D3A] border border-[#1E3E62] text-white focus:outline-none focus:border-[#38BDF8]"
                 >
-                  <option value="STARTER">Starter</option>
-                  <option value="GROWTH">Growth</option>
-                  <option value="ENTERPRISE">Enterprise</option>
+                  {OFFICIAL_POS_PACKAGES.map((pkg) => (
+                    <option key={pkg.code} value={pkg.code}>
+                      {pkg.fullLabel}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               <div>
                 <label className="font-bold text-slate-300 block mb-1">
-                  Batas Maksimal Kuota Cabang
+                  Batas Maksimal Kuota Cabang Operasional
                 </label>
                 <input
                   type="number"
@@ -1000,8 +1068,8 @@ export default function BusinessCommandCenterPage() {
                   onChange={(e) => setEditMaxOutlets(e.target.value)}
                   className="w-full p-2.5 rounded-xl bg-[#0B1D3A] border border-[#1E3E62] text-white font-mono focus:outline-none focus:border-[#38BDF8]"
                 />
-                <span className="text-[10px] text-slate-400 mt-1 block">
-                  Saat ini telah menggunakan {selectedTenant.usedOutlets} cabang.
+                <span className="text-[10px] text-emerald-400 mt-1 block font-semibold">
+                  Saat ini telah menggunakan {selectedTenant.usedOutlets} cabang operasional (+ 1 akses khusus untuk melihat semua kondisi cabang).
                 </span>
               </div>
 
@@ -1018,6 +1086,21 @@ export default function BusinessCommandCenterPage() {
                   onChange={(e) => setEditPricePerOutlet(e.target.value)}
                   className="w-full p-2.5 rounded-xl bg-[#0B1D3A] border border-[#1E3E62] text-white font-mono focus:outline-none focus:border-[#38BDF8]"
                 />
+              </div>
+
+              {/* Ringkasan Tagihan Bulanan Otomatis */}
+              <div className="p-3 rounded-xl bg-[#0B1D3A] border border-emerald-500/40 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                    Total Tagihan Bulanan ({parseInt(editMaxOutlets, 10) || selectedTenant.usedOutlets || 4} Cabang)
+                  </span>
+                  <span className="text-[10px] text-emerald-400">
+                    {parseInt(editMaxOutlets, 10) || selectedTenant.usedOutlets || 4} Cabang × Rp {(parseInt(editPricePerOutlet, 10) || 100000).toLocaleString("id-ID")} (+1 Semua Cabang Gratis)
+                  </span>
+                </div>
+                <span className="text-sm font-black font-mono text-emerald-400">
+                  Rp {((parseInt(editMaxOutlets, 10) || selectedTenant.usedOutlets || 4) * (parseInt(editPricePerOutlet, 10) || 100000)).toLocaleString("id-ID")} / bln
+                </span>
               </div>
 
               <div>
@@ -1088,19 +1171,24 @@ export default function BusinessCommandCenterPage() {
               <div className="p-3 rounded-xl bg-[#0B1D3A] border border-[#1E3E62]">
                 <span className="text-[10px] text-slate-400 uppercase font-bold block">Kuota Cabang</span>
                 <span className="text-base font-black font-mono text-white">
-                  {selectedTenant.usedOutlets} / {selectedTenant.maxOutlets}
+                  {selectedTenant.usedOutlets} / {selectedTenant.maxOutlets} Cabang
                 </span>
+                <span className="text-[10px] text-emerald-400 block">+1 Akses Semua Cabang</span>
               </div>
               <div className="p-3 rounded-xl bg-[#0B1D3A] border border-[#1E3E62]">
-                <span className="text-[10px] text-slate-400 uppercase font-bold block">POS Terhubung</span>
-                <span className="text-base font-black font-mono text-emerald-400">
-                  {selectedTenant.activePosCount} Device
-                </span>
-              </div>
-              <div className="p-3 rounded-xl bg-[#0B1D3A] border border-[#1E3E62] col-span-2 sm:col-span-1">
                 <span className="text-[10px] text-slate-400 uppercase font-bold block">Biaya / Cabang</span>
                 <span className="text-base font-black font-mono text-white">
-                  Rp {(selectedTenant.pricePerOutlet / 1000).toLocaleString("id-ID")}k
+                  Rp {selectedTenant.pricePerOutlet.toLocaleString("id-ID")}
+                </span>
+                <span className="text-[10px] text-slate-400 block">{selectedTenant.planName || selectedTenant.plan}</span>
+              </div>
+              <div className="p-3 rounded-xl bg-[#0B1D3A] border border-[#1E3E62] col-span-2 sm:col-span-1">
+                <span className="text-[10px] text-slate-400 uppercase font-bold block">Tagihan Bulanan</span>
+                <span className="text-base font-black font-mono text-emerald-400">
+                  Rp {(selectedTenant.pricePerOutlet * Math.max(1, selectedTenant.usedOutlets || selectedTenant.maxOutlets)).toLocaleString("id-ID")}
+                </span>
+                <span className="text-[10px] text-slate-400 block">
+                  {selectedTenant.usedOutlets} Cabang × Rp {(selectedTenant.pricePerOutlet / 1000).toLocaleString("id-ID")}rb
                 </span>
               </div>
             </div>

@@ -421,6 +421,8 @@ class ApiService {
     password: string;
     phone: string;
     commissionRate?: number;
+    orgCommissionRate?: number;
+    organizationName?: string;
     tier?: string;
     bankName?: string;
     bankAccountNumber?: string;
@@ -441,23 +443,28 @@ class ApiService {
     return res;
   }
 
-  async updateSalesCommissionRate(salesId: string, commissionRate: number) {
+  async updateSalesCommissionRate(
+    salesId: string,
+    commissionRate: number,
+    orgCommissionRate?: number,
+    organizationName?: string
+  ) {
     const res = await this.request<{ success: boolean; message: string; data: any }>(
       `/admin/sales/${salesId}/commission-rate`,
       {
         method: "PATCH",
-        body: JSON.stringify({ commissionRate }),
+        body: JSON.stringify({ commissionRate, orgCommissionRate, organizationName }),
       }
     );
     return res;
   }
 
-  async updateBulkCommissionRate(commissionRate: number) {
+  async updateBulkCommissionRate(commissionRate: number, orgCommissionRate?: number) {
     const res = await this.request<{ success: boolean; message: string; data: any }>(
       "/admin/sales/commission-rate/bulk",
       {
         method: "PATCH",
-        body: JSON.stringify({ commissionRate }),
+        body: JSON.stringify({ commissionRate, orgCommissionRate }),
       }
     );
     return res;

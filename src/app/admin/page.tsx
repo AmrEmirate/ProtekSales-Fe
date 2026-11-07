@@ -90,9 +90,12 @@ export default function AdminDashboardPage() {
   const [cloudPosAnalytics, setCloudPosAnalytics] = useState<any>(null);
   const [isSyncingCloud, setIsSyncingCloud] = useState(false);
 
-  // Revenue Sharing & UI Design States
+  // Revenue Sharing & UI Design States (Sales 20% + Organisasi 10%)
   const [globalRateInput, setGlobalRateInput] = useState<number>(20);
+  const [globalOrgRateInput, setGlobalOrgRateInput] = useState<number>(10);
   const [salesRateInputs, setSalesRateInputs] = useState<Record<string, number>>({});
+  const [salesOrgRateInputs, setSalesOrgRateInputs] = useState<Record<string, number>>({});
+  const [salesOrgNameInputs, setSalesOrgNameInputs] = useState<Record<string, string>>({});
   const [uiDesigns, setUiDesigns] = useState<any[]>([]);
   const [isUpdatingRate, setIsUpdatingRate] = useState(false);
 
@@ -113,7 +116,9 @@ export default function AdminDashboardPage() {
     password: "",
     phone: "",
     tier: "SILVER",
-    commissionRate: 25,
+    commissionRate: 20,
+    orgCommissionRate: 10,
+    organizationName: "",
     bankName: "BCA",
     bankAccountNumber: "",
     bankAccountHolder: "",
@@ -146,14 +151,16 @@ export default function AdminDashboardPage() {
         password: newSalesForm.password,
         phone: newSalesForm.phone,
         tier: newSalesForm.tier,
-        commissionRate: Number(newSalesForm.commissionRate) || 25,
+        commissionRate: Number(newSalesForm.commissionRate) || 20,
+        orgCommissionRate: Number(newSalesForm.orgCommissionRate) || 10,
+        organizationName: newSalesForm.organizationName || undefined,
         bankName: newSalesForm.bankName,
         bankAccountNumber: newSalesForm.bankAccountNumber,
         bankAccountHolder: newSalesForm.bankAccountHolder,
         npwp: newSalesForm.npwp,
       });
 
-      setActionNotice(`Berhasil menambahkan mitra sales "${newSalesForm.name}"!`);
+      setActionNotice(`Berhasil menambahkan mitra sales "${newSalesForm.name}" (Sales ${newSalesForm.commissionRate}% + Organisasi ${newSalesForm.orgCommissionRate}%)!`);
       setIsAddSalesModalOpen(false);
       setNewSalesForm({
         name: "",
@@ -161,7 +168,9 @@ export default function AdminDashboardPage() {
         password: "",
         phone: "",
         tier: "SILVER",
-        commissionRate: 25,
+        commissionRate: 20,
+        orgCommissionRate: 10,
+        organizationName: "",
         bankName: "BCA",
         bankAccountNumber: "",
         bankAccountHolder: "",
@@ -352,11 +361,11 @@ export default function AdminDashboardPage() {
     loadAdminData();
   }, [loadAdminData]);
 
-  const handleUpdateSalesCommissionRate = async (salesId: string, rate: number) => {
+  const handleUpdateSalesCommissionRate = async (salesId: string, rate: number, orgRate?: number, orgName?: string) => {
     setIsUpdatingRate(true);
     try {
-      await api.updateSalesCommissionRate(salesId, rate);
-      setActionNotice(`Berhasil! Persentase komisi sales diperbarui menjadi ${rate}%.`);
+      await api.updateSalesCommissionRate(salesId, rate, orgRate, orgName);
+      setActionNotice(`Berhasil! Skema komisi sales diperbarui menjadi Sales ${rate}% & Organisasi ${orgRate ?? 10}%.`);
       await loadAdminData();
     } catch (err: any) {
       alert(err.message || "Gagal memperbarui persentase komisi.");
@@ -368,8 +377,8 @@ export default function AdminDashboardPage() {
   const handleUpdateBulkCommissionRate = async () => {
     setIsUpdatingRate(true);
     try {
-      await api.updateBulkCommissionRate(globalRateInput);
-      setActionNotice(`Berhasil! Persentase komisi seluruh mitra sales diatur ke ${globalRateInput}%.`);
+      await api.updateBulkCommissionRate(globalRateInput, globalOrgRateInput);
+      setActionNotice(`Berhasil! Skema komisi global diatur ke Sales ${globalRateInput}% + Organisasi ${globalOrgRateInput}%.`);
       await loadAdminData();
     } catch (err: any) {
       alert(err.message || "Gagal memperbarui persentase komisi global.");
@@ -621,7 +630,7 @@ export default function AdminDashboardPage() {
           }`}
         >
           <span className="material-symbols-outlined text-[18px]">tune</span>
-          <span>⚡ Atur Komisi Sales (%)</span>
+          <span>⚡ Atur Komisi Sales & Organisasi (%)</span>
         </button>
 
         <button
@@ -730,13 +739,13 @@ export default function AdminDashboardPage() {
           <div className="rounded-2xl bg-gradient-to-r from-[#0B1D3A] via-[#102A43] to-[#1E3E62] text-white p-6 shadow-md border border-[#1E3E62] space-y-3">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/20 text-orange-300 text-xs font-bold border border-orange-500/30">
               <span className="material-symbols-outlined text-[16px]">tune</span>
-              <span>Hak Akses Super Admin: Pengaturan Revenue Sharing</span>
+              <span>Hak Akses Super Admin: Pengaturan Revenue Sharing (Sales & Organisasi)</span>
             </div>
             <h2 className="text-xl sm:text-2xl font-bold font-display text-white">
-              Atur Persentase Pembagian Keuntungan Penjualan
+              Atur Pembagian Komisi Sales & Organisasi Mitra
             </h2>
             <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
-              Anda memegang kendali penuh menentukan persentase keuntungan yang diberikan kepada sales (misalnya 20%, 25%, dll.). Sistem akan otomatis mengalikan persentase ini dari setiap langganan kasir outlet binaan sales.
+              Atur pembagian hasil berulang (recurring) untuk <strong>Mitra Sales (misal 20%)</strong> dan <strong>Organisasi Mereka (misal 10%)</strong>. Sistem otomatis menghitung komisi sales, bagian organisasi, dan pendapatan bersih HQ dari setiap tagihan langganan cabang.
             </p>
           </div>
 
@@ -745,87 +754,152 @@ export default function AdminDashboardPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
               <div>
                 <h3 className="text-base font-bold text-[#102A43] font-display">
-                  Atur Persentase Komisi Standar (Seluruh Tim Sales)
+                  Atur Skema Bagi Hasil Standar (Sales + Organisasi)
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Terapkan satu persentase seragam ke seluruh mitra sales yang terdaftar
+                  Terapkan persentase komisi sales dan bagian organisasi ke seluruh mitra sales terdaftar
                 </p>
               </div>
-              <span className="px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-xs font-bold">
-                Default: {globalRateInput}%
-              </span>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-xs font-bold">
+                  Sales: {globalRateInput}%
+                </span>
+                <span className="px-3 py-1 rounded-full bg-indigo-100 text-indigo-800 text-xs font-bold">
+                  Organisasi: {globalOrgRateInput}%
+                </span>
+                <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">
+                  HQ Bersih: {Math.max(0, 100 - globalRateInput - globalOrgRateInput)}%
+                </span>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-              <div className="md:col-span-6 space-y-3">
-                <label className="text-xs font-bold text-slate-700 block">
-                  Nilai Persentase Komisi Sales (%)
-                </label>
-                <div className="flex items-center gap-3">
-                  <div className="relative flex-1">
-                    <input
-                      type="number"
-                      min={0}
-                      max={100}
-                      step={0.5}
-                      value={globalRateInput}
-                      onChange={(e) => setGlobalRateInput(parseFloat(e.target.value) || 0)}
-                      className="w-full h-12 px-4 rounded-xl border border-slate-300 text-lg font-bold text-[#102A43] focus:border-[#F97316] outline-none"
-                    />
-                    <span className="absolute right-4 top-3 text-slate-400 font-bold text-sm">%</span>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              <div className="lg:col-span-6 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-700 block">
+                      1. Komisi Sales Individu (%)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        step={0.5}
+                        value={globalRateInput}
+                        onChange={(e) => setGlobalRateInput(parseFloat(e.target.value) || 0)}
+                        className="w-full h-12 px-4 rounded-xl border border-slate-300 text-lg font-bold text-[#102A43] focus:border-[#F97316] outline-none"
+                      />
+                      <span className="absolute right-4 top-3 text-slate-400 font-bold text-sm">%</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {[15, 20, 25].map((preset) => (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() => setGlobalRateInput(preset)}
+                          className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors ${
+                            globalRateInput === preset
+                              ? "bg-[#F97316] text-white"
+                              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                          }`}
+                        >
+                          Sales {preset}%
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
-                  <button
-                    onClick={handleUpdateBulkCommissionRate}
-                    disabled={isUpdatingRate}
-                    className="h-12 px-6 rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-white font-bold text-xs shadow-md transition-all active:scale-98 disabled:opacity-50 flex items-center gap-2 shrink-0"
-                  >
-                    <span className="material-symbols-outlined text-[18px]">save</span>
-                    <span>{isUpdatingRate ? "Menyimpan..." : "Terapkan Ke Semua Sales"}</span>
-                  </button>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-700 block">
+                      2. Bagian Organisasi Sales (%)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        step={0.5}
+                        value={globalOrgRateInput}
+                        onChange={(e) => setGlobalOrgRateInput(parseFloat(e.target.value) || 0)}
+                        className="w-full h-12 px-4 rounded-xl border border-slate-300 text-lg font-bold text-indigo-900 focus:border-indigo-600 outline-none"
+                      />
+                      <span className="absolute right-4 top-3 text-slate-400 font-bold text-sm">%</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {[5, 10, 15].map((preset) => (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() => setGlobalOrgRateInput(preset)}
+                          className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors ${
+                            globalOrgRateInput === preset
+                              ? "bg-indigo-600 text-white"
+                              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                          }`}
+                        >
+                          Org {preset}%
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
-                {/* Preset Chips */}
-                <div className="flex items-center gap-2 pt-1 flex-wrap">
-                  <span className="text-[11px] text-slate-400 font-medium">Pilihan Cepat:</span>
-                  {[15, 20, 25, 30, 35].map((preset) => (
-                    <button
-                      key={preset}
-                      type="button"
-                      onClick={() => setGlobalRateInput(preset)}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors ${
-                        globalRateInput === preset
-                          ? "bg-[#102A43] text-white"
-                          : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                      }`}
-                    >
-                      {preset}%
-                    </button>
-                  ))}
-                </div>
+                <button
+                  onClick={handleUpdateBulkCommissionRate}
+                  disabled={isUpdatingRate}
+                  className="w-full h-12 px-6 rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-white font-bold text-xs shadow-md transition-all active:scale-98 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-[18px]">save</span>
+                  <span>
+                    {isUpdatingRate
+                      ? "Menyimpan..."
+                      : `Terapkan Skema (Sales ${globalRateInput}% + Organisasi ${globalOrgRateInput}%)`}
+                  </span>
+                </button>
               </div>
 
-              {/* Live Calculator Simulation */}
-              <div className="md:col-span-6 bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-2">
+              {/* Live Calculator Simulation (3-Way Split: Sales, Organisasi, HQ) */}
+              <div className="lg:col-span-6 bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-3">
                 <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-                  <span>Simulasi Bagi Hasil (Per 1 Outlet)</span>
-                  <span className="text-emerald-700">Biaya: Rp 100.000 / bln</span>
+                  <span>Simulasi Bagi Hasil (Per 1 Cabang &amp; 4 Cabang)</span>
+                  <span className="text-emerald-700">Paket 1: Rp 100.000 / cabang</span>
                 </div>
-                <div className="grid grid-cols-2 gap-3 pt-1">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
                   <div className="p-3 rounded-lg bg-orange-50 border border-orange-200">
-                    <span className="text-[10px] uppercase font-bold text-orange-800 block">Komisi Sales ({globalRateInput}%)</span>
-                    <span className="text-base font-bold text-[#F97316] mt-0.5 block tabular-nums">
-                      Rp {((100000 * globalRateInput) / 100).toLocaleString("id-ID")}
+                    <span className="text-[10px] uppercase font-bold text-orange-800 block">
+                      Komisi Sales ({globalRateInput}%)
                     </span>
-                    <span className="text-[10px] text-slate-500">Masuk ke dompet sales</span>
+                    <span className="text-sm font-bold text-[#F97316] mt-0.5 block tabular-nums">
+                      Rp {((100000 * globalRateInput) / 100).toLocaleString("id-ID")} / cbg
+                    </span>
+                    <span className="text-[10px] text-orange-700 font-semibold block mt-0.5">
+                      4 Cabang: Rp {((400000 * globalRateInput) / 100).toLocaleString("id-ID")}
+                    </span>
+                  </div>
+
+                  <div className="p-3 rounded-lg bg-indigo-50 border border-indigo-200">
+                    <span className="text-[10px] uppercase font-bold text-indigo-800 block">
+                      Organisasi ({globalOrgRateInput}%)
+                    </span>
+                    <span className="text-sm font-bold text-indigo-700 mt-0.5 block tabular-nums">
+                      Rp {((100000 * globalOrgRateInput) / 100).toLocaleString("id-ID")} / cbg
+                    </span>
+                    <span className="text-[10px] text-indigo-700 font-semibold block mt-0.5">
+                      4 Cabang: Rp {((400000 * globalOrgRateInput) / 100).toLocaleString("id-ID")}
+                    </span>
                   </div>
 
                   <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200">
-                    <span className="text-[10px] uppercase font-bold text-emerald-800 block">Pendapatan Bersih HQ ({100 - globalRateInput}%)</span>
-                    <span className="text-base font-bold text-emerald-700 mt-0.5 block tabular-nums">
-                      Rp {((100000 * (100 - globalRateInput)) / 100).toLocaleString("id-ID")}
+                    <span className="text-[10px] uppercase font-bold text-emerald-800 block">
+                      Bersih HQ ({Math.max(0, 100 - globalRateInput - globalOrgRateInput)}%)
                     </span>
-                    <span className="text-[10px] text-slate-500">Pendapatan perusahaan</span>
+                    <span className="text-sm font-bold text-emerald-700 mt-0.5 block tabular-nums">
+                      Rp {((100000 * Math.max(0, 100 - globalRateInput - globalOrgRateInput)) / 100).toLocaleString("id-ID")} / cbg
+                    </span>
+                    <span className="text-[10px] text-emerald-700 font-semibold block mt-0.5">
+                      4 Cabang: Rp {((400000 * Math.max(0, 100 - globalRateInput - globalOrgRateInput)) / 100).toLocaleString("id-ID")}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -837,10 +911,10 @@ export default function AdminDashboardPage() {
             <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between">
               <div>
                 <h3 className="text-base font-bold text-[#102A43] font-display">
-                  Atur Komisi Khusus Per-Individu Mitra Sales
+                  Atur Komisi Sales &amp; Organisasi Per-Individu Mitra
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Anda dapat memberikan persentase komisi berbeda untuk sales tertentu
+                  Sesuaikan persentase komisi sales (misal 20%), bagian organisasi (misal 10%), serta nama organisasi mitra
                 </p>
               </div>
               <span className="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
@@ -853,60 +927,102 @@ export default function AdminDashboardPage() {
                 <thead className="bg-[#0B1D3A] text-white font-bold uppercase tracking-wider text-[10px]">
                   <tr>
                     <th className="py-3 px-4">Nama Mitra Sales</th>
-                    <th className="py-3 px-4">Email / Kontak</th>
-                    <th className="py-3 px-4">Tier</th>
-                    <th className="py-3 px-4">Prospek & Klien</th>
-                    <th className="py-3 px-4">Persentase Komisi Saat Ini</th>
-                    <th className="py-3 px-4 text-center">Ubah Persentase</th>
+                    <th className="py-3 px-4">Organisasi Mitra</th>
+                    <th className="py-3 px-4">Prospek &amp; Klien</th>
+                    <th className="py-3 px-4">Skema Aktif</th>
+                    <th className="py-3 px-4 text-center">Atur Sales % &amp; Organisasi %</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-medium">
                   {salesList.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-8 text-center text-slate-400">
-                        Belum ada mitra sales yang terdaftar.
+                      <td colSpan={5} className="py-8 text-center text-slate-400">
+                        Belum ada mitra sales yang terdaftar. Skema default aktif: Sales {globalRateInput}% + Organisasi {globalOrgRateInput}%.
                       </td>
                     </tr>
                   ) : (
                     salesList.map((sales) => {
-                      const currentRate = salesRateInputs[sales.id] !== undefined ? salesRateInputs[sales.id] : (sales.commissionRate || 25);
+                      const currentRate =
+                        salesRateInputs[sales.id] !== undefined
+                          ? salesRateInputs[sales.id]
+                          : (sales.commissionRate ?? 20);
+                      const currentOrgRate =
+                        salesOrgRateInputs[sales.id] !== undefined
+                          ? salesOrgRateInputs[sales.id]
+                          : (sales.orgCommissionRate ?? 10);
+                      const currentOrgName =
+                        salesOrgNameInputs[sales.id] !== undefined
+                          ? salesOrgNameInputs[sales.id]
+                          : (sales.organizationName ?? "");
                       return (
                         <tr key={sales.id} className="hover:bg-slate-50 transition-colors">
-                          <td className="py-3.5 px-4 font-bold text-slate-900">{sales.name}</td>
-                          <td className="py-3.5 px-4 text-slate-600">
-                            <span>{sales.email}</span>
-                            <span className="text-[11px] text-slate-400 block">+{sales.phone}</span>
+                          <td className="py-3.5 px-4">
+                            <span className="font-bold text-slate-900 block">{sales.name}</span>
+                            <span className="text-[11px] text-slate-500">{sales.email} • +{sales.phone}</span>
                           </td>
                           <td className="py-3.5 px-4">
-                            <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-800 text-[10px] font-bold">
-                              {sales.tier || "Mitra Sales"}
-                            </span>
+                            <input
+                              type="text"
+                              placeholder="Nama Organisasi"
+                              value={currentOrgName}
+                              onChange={(e) =>
+                                setSalesOrgNameInputs((prev) => ({ ...prev, [sales.id]: e.target.value }))
+                              }
+                              className="w-36 h-8 px-2.5 rounded-lg border border-slate-300 text-xs font-medium focus:border-indigo-600 outline-none"
+                            />
                           </td>
                           <td className="py-3.5 px-4 text-slate-700">
-                            <span className="font-bold">{sales._count?.leads || 0}</span> Prospek &bull; <span className="font-bold">{sales._count?.outlets || 0}</span> Outlet
+                            <span className="font-bold">{sales._count?.leads || 0}</span> Prospek &bull;{" "}
+                            <span className="font-bold">{sales._count?.outlets || 0}</span> Outlet
                           </td>
                           <td className="py-3.5 px-4">
-                            <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs inline-block">
-                              {(sales.commissionRate || 25).toFixed(1)}% Recurring
-                            </span>
+                            <div className="flex flex-col gap-1">
+                              <span className="px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-800 font-bold text-[11px] w-fit">
+                                Sales: {(sales.commissionRate ?? 20).toFixed(0)}%
+                              </span>
+                              <span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-bold text-[11px] w-fit">
+                                Organisasi: {(sales.orgCommissionRate ?? 10).toFixed(0)}%
+                              </span>
+                            </div>
                           </td>
                           <td className="py-3.5 px-4 text-center">
-                            <div className="flex items-center justify-center gap-2">
-                              <input
-                                type="number"
-                                min={0}
-                                max={100}
-                                step={1}
-                                value={currentRate}
-                                onChange={(e) => {
-                                  const val = parseFloat(e.target.value) || 0;
-                                  setSalesRateInputs((prev) => ({ ...prev, [sales.id]: val }));
-                                }}
-                                className="w-16 h-8 px-2 rounded-lg border border-slate-300 text-center font-bold text-xs focus:border-[#F97316] outline-none"
-                              />
-                              <span className="text-xs font-bold text-slate-500">%</span>
+                            <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                              <div className="flex items-center gap-1" title="Komisi Sales (%)">
+                                <span className="text-[10px] font-bold text-orange-700">Sales</span>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  max={100}
+                                  step={1}
+                                  value={currentRate}
+                                  onChange={(e) => {
+                                    const val = parseFloat(e.target.value) || 0;
+                                    setSalesRateInputs((prev) => ({ ...prev, [sales.id]: val }));
+                                  }}
+                                  className="w-14 h-8 px-1.5 rounded-lg border border-slate-300 text-center font-bold text-xs focus:border-[#F97316] outline-none"
+                                />
+                                <span className="text-[10px] font-bold text-slate-400">%</span>
+                              </div>
+                              <div className="flex items-center gap-1" title="Bagian Organisasi (%)">
+                                <span className="text-[10px] font-bold text-indigo-700">Org</span>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  max={100}
+                                  step={1}
+                                  value={currentOrgRate}
+                                  onChange={(e) => {
+                                    const val = parseFloat(e.target.value) || 0;
+                                    setSalesOrgRateInputs((prev) => ({ ...prev, [sales.id]: val }));
+                                  }}
+                                  className="w-14 h-8 px-1.5 rounded-lg border border-slate-300 text-center font-bold text-xs focus:border-indigo-600 outline-none"
+                                />
+                                <span className="text-[10px] font-bold text-slate-400">%</span>
+                              </div>
                               <button
-                                onClick={() => handleUpdateSalesCommissionRate(sales.id, currentRate)}
+                                onClick={() =>
+                                  handleUpdateSalesCommissionRate(sales.id, currentRate, currentOrgRate, currentOrgName)
+                                }
                                 disabled={isUpdatingRate}
                                 className="h-8 px-3 rounded-lg bg-[#102A43] hover:bg-[#0B1D3A] text-white font-bold text-[11px] transition-colors"
                               >
@@ -2188,48 +2304,30 @@ export default function AdminDashboardPage() {
                   </h4>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Tier Performa
+                      Nama Organisasi (Opsional)
                     </label>
-                    <select
-                      value={newSalesForm.tier}
-                      onChange={(e) => setNewSalesForm({ ...newSalesForm, tier: e.target.value })}
+                    <input
+                      type="text"
+                      placeholder="misal: Komunitas UMKM Bandung"
+                      value={newSalesForm.organizationName}
+                      onChange={(e) => setNewSalesForm({ ...newSalesForm, organizationName: e.target.value })}
                       className="w-full h-11 px-3.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white font-medium"
-                    >
-                      <option value="SILVER">Silver Representative</option>
-                      <option value="GOLD">Gold Representative</option>
-                      <option value="PLATINUM">Platinum Representative</option>
-                    </select>
+                    />
                   </div>
 
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <label className="block text-xs font-bold text-slate-700">
-                        Persentase Komisi (%)
+                        Komisi Sales (%)
                       </label>
-                      <div className="flex items-center gap-1">
-                        {[15, 20, 25, 30].map((rate) => (
-                          <button
-                            key={rate}
-                            type="button"
-                            onClick={() => setNewSalesForm({ ...newSalesForm, commissionRate: rate })}
-                            className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                              newSalesForm.commissionRate === rate
-                                ? "bg-blue-600 text-white"
-                                : "bg-slate-200 text-slate-700 hover:bg-slate-300"
-                            }`}
-                          >
-                            {rate}%
-                          </button>
-                        ))}
-                      </div>
                     </div>
                     <div className="relative">
                       <input
                         type="number"
-                        min="1"
+                        min="0"
                         max="100"
                         step="0.5"
                         required
@@ -2238,6 +2336,31 @@ export default function AdminDashboardPage() {
                           setNewSalesForm({ ...newSalesForm, commissionRate: parseFloat(e.target.value) || 0 })
                         }
                         className="w-full h-11 px-3.5 pr-8 text-xs font-bold text-emerald-700 rounded-xl border border-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white"
+                      />
+                      <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                        %
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-bold text-slate-700">
+                        Bagian Organisasi (%)
+                      </label>
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.5"
+                        required
+                        value={newSalesForm.orgCommissionRate}
+                        onChange={(e) =>
+                          setNewSalesForm({ ...newSalesForm, orgCommissionRate: parseFloat(e.target.value) || 0 })
+                        }
+                        className="w-full h-11 px-3.5 pr-8 text-xs font-bold text-indigo-700 rounded-xl border border-slate-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white"
                       />
                       <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
                         %

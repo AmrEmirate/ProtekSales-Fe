@@ -14,9 +14,10 @@ export default function RoiCalculatorPage() {
   const savedLeakage = Math.round(monthlyGross * leakRate);
   const extraSpeedRevenue = Math.round(dailyTx * 0.05 * ticketSize * 30);
   const totalBenefit = savedLeakage + extraSpeedRevenue;
-  const monthlyCost = 250000;
+  const monthlyCost = 100000;
   const multiplier = Math.round(totalBenefit / monthlyCost);
-  const salesCommission = Math.round(monthlyCost * 0.25);
+  const salesCommission = Math.round(monthlyCost * 0.2);
+  const orgCommission = Math.round(monthlyCost * 0.1);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -239,11 +240,11 @@ export default function RoiCalculatorPage() {
               </div>
             </div>
 
-            {/* Sales Rep Commission Attribution */}
-            <div className="pt-2 border-t border-[#1E3E62] flex items-center justify-between text-xs">
-              <span className="text-slate-300">Potensi Komisi Recurring Anda:</span>
+            {/* Sales Rep & Organization Commission Attribution */}
+            <div className="pt-2 border-t border-[#1E3E62] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+              <span className="text-slate-300">Potensi Bagi Hasil (Sales 20% + Organisasi 10%):</span>
               <span className="font-bold text-orange-400 font-display text-sm">
-                Rp {salesCommission.toLocaleString("id-ID")} / bln / gerai
+                Sales Rp {salesCommission.toLocaleString("id-ID")} + Org Rp {orgCommission.toLocaleString("id-ID")} / bln / cabang
               </span>
             </div>
           </div>

@@ -139,4 +139,20 @@ describe('White Box Testing: Sales Commission Mathematical Engine & PPh 21 Withh
 
     expect(resNoNpwp.pph21WithholdingTax).toBe(7500); // 250.000 * 3.0%
   });
+
+  it('calculates recurring 3-way revenue split: Sales 20% + Organisasi 10% + HQ 70%', () => {
+    const monthlyBill = 400000; // 4 cabang x Rp 100.000
+    const salesRate = 20;
+    const orgRate = 10;
+    const hqRate = 100 - salesRate - orgRate;
+
+    const salesAmount = (monthlyBill * salesRate) / 100;
+    const orgAmount = (monthlyBill * orgRate) / 100;
+    const hqAmount = (monthlyBill * hqRate) / 100;
+
+    expect(salesAmount).toBe(80000);
+    expect(orgAmount).toBe(40000);
+    expect(hqAmount).toBe(280000);
+    expect(salesAmount + orgAmount + hqAmount).toBe(monthlyBill);
+  });
 });

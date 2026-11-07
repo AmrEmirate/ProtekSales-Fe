@@ -28,7 +28,7 @@ export interface BusinessTenant {
   customDomain?: string;
   posUrl: string;
   logoUrl?: string | null;
-  plan: 'STARTER' | 'GROWTH' | 'ENTERPRISE';
+  plan: 'STARTER' | 'GROWTH' | 'ENTERPRISE' | 'PAKET_100K' | 'PAKET_150K' | 'PAKET_200K' | 'PAKET_250K';
   status: 'ACTIVE' | 'REVIEW' | 'SUSPENDED';
   ownerName: string;
   ownerEmail: string;
@@ -358,6 +358,21 @@ describe('Black Box Testing: Superadmin Business Command Center Multi-Tenant Wor
       // Reactivate Dimsum Intan
       const reactivated = toggleTenantStatus(suspended, 'tnt-dimsum-intan');
       expect(reactivated.find((t) => t.id === 'tnt-dimsum-intan')?.status).toBe('ACTIVE');
+    });
+
+    it('calculates Dimsum Intan 4 operational branches (+1 Semua Cabang included) at Rp 100.000/branch = Rp 400.000/month', () => {
+      const dimsumReal: BusinessTenant = {
+        ...sampleTenants[0],
+        plan: 'PAKET_100K',
+        maxOutlets: 4,
+        usedOutlets: 4,
+        pricePerOutlet: 100000,
+      };
+      const monthlyBill = dimsumReal.usedOutlets * dimsumReal.pricePerOutlet;
+      expect(dimsumReal.plan).toBe('PAKET_100K');
+      expect(dimsumReal.maxOutlets).toBe(4);
+      expect(dimsumReal.usedOutlets).toBe(4);
+      expect(monthlyBill).toBe(400000);
     });
   });
 });

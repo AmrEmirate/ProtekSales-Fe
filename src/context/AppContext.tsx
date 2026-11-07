@@ -304,8 +304,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             phone: o.phone,
             address: o.address,
             posSerial: o.license?.licenseKey || "POS-REG-2026",
-            packageType: "Pro Enterprise",
-            mrr: o.monthlyFee || 150000,
+            packageType:
+              o.monthlyFee >= 400000
+                ? "Paket 1: Hemat (4 Cabang + 1 Semua Cabang)"
+                : "Paket 1: Hemat (Rp 100rb/Cabang)",
+            mrr: o.monthlyFee || 100000,
             status:
               o.license?.status === "SUSPENDED"
                 ? "SUSPENDED"

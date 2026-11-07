@@ -9,7 +9,8 @@ export default function CommissionWalletPage() {
   const [filterType, setFilterType] = useState<"ALL" | "INCOME" | "WITHDRAW">("ALL");
 
   const totalMrr = outlets.reduce((acc, curr) => acc + curr.mrr, 0);
-  const projectedMonthly = Math.round(totalMrr * 0.25);
+  const projectedMonthly = Math.round(totalMrr * 0.2);
+  const projectedOrgMonthly = Math.round(totalMrr * 0.1);
 
   const filteredMutations = mutations.filter((m) => {
     if (filterType === "INCOME") return m.type === "RECURRING" || m.type === "ESCROW_RELEASE";
@@ -96,13 +97,13 @@ export default function CommissionWalletPage() {
               <div className="p-3 rounded-xl bg-[#0B1D3A]/60 border border-[#1E3E62]/80">
                 <div className="flex items-center gap-1 text-emerald-400 text-xs font-semibold">
                   <span className="material-symbols-outlined text-[15px]">trending_up</span>
-                  <span>Proyeksi Bulanan</span>
+                  <span>Sales (20%) &amp; Org (10%)</span>
                 </div>
                 <div className="text-base font-bold font-display text-white mt-1 tabular-nums">
                   Rp {projectedMonthly.toLocaleString("id-ID")}
                 </div>
                 <span className="text-[10px] text-emerald-300 leading-tight block mt-0.5">
-                  +18% dari bulan lalu
+                  + Organisasi Rp {projectedOrgMonthly.toLocaleString("id-ID")}/bln
                 </span>
               </div>
             </div>
