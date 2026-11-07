@@ -56,16 +56,22 @@ export default function OutletsListPage() {
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 relative z-10 mb-4">
           <div>
             <span className="text-[11px] font-bold text-[#F97316] uppercase tracking-wider font-display">
-              Pendapatan Berulang (MRR)
+              {currentUserRole === "ADMIN" ? "Pendapatan Berulang (MRR)" : "Estimasi Komisi Berulang (20% MRR)"}
             </span>
             <div className="flex items-baseline gap-1 mt-0.5">
               <span className="text-2xl sm:text-3xl font-bold font-display text-white tabular-nums tracking-tight">
-                Rp {totalMrr.toLocaleString("id-ID")}
+                {currentUserRole === "ADMIN"
+                  ? `Rp ${totalMrr.toLocaleString("id-ID")}`
+                  : `Rp ${Math.round(totalMrr * 0.2).toLocaleString("id-ID")}`}
               </span>
-              <span className="text-xs text-slate-300 font-medium">/bulan</span>
+              <span className="text-xs text-slate-300 font-medium">
+                {currentUserRole === "ADMIN" ? "/bulan" : "/bulan (cair saat outlet bayar)"}
+              </span>
             </div>
             <p className="text-xs text-slate-300 mt-1">
-              Komisi berjalan dari {outlets.length} gerai aktif di bawah naungan Anda
+              {currentUserRole === "ADMIN"
+                ? `Total tagihan langganan dari ${outlets.length} gerai aktif di jaringan platform`
+                : `Hak komisi 20% khusus dari ${outlets.length} outlet yang Anda daftarkan sendiri`}
             </p>
           </div>
         </div>
@@ -128,28 +134,32 @@ export default function OutletsListPage() {
           >
             Semua ({outlets.length})
           </button>
-          <button
-            onClick={() => setActiveFilter("DIRECT_ADMIN")}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1 ${
-              activeFilter === "DIRECT_ADMIN"
-                ? "bg-amber-600 text-white shadow-sm"
-                : "bg-white text-amber-800 hover:bg-amber-50 border border-amber-200 shadow-sm"
-            }`}
-          >
-            <span>👑 Binaan Admin HQ</span>
-            <span>({directAdminCount})</span>
-          </button>
-          <button
-            onClick={() => setActiveFilter("SALES")}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1 ${
-              activeFilter === "SALES"
-                ? "bg-[#F97316] text-white shadow-sm"
-                : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200 shadow-sm"
-            }`}
-          >
-            <span>💼 Mitra Sales</span>
-            <span>({outlets.length - directAdminCount})</span>
-          </button>
+          {currentUserRole === "ADMIN" && (
+            <>
+              <button
+                onClick={() => setActiveFilter("DIRECT_ADMIN")}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1 ${
+                  activeFilter === "DIRECT_ADMIN"
+                    ? "bg-amber-600 text-white shadow-sm"
+                    : "bg-white text-amber-800 hover:bg-amber-50 border border-amber-200 shadow-sm"
+                }`}
+              >
+                <span>👑 Binaan Admin HQ</span>
+                <span>({directAdminCount})</span>
+              </button>
+              <button
+                onClick={() => setActiveFilter("SALES")}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 flex items-center gap-1 ${
+                  activeFilter === "SALES"
+                    ? "bg-[#F97316] text-white shadow-sm"
+                    : "bg-white text-slate-600 hover:text-slate-900 border border-slate-200 shadow-sm"
+                }`}
+              >
+                <span>💼 Mitra Sales</span>
+                <span>({outlets.length - directAdminCount})</span>
+              </button>
+            </>
+          )}
           <button
             onClick={() => setActiveFilter("LUNAS")}
             className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 ${

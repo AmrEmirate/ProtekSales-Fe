@@ -216,6 +216,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
 
       let currentUserId: string | undefined;
+      let userRole: UserRole = currentUserRole;
 
       // 1. Fetch Profile & Sinkronisasi Role Pengguna (ADMIN atau SALES)
       try {
@@ -237,6 +238,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           } else {
             resolvedRole = "SALES";
           }
+          userRole = resolvedRole;
           setCurrentUserRoleState(resolvedRole);
           if (typeof window !== "undefined") {
             localStorage.setItem("protek_user_role", resolvedRole);
@@ -315,11 +317,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       } catch {}
 
-      // 3. Fetch Real Outlets
+      // 3. Fetch Real Outlets: Khusus akun itu sendiri jika Sales, atau semua jika Admin
       try {
-        const backendOutlets = await api.getOutlets("all");
+        const isSales = userRole === "SALES";
+        const backendOutlets = await api.getOutlets(isSales ? undefined : "all");
         if (Array.isArray(backendOutlets)) {
-          const mappedOutlets: Outlet[] = backendOutlets.map((o: any) => ({
+          // Filter ketat: Sales hanya boleh melihat outlet binaan akun miliknya sendiri
+          const filteredOutlets = isSales
+            ? backendOutlets.filter((o: any) => {
+                const ownerId = o.salesId || o.sales?.id;
+                return currentUserId && ownerId === currentUserId;
+              })
+            : backendOutlets;
+
+          const mappedOutlets: Outlet[] = filteredOutlets.map((o: any) => ({
             id: o.id,
             name: o.name,
             code: `#PRO-${o.id.slice(0, 4).toUpperCase()}`,
@@ -355,12 +366,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       } catch {}
 
-      // 4. Fetch Real Wallet & Commission
+      // 4. Fetch Real Wallet & Commission (Uang komisi sales hanya masuk jika outlet lunas bayar)
       try {
         const wallet = await api.getCommissionWallet();
         if (wallet) {
           setAvailableBalance(wallet.readyBalance || 0);
-          setEscrowBalance(wallet.pendingBalance || 0);
+          setEscrowBalance(wallet.pendingBalance || (wallet as any).pendingCommission || 0);
         }
       } catch {}
 

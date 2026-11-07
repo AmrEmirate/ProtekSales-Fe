@@ -69,10 +69,12 @@ describe('White Box Testing: api.ts (REST API Client)', () => {
 
       expect(mockFetch).toHaveBeenCalledTimes(1);
       const calledUrl = mockFetch.mock.calls[0][0] as string;
-      expect(calledUrl).toContain('phone=6281234567890');
-      expect(calledUrl).not.toContain('+');
-      expect(calledUrl).not.toContain('-');
-      expect(calledUrl).not.toContain(' ');
+      const url = new URL(calledUrl);
+      const phoneParam = url.searchParams.get('phone') || '';
+      expect(phoneParam).toBe('6281234567890');
+      expect(phoneParam).not.toContain('+');
+      expect(phoneParam).not.toContain('-');
+      expect(phoneParam).not.toContain(' ');
     });
   });
 

@@ -34,7 +34,6 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, isSidebarCollap
     if (pathname.startsWith("/admin")) return "Pusat Kontrol Admin & HQ";
     if (pathname === "/") return "Ringkasan Command Center";
     if (pathname.startsWith("/leads/check")) return "Cek & Kunci Prospek";
-    if (pathname.startsWith("/leads/pipeline")) return "Pipeline & Kunjungan";
     if (pathname.startsWith("/leads/check-in")) return "Check-In & Buat POS UMKM (Antigravity)";
     if (pathname.startsWith("/leads/map")) return "Peta Rute Wilayah";
     if (pathname.startsWith("/leads/dispute")) return "Banding Sengketa Prospek";
@@ -44,7 +43,6 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, isSidebarCollap
     if (pathname.startsWith("/commission/withdraw")) return "Tarik Saldo Komisi";
     if (pathname.startsWith("/commission/history")) return "Riwayat & Bukti Potong Pajak";
     if (pathname.startsWith("/commission/leaderboard")) return "Papan Peringkat Insentif";
-    if (pathname.startsWith("/toolkit/roi")) return "Kalkulator ROI POS";
     if (pathname.startsWith("/toolkit/brochures")) return "Brosur Digital POS";
     if (pathname.startsWith("/toolkit/education")) return "Pusat Edukasi & Script Closing";
     if (pathname.startsWith("/profile")) return "Profil Sales & KPI";

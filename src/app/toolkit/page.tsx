@@ -6,14 +6,6 @@ import Link from "next/link";
 export default function ToolkitHubPage() {
   const tools = [
     {
-      title: "Kalkulator ROI POS",
-      desc: "Simulasikan efisiensi waktu, pencegahan selisih kas, dan keuntungan adopsi sistem kasir untuk pemilik toko secara interaktif.",
-      href: "/toolkit/roi",
-      icon: "calculate",
-      color: "from-blue-600 to-indigo-700",
-      badge: "Sales Pitch Interaktif",
-    },
-    {
       title: "Brosur Digital POS",
       desc: "Katalog spesifikasi fitur hardware dan software cloud POS siap unduh atau kirim langsung via WhatsApp ke calon klien.",
       href: "/toolkit/brochures",
@@ -47,7 +39,7 @@ export default function ToolkitHubPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {tools.map((tool) => (
           <Link
             key={tool.href}

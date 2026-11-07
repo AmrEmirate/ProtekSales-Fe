@@ -608,7 +608,7 @@ export default function DashboardPage() {
               </h2>
             </div>
             <Link
-              href="/leads/pipeline"
+              href="/leads/check"
               className="text-xs font-bold text-[#0284C7] hover:underline"
             >
               Lihat Semua &rarr;

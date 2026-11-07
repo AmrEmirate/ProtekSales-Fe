@@ -33,10 +33,10 @@ export const BottomNav: React.FC = () => {
         isActive: pathname.startsWith("/admin/command-center"),
       },
       {
-        href: "/leads/pipeline",
+        href: "/leads/check",
         label: "Prospek",
         icon: "radar",
-        isActive: pathname.startsWith("/leads/pipeline"),
+        isActive: pathname.startsWith("/leads/check"),
       },
       {
         href: "/outlets",
@@ -74,10 +74,10 @@ export const BottomNav: React.FC = () => {
         highlight: true,
       },
       {
-        href: "/leads/pipeline",
+        href: "/outlets",
         label: "Outlet Saya",
         icon: "storefront",
-        isActive: pathname.startsWith("/leads/pipeline"),
+        isActive: pathname.startsWith("/outlets"),
       },
       {
         href: "/commission/wallet",

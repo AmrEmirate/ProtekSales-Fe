@@ -194,9 +194,9 @@ export default function SalesEducationPage() {
                 3
               </div>
               <div className="space-y-1 text-xs">
-                <h4 className="font-bold text-slate-900 text-sm">Buka Simulasi Kalkulator ROI di Depan Owner</h4>
+                <h4 className="font-bold text-slate-900 text-sm">Jelaskan Potensi Efisiensi Usaha ke Owner</h4>
                 <p className="text-slate-600 leading-relaxed">
-                  Gunakan menu <Link href="/toolkit/roi" className="text-[#F97316] font-bold underline">Kalkulator ROI</Link> di tablet Anda. Masukkan transaksi harian mereka dan tunjukkan angka potensi penghematan jutaan rupiah per bulan.
+                  Tunjukkan perbandingan efisiensi waktu, otomatisasi pencatatan pembukuan kasir, dan pencegahan selisih kas yang menghemat jutaan rupiah setiap bulan.
                 </p>
               </div>
             </div>

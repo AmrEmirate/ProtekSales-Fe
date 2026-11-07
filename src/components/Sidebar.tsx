@@ -65,7 +65,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         title: "OUTLET & MONITORING",
         items: [
           { href: "/outlets", label: "Daftar Outlet Klien", icon: "storefront" },
-          { href: "/leads/pipeline", label: "Monitoring Prospek", icon: "radar" },
+          { href: "/leads/check", label: "Cek & Kunci Prospek", icon: "radar" },
         ],
       },
       {
@@ -95,7 +95,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             badgeColor: "bg-[#2563EB]",
           },
           { href: "/leads/check", label: "Cek & Kunci Outlet", icon: "radar", badge: "30 Hari" },
-          { href: "/leads/pipeline", label: "Daftar Outlet Ditawarkan", icon: "storefront" },
         ],
       },
       {
@@ -115,7 +114,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {
         title: "SALES TOOLKIT",
         items: [
-          { href: "/toolkit/roi", label: "Kalkulator ROI POS", icon: "calculate" },
           { href: "/toolkit/brochures", label: "Brosur Digital", icon: "menu_book" },
           { href: "/offline-sync", label: "Sinkronisasi Offline", icon: "sync" },
         ],

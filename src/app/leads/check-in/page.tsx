@@ -262,8 +262,8 @@ export default function CheckInPage() {
           coordinates: { lat: -6.2918, lng: 106.7972 },
         });
 
-        alert(`Hasil kunjungan tersimpan di Pipeline sebagai pengingat (Follow-up: ${followUpDate}).`);
-        router.push("/leads/pipeline");
+        alert(`Hasil kunjungan tersimpan di daftar prospek sebagai pengingat (Follow-up: ${followUpDate}).`);
+        router.push("/leads/check");
       } catch (err: any) {
         alert(`Gagal menyimpan pengingat: ${err.message || "Periksa server"}`);
       } finally {
@@ -393,8 +393,8 @@ export default function CheckInPage() {
               Dashboard
             </Link>
             <span>/</span>
-            <Link href="/leads/pipeline" className="hover:text-[#2563EB]">
-              Pipeline Prospek
+            <Link href="/leads/check" className="hover:text-[#2563EB]">
+              Cek &amp; Kunci Prospek
             </Link>
             <span>/</span>
             <span className="text-[#102A43] font-bold">Check-In & Buat POS UMKM</span>
