@@ -72,6 +72,12 @@ export default function LeadCheckPage() {
       l.address.toLowerCase().includes(searchFilter.toLowerCase())
   );
 
+  const totalLeadsCount = leads.length;
+  const newVisitCount = leads.filter((l) => l.stage === "Kunjungan Baru" || !l.stage).length;
+  const demoCount = leads.filter((l) => l.stage === "Demo Presentasi").length;
+  const dealCount = leads.filter((l) => l.stage === "Deal POS" || l.status === "DEAL").length;
+  const lockedCount = leads.filter((l) => l.status === "LOCKED" || l.daysRemaining > 0).length;
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Top Banner Notice Matching Blueprint */}
@@ -266,18 +272,18 @@ export default function LeadCheckPage() {
 
         {/* Right Column (7 Cols): Pipeline Summary & Locked Leads with Authentic Photos */}
         <div className="lg:col-span-7 space-y-5">
-          {/* Pipeline Mini-Cards Matching Original Prototype */}
+          {/* Pipeline Mini-Cards matching real leads from database */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs">
               <span className="font-bold font-display text-[#102A43] text-sm">Pipeline Prospek Saya</span>
-              <span className="font-bold text-[#F97316]">Total: 28 Outlet</span>
+              <span className="font-bold text-[#F97316]">Total: {totalLeadsCount} Outlet</span>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               <div className="rounded-xl bg-white p-3 shadow-sm border border-slate-200 flex items-center justify-between">
                 <div>
                   <span className="text-[10px] text-slate-500 block font-semibold">Kunjungan Baru</span>
-                  <span className="text-lg font-bold font-display text-[#102A43]">8</span>
+                  <span className="text-lg font-bold font-display text-[#102A43]">{newVisitCount}</span>
                 </div>
                 <div className="w-8 h-8 rounded-lg bg-[#e3efff] flex items-center justify-center text-[#102A43]">
                   <span className="material-symbols-outlined text-[18px]">pin_drop</span>
@@ -287,7 +293,7 @@ export default function LeadCheckPage() {
               <div className="rounded-xl bg-white p-3 shadow-sm border border-slate-200 flex items-center justify-between">
                 <div>
                   <span className="text-[10px] text-slate-500 block font-semibold">Demo Sistem</span>
-                  <span className="text-lg font-bold font-display text-[#F97316]">4</span>
+                  <span className="text-lg font-bold font-display text-[#F97316]">{demoCount}</span>
                 </div>
                 <div className="w-8 h-8 rounded-lg bg-[#FFF7ED] flex items-center justify-center text-[#F97316]">
                   <span className="material-symbols-outlined text-[18px]">devices</span>
@@ -297,7 +303,7 @@ export default function LeadCheckPage() {
               <div className="rounded-xl bg-white p-3 shadow-sm border border-slate-200 flex items-center justify-between">
                 <div>
                   <span className="text-[10px] text-slate-500 block font-semibold">Menunggu Deal</span>
-                  <span className="text-lg font-bold font-display text-amber-600">2</span>
+                  <span className="text-lg font-bold font-display text-amber-600">{dealCount}</span>
                 </div>
                 <div className="w-8 h-8 rounded-lg bg-[#FEF3C7] flex items-center justify-center text-amber-700">
                   <span className="material-symbols-outlined text-[18px]">handshake</span>
@@ -307,7 +313,7 @@ export default function LeadCheckPage() {
               <div className="rounded-xl bg-white p-3 shadow-sm border border-slate-200 flex items-center justify-between">
                 <div>
                   <span className="text-[10px] text-slate-500 block font-semibold">Terkunci Aktif</span>
-                  <span className="text-lg font-bold font-display text-emerald-600">14</span>
+                  <span className="text-lg font-bold font-display text-emerald-600">{lockedCount}</span>
                 </div>
                 <div className="w-8 h-8 rounded-lg bg-[#DCFCE7] flex items-center justify-center text-emerald-700">
                   <span className="material-symbols-outlined text-[18px]">lock_clock</span>
@@ -316,7 +322,7 @@ export default function LeadCheckPage() {
             </div>
           </div>
 
-          {/* List of Locked Leads with Authentic Photos from Prototype */}
+          {/* List of Locked Leads */}
           <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-3">
               <div>
@@ -341,7 +347,16 @@ export default function LeadCheckPage() {
             </div>
 
             <div className="space-y-3">
-              {filteredLeads.map((lead) => {
+              {filteredLeads.length === 0 ? (
+                <div className="p-8 text-center rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                  <span className="material-symbols-outlined text-slate-400 text-[32px]">folder_open</span>
+                  <p className="text-xs font-bold text-slate-700">Belum ada prospek yang dikunci</p>
+                  <p className="text-[11px] text-slate-400">
+                    Gunakan formulir di sebelah kiri untuk mengecek nomor WhatsApp dan mengunci prospek baru.
+                  </p>
+                </div>
+              ) : (
+                filteredLeads.map((lead) => {
                 const isUrgent = lead.daysRemaining <= 7;
                 return (
                   <div
@@ -414,7 +429,8 @@ export default function LeadCheckPage() {
                     </div>
                   </div>
                 );
-              })}
+              })
+            )}
             </div>
           </div>
         </div>
