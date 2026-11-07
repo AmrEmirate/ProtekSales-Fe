@@ -510,7 +510,7 @@ export default function OutletsListPage() {
               <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
                 <tr>
                   <th className="py-3.5 px-4">Toko / Outlet</th>
-                  <th className="py-3.5 px-4">Serial Hardware POS</th>
+                  <th className="py-3.5 px-4">Kode Lisensi Cloud POS</th>
                   <th className="py-3.5 px-4">Tagihan & Komisi</th>
                   <th className="py-3.5 px-4">Jatuh Tempo</th>
                   <th className="py-3.5 px-4">Status Lisensi</th>
@@ -715,8 +715,8 @@ export default function OutletsListPage() {
               Anda akan {killSwitchTarget.licenseActive ? "menonaktifkan (SUSPEND)" : "mengaktifkan kembali"}{" "}
               lisensi POS untuk outlet <strong>{killSwitchTarget.name}</strong>.
               {killSwitchTarget.licenseActive
-                ? " Mesin kasir klien akan terkunci seketika dan tidak dapat memproses transaksi baru."
-                : " Mesin kasir akan langsung aktif kembali begitu menerima sinyal heartbeat online."}
+                ? " Akses aplikasi Cloud POS klien akan terkunci seketika dan tidak dapat memproses transaksi baru."
+                : " Aplikasi Cloud POS klien akan langsung aktif kembali begitu saklar dinyalakan."}
             </p>
 
             <div className="flex items-center gap-3 pt-2">

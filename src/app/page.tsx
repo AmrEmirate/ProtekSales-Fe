@@ -426,7 +426,7 @@ export default function DashboardPage() {
             <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
               <tr>
                 <th className="py-3 px-4">Nama Outlet & Lokasi</th>
-                <th className="py-3 px-4">Hardware POS / Serial</th>
+                <th className="py-3 px-4">Kode Lisensi Cloud POS</th>
                 <th className="py-3 px-4">MRR Bulanan</th>
                 <th className="py-3 px-4">Jatuh Tempo</th>
                 <th className="py-3 px-4">Status Lisensi</th>
@@ -556,7 +556,7 @@ export default function DashboardPage() {
                       <Link
                         href="/outlets/detail"
                         className="p-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200"
-                        title="Lihat Detail Hardware & Kontrak"
+                        title="Lihat Detail Lisensi & Langganan"
                       >
                         <span className="material-symbols-outlined text-[18px]">visibility</span>
                       </Link>

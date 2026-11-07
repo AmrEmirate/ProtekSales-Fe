@@ -583,7 +583,7 @@ export default function AdminDashboardPage() {
           <div className="p-3.5 rounded-2xl bg-[#0B1D3A]/70 border border-[#1E3E62]/80">
             <span className="text-[11px] text-emerald-400 font-semibold block">Lisensi Kasir Aktif</span>
             <span className="text-xl sm:text-2xl font-bold font-display text-emerald-400 mt-1 block">
-              {metrics.activeLicenses} Mesin
+              {metrics.activeLicenses} Lisensi
             </span>
             <span className="text-[10px] text-slate-300">Operasional normal</span>
           </div>
@@ -591,7 +591,7 @@ export default function AdminDashboardPage() {
           <div className="p-3.5 rounded-2xl bg-[#0B1D3A]/70 border border-[#1E3E62]/80">
             <span className="text-[11px] text-red-400 font-semibold block">Lisensi Ter-Suspend</span>
             <span className="text-xl sm:text-2xl font-bold font-display text-red-400 mt-1 block">
-              {metrics.suspendedLicenses} Mesin
+              {metrics.suspendedLicenses} Lisensi
             </span>
             <span className="text-[10px] text-slate-300">Saklar mati / menunggak</span>
           </div>
@@ -1394,9 +1394,8 @@ export default function AdminDashboardPage() {
                 <thead className="bg-[#102A43] text-white font-bold uppercase tracking-wider text-[10px]">
                   <tr>
                     <th className="py-3.5 px-4">Nama Toko & Kontak</th>
-                    <th className="py-3.5 px-4">Serial Lisensi POS</th>
-                    <th className="py-3.5 px-4">Model Mesin</th>
-                    <th className="py-3.5 px-4">Heartbeat Terakhir</th>
+                    <th className="py-3.5 px-4">Kode Lisensi Cloud POS</th>
+                    <th className="py-3.5 px-4">Sinkronisasi Terakhir</th>
                     <th className="py-3.5 px-4">Status Lisensi</th>
                     <th className="py-3.5 px-4 text-center">Kendali Saklar Darurat</th>
                   </tr>
@@ -1415,7 +1414,6 @@ export default function AdminDashboardPage() {
                         <td className="py-3.5 px-4 font-mono font-bold text-[#102A43]">
                           {lic.licenseKey}
                         </td>
-                        <td className="py-3.5 px-4 text-slate-600">{lic.machineId}</td>
                         <td className="py-3.5 px-4 text-slate-500">{lic.lastHeartbeatAt}</td>
                         <td className="py-3.5 px-4">
                           {isSuspended ? (

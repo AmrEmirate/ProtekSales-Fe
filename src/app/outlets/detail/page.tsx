@@ -84,10 +84,10 @@ export default function OutletDetailPage() {
             <span className="text-[#102A43]">Detail Klien & Remote Saklar</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold font-display text-[#102A43]">
-            Detail Klien & Status Lisensi POS
+            Detail Klien & Status Lisensi Cloud POS
           </h1>
           <p className="text-xs text-slate-500">
-            Audit hardware, integrasi heartbeat ping, tagihan bulanan & kontrol saklar darurat
+            Informasi paket langganan, status lisensi cabang, tagihan bulanan & kontrol saklar darurat
           </p>
         </div>
 
@@ -144,41 +144,34 @@ export default function OutletDetailPage() {
               <span className="material-symbols-outlined text-[18px]">chat</span>
               <span>Hubungi WhatsApp</span>
             </a>
-            <Link
-              href="/outlets/bast"
-              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-[#102A43] hover:bg-[#0B1D3A] text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
-            >
-              <span className="material-symbols-outlined text-[18px]">draw</span>
-              <span>BAST Hardware</span>
-            </Link>
           </div>
         </div>
       </div>
 
-      {/* Grid: Remote Kill Switch & Hardware Info (12 Columns) */}
+      {/* Grid: Remote Kill Switch & License Info (12 Columns) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column (6 Cols): Hardware POS & Heartbeat */}
+        {/* Left Column (6 Cols): Cloud POS License & Subscription */}
         <div className="lg:col-span-6 bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-4">
           <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-            <span className="material-symbols-outlined text-[#0284C7] text-[22px]">devices</span>
+            <span className="material-symbols-outlined text-[#0284C7] text-[22px]">verified_user</span>
             <h3 className="text-base font-bold text-[#102A43] font-display">
-              Spesifikasi Hardware & Lisensi Mesin Kasir
+              Informasi Paket &amp; Lisensi Cloud POS
             </h3>
           </div>
 
           <div className="space-y-3 text-xs">
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex justify-between items-center">
-              <span className="text-slate-500 font-medium">Model Perangkat POS</span>
+              <span className="text-slate-500 font-medium">Paket Langganan Aktif</span>
               <span className="font-bold text-slate-900">{outlet.packageType}</span>
             </div>
 
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex justify-between items-center">
-              <span className="text-slate-500 font-medium">Nomor Seri (Hardware SN)</span>
+              <span className="text-slate-500 font-medium">Kode Lisensi Cloud POS</span>
               <span className="font-mono font-bold text-slate-800">{outlet.posSerial}</span>
             </div>
 
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex justify-between items-center">
-              <span className="text-slate-500 font-medium">Status Ping Heartbeat</span>
+              <span className="text-slate-500 font-medium">Status Koneksi Cloud</span>
               <span className="flex items-center gap-1 font-bold text-emerald-600">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 {outlet.lastHeartbeat}
@@ -245,8 +238,8 @@ export default function OutletDetailPage() {
               href="/outlets/support"
               className="w-full py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
             >
-              <span className="material-symbols-outlined text-[16px]">receipt_long</span>
-              <span>Buat Tiket Kendala Hardware & Suplai Kasir</span>
+              <span className="material-symbols-outlined text-[16px]">support_agent</span>
+              <span>Buat Tiket Bantuan Teknis Sistem &amp; Akun POS</span>
             </Link>
           </div>
         </div>

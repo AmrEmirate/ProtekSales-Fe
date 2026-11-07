@@ -45,13 +45,13 @@ export default function ProfilePage() {
           <p className="text-xs text-slate-500">
             {currentUserRole === "ADMIN"
               ? "Identitas resmi Administrator PT Pro Teknologi dan akses pusat kendali sistem"
-              : "Identitas keanggotaan resmi PT Pro Teknologi, jenjang komisi recurring, dan device binding hardware"}
+              : "Identitas keanggotaan resmi PT Pro Teknologi dan skema komisi recurring bulanan"}
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <span className="px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200">
-            Device Terikat: {salesProfile.deviceModel}
+            Akses Multi-Perangkat (HP &amp; Web Browser)
           </span>
         </div>
       </div>
@@ -208,28 +208,22 @@ export default function ProfilePage() {
         <div className="lg:col-span-6 space-y-6">
           <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-5">
             <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-              <span className="material-symbols-outlined text-[#F97316] text-[20px]">phonelink_lock</span>
+              <span className="material-symbols-outlined text-[#F97316] text-[20px]">verified_user</span>
               <h3 className="text-base font-bold text-[#102A43] font-display">
-                Device Binding & Keamanan Akun
+                Status Akun &amp; Pengaturan Kontak
               </h3>
             </div>
 
-            {/* Hardware Binding State */}
+            {/* Cloud Account Status */}
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
               <div className="flex items-center justify-between">
-                <span className="font-bold text-[#102A43]">Fingerprint Perangkat Android Terdaftar</span>
+                <span className="font-bold text-[#102A43]">Akses Portal Cloud ProtekSales</span>
                 <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                  TERIKAT
+                  AKTIF RESMI
                 </span>
               </div>
-              <div className="font-mono text-slate-600 text-[11px]">
-                Model: <strong>{salesProfile.deviceModel}</strong>
-              </div>
-              <div className="font-mono text-slate-500 text-[10px]">
-                Hardware ID: {salesProfile.deviceId}
-              </div>
-              <p className="text-[11px] text-slate-400 pt-1 leading-normal">
-                Akun sales Anda hanya dapat melakukan check-in GPS pada tablet yang telah diverifikasi ini untuk mencegah pemalsuan lokasi.
+              <p className="text-[11px] text-slate-500 pt-1 leading-normal">
+                Akun Anda dapat diakses langsung melalui browser HP maupun laptop tanpa perlu perangkat khusus.
               </p>
             </div>
 

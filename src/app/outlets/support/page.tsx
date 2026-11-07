@@ -7,7 +7,7 @@ interface SupportTicket {
   id: string;
   outletName: string;
   issue: string;
-  category: "SUPPLY" | "HARDWARE_ERROR" | "REPLACEMENT";
+  category: "ACCOUNT_ACCESS" | "BRANCH_QUOTA" | "PAYMENT_GATEWAY";
   priority: "NORMAL" | "URGENT";
   status: "OPEN" | "IN_PROGRESS" | "RESOLVED";
   date: string;
@@ -16,8 +16,7 @@ interface SupportTicket {
 
 export default function SupportTicketsPage() {
   const [outletName, setOutletName] = useState("");
-  const [category, setCategory] = useState<"SUPPLY" | "HARDWARE_ERROR" | "REPLACEMENT">("SUPPLY");
-  const [supplyType, setSupplyType] = useState("20 Roll Kertas Thermal 58mm");
+  const [category, setCategory] = useState<"ACCOUNT_ACCESS" | "BRANCH_QUOTA" | "PAYMENT_GATEWAY">("ACCOUNT_ACCESS");
   const [priority, setPriority] = useState<"NORMAL" | "URGENT">("NORMAL");
   const [issueDesc, setIssueDesc] = useState("");
   const [createdNotice, setCreatedNotice] = useState(false);
@@ -29,12 +28,12 @@ export default function SupportTicketsPage() {
     const newTicket: SupportTicket = {
       id: `TCK-${Math.floor(8800 + Math.random() * 1000)}`,
       outletName,
-      issue: category === "SUPPLY" ? `${supplyType} - ${issueDesc}` : issueDesc,
+      issue: issueDesc,
       category,
       priority,
       status: "OPEN",
       date: "Baru saja",
-      courierNotes: "Tiket telah diteruskan ke tim logistik & support hardware.",
+      courierNotes: "Tiket telah diteruskan ke tim teknis Cloud POS HQ.",
     };
 
     setTickets([newTicket, ...tickets]);
@@ -52,19 +51,19 @@ export default function SupportTicketsPage() {
             <span>/</span>
             <Link href="/outlets" className="hover:text-[#F97316]">Outlets</Link>
             <span>/</span>
-            <span className="text-[#102A43]">Suplai & Kendala Hardware</span>
+            <span className="text-[#102A43]">Bantuan Teknis Cloud POS</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold font-display text-[#102A43]">
-            Suplai Kasir & Tiket Kendala Hardware
+            Tiket Bantuan Teknis Sistem &amp; Akun Cloud POS
           </h1>
           <p className="text-xs text-slate-500">
-            Pemesanan kertas struk thermal dan bantuan cepat teknisi penggantian hardware POS
+            Bantuan kendala akun login kasir, penyesuaian kuota cabang, dan integrasi QRIS / Payment Gateway
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <span className="px-3 py-1.5 rounded-full bg-blue-50 text-[#0284C7] text-xs font-bold border border-blue-200">
-            SLA Darurat: Maks. 4 Jam Toko Buka
+            SLA Respon Teknis: Maks. 2 Jam Kerja
           </span>
         </div>
       </div>
@@ -74,17 +73,18 @@ export default function SupportTicketsPage() {
         <div className="lg:col-span-5 bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-4">
           <div className="border-b border-slate-100 pb-3">
             <h2 className="text-sm font-bold text-[#102A43] font-display">
-              Buat Tiket Permintaan / Kendala
+              Buat Tiket Bantuan Teknis
             </h2>
-            <p className="text-xs text-slate-500">Kirim langsung ke tim dispatch gudang</p>
+            <p className="text-xs text-slate-500">Kirim langsung ke tim support teknis pusat</p>
           </div>
 
           <form onSubmit={handleCreateTicket} className="space-y-4">
             <div className="space-y-1">
-              <label className="text-xs font-bold text-[#102A43]">Outlet Sasaran</label>
+              <label className="text-xs font-bold text-[#102A43]">Outlet / Toko Sasaran</label>
               <input
                 type="text"
                 required
+                placeholder="Nama toko / cabang..."
                 value={outletName}
                 onChange={(e) => setOutletName(e.target.value)}
                 className="w-full h-11 px-3.5 rounded-xl bg-slate-50 border border-[#CBD5E1] text-xs font-semibold text-[#102A43] outline-none"
@@ -92,33 +92,17 @@ export default function SupportTicketsPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-[#102A43]">Jenis Permintaan</label>
+              <label className="text-xs font-bold text-[#102A43]">Kategori Bantuan</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value as any)}
                 className="w-full h-11 px-3 rounded-xl bg-slate-50 border border-[#CBD5E1] text-xs font-semibold text-[#102A43] outline-none"
               >
-                <option value="SUPPLY">Pemesanan Kertas Struk Thermal</option>
-                <option value="HARDWARE_ERROR">Kendala / Error Mesin Kasir</option>
-                <option value="REPLACEMENT">Penggantian Aksesoris / Kabel / Scanner</option>
+                <option value="ACCOUNT_ACCESS">Kendala Login / Akun Kasir &amp; Reset Password</option>
+                <option value="BRANCH_QUOTA">Penambahan Kuota Cabang / Upgrade Paket</option>
+                <option value="PAYMENT_GATEWAY">Integrasi QRIS / Payment Gateway &amp; Printer Bluetooth HP</option>
               </select>
             </div>
-
-            {category === "SUPPLY" && (
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-[#102A43]">Pilihan Paket Kertas</label>
-                <select
-                  value={supplyType}
-                  onChange={(e) => setSupplyType(e.target.value)}
-                  className="w-full h-11 px-3 rounded-xl bg-slate-50 border border-[#CBD5E1] text-xs font-semibold text-[#102A43] outline-none"
-                >
-                  <option value="10 Roll Kertas Thermal 58mm">10 Roll Thermal 58mm (Rp 65.000)</option>
-                  <option value="20 Roll Kertas Thermal 58mm">20 Roll Thermal 58mm (Rp 120.000)</option>
-                  <option value="50 Roll Kertas Thermal 58mm (Box)">50 Roll Thermal 58mm Box (Rp 275.000)</option>
-                  <option value="20 Roll Kertas Thermal 80mm Sunmi T2">20 Roll Thermal 80mm Sunmi T2 (Rp 190.000)</option>
-                </select>
-              </div>
-            )}
 
             <div className="space-y-1">
               <label className="text-xs font-bold text-[#102A43]">Tingkat Prioritas</label>
@@ -196,9 +180,9 @@ export default function SupportTicketsPage() {
                 <span className="material-symbols-outlined text-slate-400 text-[32px]">
                   support_agent
                 </span>
-                <p className="text-xs font-bold text-slate-700">Belum ada tiket kendala atau permintaan suplai</p>
+                <p className="text-xs font-bold text-slate-700">Belum ada tiket kendala teknis sistem</p>
                 <p className="text-[11px] text-slate-400">
-                  Gunakan formulir di samping untuk mengajukan pengiriman kertas thermal atau bantuan teknis hardware POS.
+                  Gunakan formulir di samping untuk mengajukan bantuan teknis akun kasir, kuota cabang, atau koneksi printer Bluetooth HP.
                 </p>
               </div>
             ) : (
