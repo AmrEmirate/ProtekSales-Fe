@@ -96,7 +96,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           },
           { href: "/leads/check", label: "Cek & Kunci Outlet", icon: "radar", badge: "30 Hari" },
           { href: "/leads/pipeline", label: "Daftar Outlet Ditawarkan", icon: "storefront" },
-          { href: "/leads/map", label: "Peta Rute Prospek", icon: "map" },
         ],
       },
       {

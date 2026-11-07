@@ -720,8 +720,8 @@ export default function AdminDashboardPage() {
               : "bg-white text-slate-600 hover:bg-slate-100"
           }`}
         >
-          <span className="material-symbols-outlined text-[18px]">map</span>
-          <span>5. Peta Sebaran Prospek Seluruh Sales</span>
+          <span className="material-symbols-outlined text-[18px]">location_on</span>
+          <span>5. Data Prospek &amp; Wilayah Sales</span>
         </button>
 
         <button
@@ -1667,7 +1667,7 @@ export default function AdminDashboardPage() {
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
             <div>
               <h2 className="text-base font-bold font-display text-[#102A43]">
-                Peta Sebaran & Histori Kunjungan Prospek Seluruh Sales
+                Data Sebaran &amp; Histori Kunjungan Prospek Seluruh Sales
               </h2>
               <p className="text-xs text-slate-500">
                 Pusat pengawasan wilayah proteksi toko dan riwayat kunjungan lapangan mitra sales

@@ -106,16 +106,6 @@ export default function PipelinePage() {
             </p>
           </div>
         </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <Link
-            href="/leads/map"
-            className="px-3.5 py-2 rounded-xl bg-[#1E3E62] hover:bg-[#2A527A] text-white text-xs font-bold transition-colors flex items-center gap-1.5"
-          >
-            <span className="material-symbols-outlined text-[16px]">map</span>
-            <span>Peta Prospek</span>
-          </Link>
-        </div>
       </div>
 
       {/* Filter Tabs */}
