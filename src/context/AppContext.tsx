@@ -221,9 +221,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // 1. Fetch Profile & Sinkronisasi Role Pengguna (ADMIN atau SALES)
       try {
         const profile = await api.getProfile();
-        if (profile?.user) {
-          currentUserId = profile.user.id;
-          const userEmail = (profile.user.email || "").toLowerCase().trim();
+        const userData = profile?.user || profile;
+        if (userData && (userData.id || userData.email)) {
+          currentUserId = userData.id;
+          const userEmail = (userData.email || "").toLowerCase().trim();
           let resolvedRole: UserRole = "SALES";
           if (
             userEmail === "amremi" ||
@@ -231,8 +232,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             userEmail === "owner@protek.id" ||
             userEmail === "admin@protek.id" ||
             userEmail.includes("admin") ||
-            profile.user.role === "ADMIN" ||
-            profile.user.role === "SUPERADMIN"
+            userData.role === "ADMIN" ||
+            userData.role === "SUPERADMIN"
           ) {
             resolvedRole = "ADMIN";
           } else {
@@ -245,17 +246,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             localStorage.setItem("protek_user_email", userEmail);
             localStorage.setItem(
               "protek_user_name",
-              profile.user.name || (resolvedRole === "ADMIN" ? "Amremi (Super Admin ProTek)" : "Budi Santoso")
+              userData.name || (resolvedRole === "ADMIN" ? "Amremi (Super Admin ProTek)" : "Sales Baru")
             );
           }
           setSalesProfile((prev) => ({
             ...prev,
-            id: profile.user.id ? `SLS-${String(profile.user.id).slice(0, 6).toUpperCase()}` : prev.id,
-            name: profile.user.name || (resolvedRole === "ADMIN" ? "Amremi (Super Admin ProTek)" : "Sales Baru"),
-            phone: profile.user.phone ? `+${profile.user.phone}` : "-",
-            bankAccount: profile.user.bankAccountNumber || "-",
-            bankName: profile.user.bankName || "Belum Diatur",
-            tier: profile.user.tier || (resolvedRole === "ADMIN" ? "Administrator HQ" : "Silver"),
+            id: userData.id ? `SLS-${String(userData.id).slice(0, 6).toUpperCase()}` : prev.id,
+            name: userData.name || (resolvedRole === "ADMIN" ? "Amremi (Super Admin ProTek)" : "Sales Baru"),
+            phone: userData.phone ? `+${userData.phone}` : "-",
+            bankAccount: userData.bankAccountNumber || "-",
+            bankName: userData.bankName || "Belum Diatur",
+            tier: userData.tier || (resolvedRole === "ADMIN" ? "Administrator HQ" : "Silver"),
             targetPercent: 0,
           }));
         }
@@ -326,7 +327,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const filteredOutlets = isSales
             ? backendOutlets.filter((o: any) => {
                 const ownerId = o.salesId || o.sales?.id;
-                return currentUserId && ownerId === currentUserId;
+                // Exclude Admin Direct Outlets (seperti Dimsum Intan)
+                if (ownerId === "admin-amremi-hq" || o.sales?.role === "ADMIN" || o.sales?.email?.includes("amremi")) {
+                  return false;
+                }
+                // Jika currentUserId terdeteksi, pastikan cocok
+                if (currentUserId && ownerId) {
+                  return ownerId === currentUserId;
+                }
+                return true;
               })
             : backendOutlets;
 
