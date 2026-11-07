@@ -10,7 +10,7 @@ COPY . .
 
 # Pass build args for client-side environment variables
 ARG NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://api-proteksales.vimtk.cloud/api}
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://api-pos.vimtk.cloud/api}
 ENV NODE_ENV=production
 
 RUN npm run build

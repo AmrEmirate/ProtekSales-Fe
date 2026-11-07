@@ -45,7 +45,7 @@ jobs:
           context: .
           push: true
           build-args: |
-            NEXT_PUBLIC_API_URL=https://api-proteksales.vimtk.cloud/api
+            NEXT_PUBLIC_API_URL=https://api-pos.vimtk.cloud/api
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 

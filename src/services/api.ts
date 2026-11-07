@@ -3,7 +3,7 @@
  * Terhubung langsung ke Backend Express & PostgreSQL
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api-pos.vimtk.cloud/api";
 
 class ApiService {
   private token: string | null = null;
