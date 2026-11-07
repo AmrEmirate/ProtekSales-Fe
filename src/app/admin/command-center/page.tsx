@@ -38,31 +38,48 @@ export interface BusinessTenant {
 
 export const OFFICIAL_POS_PACKAGES = [
   {
+    code: "PAKET_50K",
+    name: "Paket 1: 50K (100 Tx/hr)",
+    fullLabel: "Paket 1: 50K — Rp 50.000/Cabang (100 Tx/Hari - 3.000 Tx/Bln)",
+    price: 50000,
+    dailyTxLimit: 100,
+    monthlyTxLimit: 3000,
+    badgeClass: "bg-emerald-900/40 text-emerald-300 border-emerald-500/40",
+  },
+  {
     code: "PAKET_100K",
-    name: "Paket 1: Hemat",
-    fullLabel: "Paket 1: Hemat — Rp 100.000/Cabang (6.000 Tx/Bln)",
+    name: "Paket 2: 100K (200 Tx/hr)",
+    fullLabel: "Paket 2: 100K — Rp 100.000/Cabang (200 Tx/Hari - 6.000 Tx/Bln)",
     price: 100000,
+    dailyTxLimit: 200,
+    monthlyTxLimit: 6000,
     badgeClass: "bg-teal-900/40 text-teal-300 border-teal-500/40",
   },
   {
     code: "PAKET_150K",
-    name: "Paket 2: Bisnis",
-    fullLabel: "Paket 2: Bisnis — Rp 150.000/Cabang (9.000 Tx/Bln)",
+    name: "Paket 3: 150K (300 Tx/hr)",
+    fullLabel: "Paket 3: 150K — Rp 150.000/Cabang (300 Tx/Hari - 9.000 Tx/Bln)",
     price: 150000,
+    dailyTxLimit: 300,
+    monthlyTxLimit: 9000,
     badgeClass: "bg-blue-900/40 text-blue-300 border-blue-500/40",
   },
   {
     code: "PAKET_200K",
-    name: "Paket 3: Pro",
-    fullLabel: "Paket 3: Pro — Rp 200.000/Cabang (15.000 Tx/Bln)",
+    name: "Paket 4: 200K (500 Tx/hr)",
+    fullLabel: "Paket 4: 200K — Rp 200.000/Cabang (500 Tx/Hari - 15.000 Tx/Bln)",
     price: 200000,
+    dailyTxLimit: 500,
+    monthlyTxLimit: 15000,
     badgeClass: "bg-amber-900/40 text-amber-300 border-amber-500/40",
   },
   {
-    code: "PAKET_250K",
-    name: "Paket 4: Unlimited",
-    fullLabel: "Paket 4: Unlimited — Rp 250.000/Cabang (Tanpa Batas)",
-    price: 250000,
+    code: "PAKET_CUSTOM",
+    name: "Paket 5: Custom",
+    fullLabel: "Paket 5: Custom — Hubungi Kami (Skala Besar / Kuota Khusus)",
+    price: 0,
+    dailyTxLimit: 0,
+    monthlyTxLimit: 0,
     badgeClass: "bg-purple-900/40 text-purple-300 border-purple-500/40",
   },
 ];
@@ -71,12 +88,14 @@ export function resolveOfficialPlan(planOrPrice?: string | number) {
   const upper = String(planOrPrice || "").toUpperCase();
   const byCode = OFFICIAL_POS_PACKAGES.find((p) => p.code === upper);
   if (byCode) return byCode;
+  if (upper.includes("250") || upper.includes("UNLIMITED") || upper.includes("ENTERPRISE")) return OFFICIAL_POS_PACKAGES[4];
   const num = Number(planOrPrice);
   if (!isNaN(num) && num > 0) {
-    if (num <= 100000) return OFFICIAL_POS_PACKAGES[0];
-    if (num <= 150000) return OFFICIAL_POS_PACKAGES[1];
-    if (num <= 200000) return OFFICIAL_POS_PACKAGES[2];
-    return OFFICIAL_POS_PACKAGES[3];
+    if (num <= 50000) return OFFICIAL_POS_PACKAGES[0];
+    if (num <= 100000) return OFFICIAL_POS_PACKAGES[1];
+    if (num <= 150000) return OFFICIAL_POS_PACKAGES[2];
+    if (num <= 200000) return OFFICIAL_POS_PACKAGES[3];
+    return OFFICIAL_POS_PACKAGES[4];
   }
   return OFFICIAL_POS_PACKAGES[0];
 }

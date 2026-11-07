@@ -28,7 +28,7 @@ export interface BusinessTenant {
   customDomain?: string;
   posUrl: string;
   logoUrl?: string | null;
-  plan: 'STARTER' | 'GROWTH' | 'ENTERPRISE' | 'PAKET_100K' | 'PAKET_150K' | 'PAKET_200K' | 'PAKET_250K';
+  plan: 'STARTER' | 'GROWTH' | 'ENTERPRISE' | 'PAKET_50K' | 'PAKET_100K' | 'PAKET_150K' | 'PAKET_200K' | 'PAKET_250K' | 'PAKET_CUSTOM';
   status: 'ACTIVE' | 'REVIEW' | 'SUSPENDED';
   ownerName: string;
   ownerEmail: string;

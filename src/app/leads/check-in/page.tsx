@@ -49,6 +49,31 @@ export default function CheckInPage() {
   const [posLayoutMode, setPosLayoutMode] = useState<"grid" | "list">("grid");
   const [cartItems, setCartItems] = useState<{ item: PosPreviewItem; qty: number }[]>([]);
 
+  // Modul & Fitur Cloud POS yang diaktifkan (Centangan Fitur Tenant)
+  const [enabledModules, setEnabledModules] = useState<{
+    posCashier: boolean;
+    cashReconciliation: boolean;
+    menuHpp: boolean;
+    pettyCash: boolean;
+    factoryBills: boolean;
+    fixedExpenses: boolean;
+    profitLoss: boolean;
+    walletPayout: boolean;
+    paymentGateway: boolean;
+    multiBranches: boolean;
+  }>({
+    posCashier: true,
+    cashReconciliation: true,
+    menuHpp: true,
+    pettyCash: true,
+    factoryBills: true,
+    fixedExpenses: true,
+    profitLoss: true,
+    walletPayout: true,
+    paymentGateway: true,
+    multiBranches: true,
+  });
+
   // Step 3: Owner Credentials & Cloud POS Provisioning Setup
   const [ownerUsername, setOwnerUsername] = useState("");
   const [ownerPassword, setOwnerPassword] = useState("");
@@ -362,6 +387,7 @@ export default function CheckInPage() {
           primaryColor: customBrandColor,
           themePreset: selectedThemePreset,
           layoutMode: posLayoutMode,
+          enabledModules,
         },
         outletCount,
       });
@@ -1023,6 +1049,251 @@ export default function CheckInPage() {
             </div>
           </div>
 
+          {/* Checklist Fitur & Modul Cloud POS (Standar Lengkap Tenant) */}
+          <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#2563EB] text-[22px]">checklist</span>
+                <div>
+                  <h3 className="text-sm font-bold text-[#102A43]">
+                    Checklist Fitur &amp; Modul Cloud POS (Centang Fitur Aktif)
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    Pilih modul yang akan diaktifkan untuk <span className="font-bold text-slate-800">{outletName || "toko ini"}</span>. Standar penuh setara Dimsum Intan tercentang secara default.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setEnabledModules({
+                      posCashier: true,
+                      cashReconciliation: true,
+                      menuHpp: true,
+                      pettyCash: true,
+                      factoryBills: true,
+                      fixedExpenses: true,
+                      profitLoss: true,
+                      walletPayout: true,
+                      paymentGateway: true,
+                      multiBranches: true,
+                    })
+                  }
+                  className="px-2.5 py-1 text-[11px] font-bold text-[#2563EB] bg-blue-50 hover:bg-blue-100 rounded-lg transition"
+                >
+                  Centang Semua
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* 1. POS Kasir */}
+              <label
+                className={`p-3 rounded-xl border-2 flex items-start gap-3 cursor-pointer transition-all ${
+                  enabledModules.posCashier ? "bg-blue-50/50 border-[#2563EB]" : "bg-slate-50 border-slate-200"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={enabledModules.posCashier}
+                  onChange={(e) => setEnabledModules((prev) => ({ ...prev, posCashier: e.target.checked }))}
+                  className="mt-1 accent-[#2563EB] w-4 h-4 rounded"
+                />
+                <div className="flex-1">
+                  <div className="text-xs font-bold text-slate-900 flex items-center justify-between">
+                    <span>1. Kasir POS &amp; Struk Termal</span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800">Wajib</span>
+                  </div>
+                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight">
+                    Katalog menu, keranjang belanja, meja, kitchen notes &amp; cetak struk 58/80mm.
+                  </div>
+                </div>
+              </label>
+
+              {/* 2. Sesi Shift */}
+              <label
+                className={`p-3 rounded-xl border-2 flex items-start gap-3 cursor-pointer transition-all ${
+                  enabledModules.cashReconciliation ? "bg-blue-50/50 border-[#2563EB]" : "bg-slate-50 border-slate-200"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={enabledModules.cashReconciliation}
+                  onChange={(e) => setEnabledModules((prev) => ({ ...prev, cashReconciliation: e.target.checked }))}
+                  className="mt-1 accent-[#2563EB] w-4 h-4 rounded"
+                />
+                <div className="flex-1">
+                  <div className="text-xs font-bold text-slate-900">2. Sesi Shift &amp; Rekonsiliasi Kas</div>
+                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight">
+                    Buka/tutup shift kasir, hitung uang fisik laci kasir, &amp; audit selisih kas.
+                  </div>
+                </div>
+              </label>
+
+              {/* 3. Menu & HPP */}
+              <label
+                className={`p-3 rounded-xl border-2 flex items-start gap-3 cursor-pointer transition-all ${
+                  enabledModules.menuHpp ? "bg-blue-50/50 border-[#2563EB]" : "bg-slate-50 border-slate-200"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={enabledModules.menuHpp}
+                  onChange={(e) => setEnabledModules((prev) => ({ ...prev, menuHpp: e.target.checked }))}
+                  className="mt-1 accent-[#2563EB] w-4 h-4 rounded"
+                />
+                <div className="flex-1">
+                  <div className="text-xs font-bold text-slate-900">3. Master Menu &amp; Kalkulasi HPP</div>
+                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight">
+                    Harga modal bahan baku per porsi, margin laba kotor %, &amp; upload foto menu.
+                  </div>
+                </div>
+              </label>
+
+              {/* 4. Kas Kecil */}
+              <label
+                className={`p-3 rounded-xl border-2 flex items-start gap-3 cursor-pointer transition-all ${
+                  enabledModules.pettyCash ? "bg-blue-50/50 border-[#2563EB]" : "bg-slate-50 border-slate-200"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={enabledModules.pettyCash}
+                  onChange={(e) => setEnabledModules((prev) => ({ ...prev, pettyCash: e.target.checked }))}
+                  className="mt-1 accent-[#2563EB] w-4 h-4 rounded"
+                />
+                <div className="flex-1">
+                  <div className="text-xs font-bold text-slate-900">4. Buku Kas Kecil (Petty Cash)</div>
+                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight">
+                    Catat pengeluaran harian cabang (es batu, gas LPG, kresek) &amp; foto nota.
+                  </div>
+                </div>
+              </label>
+
+              {/* 5. Tagihan Supplier */}
+              <label
+                className={`p-3 rounded-xl border-2 flex items-start gap-3 cursor-pointer transition-all ${
+                  enabledModules.factoryBills ? "bg-blue-50/50 border-[#2563EB]" : "bg-slate-50 border-slate-200"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={enabledModules.factoryBills}
+                  onChange={(e) => setEnabledModules((prev) => ({ ...prev, factoryBills: e.target.checked }))}
+                  className="mt-1 accent-[#2563EB] w-4 h-4 rounded"
+                />
+                <div className="flex-1">
+                  <div className="text-xs font-bold text-slate-900">5. Tagihan Supplier &amp; Bahan (Pabrik)</div>
+                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight">
+                    Pencatatan faktur masuk pasokan bahan baku, jatuh tempo, &amp; hutang vendor.
+                  </div>
+                </div>
+              </label>
+
+              {/* 6. Beban Tetap */}
+              <label
+                className={`p-3 rounded-xl border-2 flex items-start gap-3 cursor-pointer transition-all ${
+                  enabledModules.fixedExpenses ? "bg-blue-50/50 border-[#2563EB]" : "bg-slate-50 border-slate-200"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={enabledModules.fixedExpenses}
+                  onChange={(e) => setEnabledModules((prev) => ({ ...prev, fixedExpenses: e.target.checked }))}
+                  className="mt-1 accent-[#2563EB] w-4 h-4 rounded"
+                />
+                <div className="flex-1">
+                  <div className="text-xs font-bold text-slate-900">6. Beban Operasional Tetap Bulanan</div>
+                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight">
+                    Pencatatan sewa ruko/tempat, gaji karyawan, listrik PLN, air, &amp; WiFi.
+                  </div>
+                </div>
+              </label>
+
+              {/* 7. Laba Rugi */}
+              <label
+                className={`p-3 rounded-xl border-2 flex items-start gap-3 cursor-pointer transition-all ${
+                  enabledModules.profitLoss ? "bg-blue-50/50 border-[#2563EB]" : "bg-slate-50 border-slate-200"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={enabledModules.profitLoss}
+                  onChange={(e) => setEnabledModules((prev) => ({ ...prev, profitLoss: e.target.checked }))}
+                  className="mt-1 accent-[#2563EB] w-4 h-4 rounded"
+                />
+                <div className="flex-1">
+                  <div className="text-xs font-bold text-slate-900">7. Laporan Laba Rugi &amp; Arus Kas (P&amp;L)</div>
+                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight">
+                    Net Revenue, HPP, Gross Profit, Total Beban, Net Profit, &amp; ekspor CSV/PDF.
+                  </div>
+                </div>
+              </label>
+
+              {/* 8. Dompet & Payout */}
+              <label
+                className={`p-3 rounded-xl border-2 flex items-start gap-3 cursor-pointer transition-all ${
+                  enabledModules.walletPayout ? "bg-blue-50/50 border-[#2563EB]" : "bg-slate-50 border-slate-200"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={enabledModules.walletPayout}
+                  onChange={(e) => setEnabledModules((prev) => ({ ...prev, walletPayout: e.target.checked }))}
+                  className="mt-1 accent-[#2563EB] w-4 h-4 rounded"
+                />
+                <div className="flex-1">
+                  <div className="text-xs font-bold text-slate-900">8. Dompet Digital &amp; Tarik Saldo (Disbursement)</div>
+                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight">
+                    Monitor saldo QRIS &amp; penarikan uang riil langsung ke rekening bank pemilik.
+                  </div>
+                </div>
+              </label>
+
+              {/* 9. Payment Gateway */}
+              <label
+                className={`p-3 rounded-xl border-2 flex items-start gap-3 cursor-pointer transition-all ${
+                  enabledModules.paymentGateway ? "bg-blue-50/50 border-[#2563EB]" : "bg-slate-50 border-slate-200"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={enabledModules.paymentGateway}
+                  onChange={(e) => setEnabledModules((prev) => ({ ...prev, paymentGateway: e.target.checked }))}
+                  className="mt-1 accent-[#2563EB] w-4 h-4 rounded"
+                />
+                <div className="flex-1">
+                  <div className="text-xs font-bold text-slate-900">9. Payment Gateway Mandiri (BYOK)</div>
+                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight">
+                    Integrasi kunci API merchant (Duitku / Midtrans) untuk QRIS dinamis mandiri.
+                  </div>
+                </div>
+              </label>
+
+              {/* 10. Multi Cabang */}
+              <label
+                className={`p-3 rounded-xl border-2 flex items-start gap-3 cursor-pointer transition-all ${
+                  enabledModules.multiBranches ? "bg-blue-50/50 border-[#2563EB]" : "bg-slate-50 border-slate-200"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={enabledModules.multiBranches}
+                  onChange={(e) => setEnabledModules((prev) => ({ ...prev, multiBranches: e.target.checked }))}
+                  className="mt-1 accent-[#2563EB] w-4 h-4 rounded"
+                />
+                <div className="flex-1">
+                  <div className="text-xs font-bold text-slate-900">10. Manajemen Multi-Cabang &amp; Kuota</div>
+                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight">
+                    Kontrol kuota cabang sesuai lisensi paket, target omzet, &amp; switcher outlet.
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+
           {/* Action Approval Bar */}
           <div className="flex items-center gap-3 pt-2">
             <button
@@ -1148,22 +1419,61 @@ export default function CheckInPage() {
             </div>
 
             {/* Paket Berlangganan SaaS */}
-            <div className="space-y-2 pt-2">
-              <label className="text-xs font-bold text-[#102A43]">Pilihan Paket Berlangganan POS</label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-[#102A43]">Pilihan Paket Berlangganan POS</label>
+                <span className="text-[11px] text-emerald-600 font-bold flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[14px]">event_repeat</span>
+                  Akumulasi Kuota Fleksibel Bulanan
+                </span>
+              </div>
+
+              {/* Banner Penjelasan Kuota Bulanan */}
+              <div className="p-3 rounded-xl bg-blue-50/80 border border-blue-200 text-xs text-blue-900 flex items-start gap-2.5">
+                <span className="material-symbols-outlined text-[#2563EB] text-[18px] shrink-0 mt-0.5">info</span>
+                <div className="leading-relaxed text-[11px]">
+                  <strong>Akumulatif Bulanan Fleksibel:</strong> Seluruh paket dihitung per bulan. Jika pada hari tertentu outlet ramai dan melayani lebih dari batas rata-rata harian (misal lebih dari 100 transaksi), transaksi <strong>tetap aman dan berjalan normal</strong> karena dihitung dari jatah kuota bulanan.
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {/* 1. Paket 50K */}
+                <div
+                  onClick={() => setSelectedPlanCode("PAKET_50K")}
+                  className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
+                    selectedPlanCode === "PAKET_50K"
+                      ? "border-[#2563EB] bg-blue-50/50 shadow-sm ring-1 ring-blue-500"
+                      : "border-slate-200 hover:bg-slate-50"
+                  }`}
+                >
+                  <div className="text-[11px] font-bold text-slate-500">1. Paket 50K (100 Tx/hr)</div>
+                  <div className="text-sm font-extrabold text-[#102A43] mt-0.5">
+                    Rp 50.000<span className="text-[10px] text-slate-400 font-normal">/bln</span>
+                  </div>
+                  <div className="text-[10px] text-slate-600 mt-1 leading-tight">
+                    100 transaksi/hari &bull; <strong>3.000 Tx/Bulan</strong>
+                  </div>
+                </div>
+
+                {/* 2. Paket 100K */}
                 <div
                   onClick={() => setSelectedPlanCode("PAKET_100K")}
                   className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
                     selectedPlanCode === "PAKET_100K"
-                      ? "border-[#2563EB] bg-blue-50/50 shadow-sm"
+                      ? "border-[#2563EB] bg-blue-50/50 shadow-sm ring-1 ring-blue-500"
                       : "border-slate-200 hover:bg-slate-50"
                   }`}
                 >
-                  <div className="text-[11px] font-bold text-slate-500">Paket 1: Hemat</div>
-                  <div className="text-sm font-extrabold text-[#102A43] mt-0.5">Rp 100.000<span className="text-[10px] text-slate-400 font-normal">/bln</span></div>
-                  <div className="text-[10px] text-slate-500 mt-1">Kuota 6.000 Tx/Bulan &bull; 1 Outlet</div>
+                  <div className="text-[11px] font-bold text-slate-500">2. Paket 100K (200 Tx/hr)</div>
+                  <div className="text-sm font-extrabold text-[#102A43] mt-0.5">
+                    Rp 100.000<span className="text-[10px] text-slate-400 font-normal">/bln</span>
+                  </div>
+                  <div className="text-[10px] text-slate-600 mt-1 leading-tight">
+                    200 transaksi/hari &bull; <strong>6.000 Tx/Bulan</strong>
+                  </div>
                 </div>
 
+                {/* 3. Paket 150K */}
                 <div
                   onClick={() => setSelectedPlanCode("PAKET_150K")}
                   className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all relative ${
@@ -1175,22 +1485,47 @@ export default function CheckInPage() {
                   <span className="absolute -top-2 right-3 px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#2563EB] text-white">
                     Paling Populer
                   </span>
-                  <div className="text-[11px] font-bold text-[#2563EB]">Paket 2: Bisnis</div>
-                  <div className="text-sm font-extrabold text-[#102A43] mt-0.5">Rp 150.000<span className="text-[10px] text-slate-400 font-normal">/bln</span></div>
-                  <div className="text-[10px] text-slate-500 mt-1">Kuota 9.000 Tx/Bulan &bull; Multi-Cabang</div>
+                  <div className="text-[11px] font-bold text-[#2563EB]">3. Paket 150K (300 Tx/hr)</div>
+                  <div className="text-sm font-extrabold text-[#102A43] mt-0.5">
+                    Rp 150.000<span className="text-[10px] text-slate-400 font-normal">/bln</span>
+                  </div>
+                  <div className="text-[10px] text-slate-600 mt-1 leading-tight">
+                    300 transaksi/hari &bull; <strong>9.000 Tx/Bulan</strong>
+                  </div>
                 </div>
 
+                {/* 4. Paket 200K */}
                 <div
                   onClick={() => setSelectedPlanCode("PAKET_200K")}
                   className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
                     selectedPlanCode === "PAKET_200K"
-                      ? "border-[#2563EB] bg-blue-50/50 shadow-sm"
+                      ? "border-[#2563EB] bg-blue-50/50 shadow-sm ring-1 ring-blue-500"
                       : "border-slate-200 hover:bg-slate-50"
                   }`}
                 >
-                  <div className="text-[11px] font-bold text-slate-500">Paket 3: Enterprise</div>
-                  <div className="text-sm font-extrabold text-[#102A43] mt-0.5">Rp 200.000<span className="text-[10px] text-slate-400 font-normal">/bln</span></div>
-                  <div className="text-[10px] text-slate-500 mt-1">Kuota 12.000 Tx/Bulan &bull; Prioritas</div>
+                  <div className="text-[11px] font-bold text-slate-500">4. Paket 200K (500 Tx/hr)</div>
+                  <div className="text-sm font-extrabold text-[#102A43] mt-0.5">
+                    Rp 200.000<span className="text-[10px] text-slate-400 font-normal">/bln</span>
+                  </div>
+                  <div className="text-[10px] text-slate-600 mt-1 leading-tight">
+                    500 transaksi/hari &bull; <strong>15.000 Tx/Bulan</strong>
+                  </div>
+                </div>
+
+                {/* 5. Paket Custom */}
+                <div
+                  onClick={() => setSelectedPlanCode("PAKET_CUSTOM")}
+                  className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
+                    selectedPlanCode === "PAKET_CUSTOM"
+                      ? "border-[#2563EB] bg-blue-50/50 shadow-sm ring-1 ring-blue-500"
+                      : "border-slate-200 hover:bg-slate-50"
+                  }`}
+                >
+                  <div className="text-[11px] font-bold text-purple-600">5. Custom Hubungi Kami</div>
+                  <div className="text-sm font-extrabold text-purple-900 mt-0.5">Hubungi Kami</div>
+                  <div className="text-[10px] text-slate-600 mt-1 leading-tight">
+                    Bebas / Unlimited &bull; <strong>Skala Besar &amp; Prioritas</strong>
+                  </div>
                 </div>
               </div>
             </div>
