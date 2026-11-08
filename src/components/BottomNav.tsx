@@ -96,7 +96,7 @@ export const BottomNav: React.FC = () => {
       },
       {
         href: "/leads/check",
-        label: "Kunci Outlet",
+        label: "Info Outlet",
         icon: "radar",
         isActive: pathname.startsWith("/leads/check"),
       },
