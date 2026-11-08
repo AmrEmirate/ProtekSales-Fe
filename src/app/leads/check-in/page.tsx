@@ -48,6 +48,7 @@ export default function CheckInPage() {
   const [customBrandColor, setCustomBrandColor] = useState<string>("#ea580c");
   const [posLayoutMode, setPosLayoutMode] = useState<"grid" | "list">("grid");
   const [cartItems, setCartItems] = useState<{ item: PosPreviewItem; qty: number }[]>([]);
+  const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
 
   // Modul & Fitur Cloud POS yang diaktifkan (Centangan Fitur Tenant)
   const [enabledModules, setEnabledModules] = useState<{
@@ -157,7 +158,7 @@ export default function CheckInPage() {
     {
       id: "culinary",
       title: "Artisanal Culinary & F&B Luxe",
-      industry: "Kafe, Restoran, Dimsum & Food Truck",
+      industry: "Kafe, Resto & Food Truck",
       color: "#ea580c",
       description: "Grid visual menu sentuh besar, varian rasa & tingkat kepedasan, cetak struk dapur (KDS), split bill cepat.",
       recommendedFor: "Kafe & Resto",
@@ -181,9 +182,9 @@ export default function CheckInPage() {
     {
       id: "minimalist",
       title: "Dark Minimalist Pro Terminal",
-      industry: "Segala Jenis Usaha Shift Malam",
+      industry: "Shift Malam & Segala Usaha",
       color: "#0ea5e9",
-      description: "Tampilan mode gelap kontras tinggi, anti silau untuk shift panjang, hemat daya baterai tablet dan smartphone.",
+      description: "Mode gelap kontras tinggi, anti silau untuk shift panjang, hemat daya baterai tablet dan smartphone.",
       recommendedFor: "Jasa & Servis",
     },
   ];
@@ -192,12 +193,12 @@ export default function CheckInPage() {
   const isBakso = outletName.toLowerCase().includes("bakso");
   const previewProducts: PosPreviewItem[] = isBakso
     ? [
-        { id: "b1", name: "Bakso Urat Jumbo Mantap", price: 25000, category: "Bakso Kuah" },
+        { id: "b1", name: "Bakso Urat Jumbo", price: 25000, category: "Bakso Kuah" },
         { id: "b2", name: "Bakso Halus Spesial", price: 20000, category: "Bakso Kuah" },
         { id: "b3", name: "Bakso Telur Gurih", price: 22000, category: "Bakso Kuah" },
-        { id: "b4", name: "Mie Ayam Bakso Komplit", price: 22000, category: "Mie Ayam" },
-        { id: "b5", name: "Es Teh Manis Melati", price: 5000, category: "Minuman" },
-        { id: "b6", name: "Kerupuk Putih Kaleng", price: 2000, category: "Ekstra" },
+        { id: "b4", name: "Mie Ayam Komplit", price: 22000, category: "Mie Ayam" },
+        { id: "b5", name: "Es Teh Melati", price: 5000, category: "Minuman" },
+        { id: "b6", name: "Kerupuk Putih", price: 2000, category: "Ekstra" },
       ]
     : category === "Retail / Minimarket"
       ? [
@@ -211,12 +212,12 @@ export default function CheckInPage() {
           { id: "p1", name: "Paracetamol 500mg Strip", price: 12000, category: "Obat Bebas" },
           { id: "p2", name: "Vitamin C 1000mg Tab", price: 45000, category: "Suplemen" },
           { id: "p3", name: "Masker Medis 3-Ply Box", price: 25000, category: "Alkes" },
-          { id: "p4", name: "Minyak Telon Herbal 60ml", price: 22000, category: "Perawatan" },
+          { id: "p4", name: "Minyak Telon 60ml", price: 22000, category: "Perawatan" },
         ]
       : [
-          { id: "p1", name: "Dimsum Siomay Ayam Udang (4 pcs)", price: 28000, category: "Dimsum Kukus" },
+          { id: "p1", name: "Dimsum Siomay Ayam (4 pcs)", price: 28000, category: "Dimsum Kukus" },
           { id: "p2", name: "Hakau Udang Kristal (3 pcs)", price: 32000, category: "Dimsum Kukus" },
-          { id: "p3", name: "Pangsit Goreng Mayonaise", price: 26000, category: "Dimsum Goreng" },
+          { id: "p3", name: "Pangsit Goreng Mayo", price: 26000, category: "Dimsum Goreng" },
           { id: "p4", name: "Es Teh Manis Jasmine", price: 8000, category: "Minuman" },
         ];
 
@@ -266,7 +267,6 @@ export default function CheckInPage() {
     }
 
     if (agreementStatus === "NOT_AGREED") {
-      // Simpan sebagai pengingat follow-up
       try {
         setIsProvisioning(true);
         const sanitizedPhone = waNumber.replace(/[^0-9]/g, "");
@@ -420,77 +420,112 @@ export default function CheckInPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-300 pb-16">
-      {/* Step Indicator Header */}
-      <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-[#E2E8F0] space-y-3">
+    <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6 animate-in fade-in duration-300 pb-20 sm:pb-16 overflow-x-hidden">
+      {/* ========================================================================= */}
+      {/* STEP INDICATOR HEADER (Touch-Friendly Horizontal Stepper Pills)           */}
+      {/* ========================================================================= */}
+      <div className="bg-white rounded-2xl p-3.5 sm:p-5 shadow-sm border border-[#E2E8F0] space-y-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-            <Link href="/" className="hover:text-[#2563EB]">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-semibold text-slate-500 truncate mr-2">
+            <Link href="/" className="hover:text-[#2563EB] truncate">
               Dashboard
             </Link>
             <span>/</span>
-            <Link href="/leads/check" className="hover:text-[#2563EB]">
-              Cek &amp; Kunci Prospek
+            <Link href="/leads/check" className="hover:text-[#2563EB] truncate">
+              Prospek
             </Link>
             <span>/</span>
-            <span className="text-[#102A43] font-bold">Check-In & Buat POS UMKM</span>
+            <span className="text-[#102A43] font-bold truncate">Check-In POS</span>
           </div>
 
-          <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-[#2563EB] border border-blue-200">
+          <span className="px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-blue-50 text-[#2563EB] border border-blue-200 shrink-0">
             Engine Antigravity
           </span>
         </div>
 
-        {/* Wizard Steps Nav */}
-        <div className="grid grid-cols-4 gap-2 pt-2">
+        {/* Wizard Steps Nav (Scrollable Pills with Clear Active Indicators) */}
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+          {/* Step 1 */}
           <div
-            className={`p-2.5 rounded-xl border text-center transition-all ${
+            onClick={() => currentStep > 1 && setCurrentStep(1)}
+            className={`min-h-[40px] px-3 py-1.5 rounded-xl border flex items-center gap-1.5 shrink-0 transition-all cursor-pointer ${
               currentStep === 1
-                ? "bg-[#2563EB] text-white border-[#2563EB] shadow-sm font-bold"
+                ? "bg-[#2563EB] text-white border-[#2563EB] shadow-sm font-bold ring-2 ring-blue-500/20"
                 : currentStep > 1
                 ? "bg-blue-50 text-[#2563EB] border-blue-200 font-semibold"
                 : "bg-slate-50 text-slate-400 border-slate-200"
             }`}
           >
-            <div className="text-[10px] uppercase tracking-wider">Tahap 1</div>
-            <div className="text-xs font-bold truncate mt-0.5">1. Data Toko</div>
+            {currentStep > 1 ? (
+              <span className="material-symbols-outlined text-[16px] text-[#2563EB]">check_circle</span>
+            ) : (
+              <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+            )}
+            <span className="text-xs">1. Data Toko</span>
           </div>
 
+          <span className="material-symbols-outlined text-slate-300 text-[16px] shrink-0">chevron_right</span>
+
+          {/* Step 2 */}
           <div
-            className={`p-2.5 rounded-xl border text-center transition-all ${
+            onClick={() => currentStep > 2 && setCurrentStep(2)}
+            className={`min-h-[40px] px-3 py-1.5 rounded-xl border flex items-center gap-1.5 shrink-0 transition-all ${
               currentStep === 2
-                ? "bg-[#2563EB] text-white border-[#2563EB] shadow-sm font-bold"
+                ? "bg-[#2563EB] text-white border-[#2563EB] shadow-sm font-bold ring-2 ring-blue-500/20"
                 : currentStep > 2
-                ? "bg-blue-50 text-[#2563EB] border-blue-200 font-semibold"
+                ? "bg-blue-50 text-[#2563EB] border-blue-200 font-semibold cursor-pointer"
                 : "bg-slate-50 text-slate-400 border-slate-200"
             }`}
           >
-            <div className="text-[10px] uppercase tracking-wider">Tahap 2</div>
-            <div className="text-xs font-bold truncate mt-0.5">2. Desain UI POS</div>
+            {currentStep > 2 ? (
+              <span className="material-symbols-outlined text-[16px] text-[#2563EB]">check_circle</span>
+            ) : currentStep === 2 ? (
+              <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+            ) : (
+              <span className="w-2 h-2 rounded-full bg-slate-300" />
+            )}
+            <span className="text-xs">2. Desain UI POS</span>
           </div>
 
+          <span className="material-symbols-outlined text-slate-300 text-[16px] shrink-0">chevron_right</span>
+
+          {/* Step 3 */}
           <div
-            className={`p-2.5 rounded-xl border text-center transition-all ${
+            onClick={() => currentStep > 3 && setCurrentStep(3)}
+            className={`min-h-[40px] px-3 py-1.5 rounded-xl border flex items-center gap-1.5 shrink-0 transition-all ${
               currentStep === 3
-                ? "bg-[#2563EB] text-white border-[#2563EB] shadow-sm font-bold"
+                ? "bg-[#2563EB] text-white border-[#2563EB] shadow-sm font-bold ring-2 ring-blue-500/20"
                 : currentStep > 3
-                ? "bg-blue-50 text-[#2563EB] border-blue-200 font-semibold"
+                ? "bg-blue-50 text-[#2563EB] border-blue-200 font-semibold cursor-pointer"
                 : "bg-slate-50 text-slate-400 border-slate-200"
             }`}
           >
-            <div className="text-[10px] uppercase tracking-wider">Tahap 3</div>
-            <div className="text-xs font-bold truncate mt-0.5">3. Akun UMKM</div>
+            {currentStep > 3 ? (
+              <span className="material-symbols-outlined text-[16px] text-[#2563EB]">check_circle</span>
+            ) : currentStep === 3 ? (
+              <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+            ) : (
+              <span className="w-2 h-2 rounded-full bg-slate-300" />
+            )}
+            <span className="text-xs">3. Akun UMKM</span>
           </div>
 
+          <span className="material-symbols-outlined text-slate-300 text-[16px] shrink-0">chevron_right</span>
+
+          {/* Step 4 */}
           <div
-            className={`p-2.5 rounded-xl border text-center transition-all ${
+            className={`min-h-[40px] px-3 py-1.5 rounded-xl border flex items-center gap-1.5 shrink-0 transition-all ${
               currentStep === 4
-                ? "bg-emerald-600 text-white border-emerald-600 shadow-sm font-bold"
+                ? "bg-emerald-600 text-white border-emerald-600 shadow-sm font-bold ring-2 ring-emerald-500/20"
                 : "bg-slate-50 text-slate-400 border-slate-200"
             }`}
           >
-            <div className="text-[10px] uppercase tracking-wider">Tahap 4</div>
-            <div className="text-xs font-bold truncate mt-0.5">4. POS Live!</div>
+            {currentStep === 4 ? (
+              <span className="material-symbols-outlined text-[16px] text-white">verified</span>
+            ) : (
+              <span className="w-2 h-2 rounded-full bg-slate-300" />
+            )}
+            <span className="text-xs">4. POS Live!</span>
           </div>
         </div>
       </div>
@@ -499,14 +534,14 @@ export default function CheckInPage() {
       {/* TAHAP 1: INPUT DATA IDENTITAS UMKM & CEK BENTROK                           */}
       {/* ========================================================================= */}
       {currentStep === 1 && (
-        <form onSubmit={handleProceedFromStep1} className="space-y-6 animate-in fade-in">
+        <form onSubmit={handleProceedFromStep1} className="space-y-4 sm:space-y-6 animate-in fade-in">
           {/* Jalur Sales: Offline vs Online */}
-          <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-4">
+          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-3.5">
             <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
               <span className="material-symbols-outlined text-[#2563EB] text-[22px]">route</span>
               <div>
                 <h2 className="text-sm font-bold text-[#102A43]">Pilih Jalur Penjualan</h2>
-                <p className="text-[11px] text-slate-500">Sesuaikan dengan model pendekatan Anda di lapangan atau digital</p>
+                <p className="text-[11px] text-slate-500">Sesuaikan dengan model pendekatan lapangan atau digital</p>
               </div>
             </div>
 
@@ -516,24 +551,24 @@ export default function CheckInPage() {
                   setSalesChannel("OFFLINE");
                   setOutletCount(1);
                 }}
-                className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                className={`p-3.5 sm:p-4 rounded-2xl border-2 cursor-pointer transition-all min-h-[56px] ${
                   salesChannel === "OFFLINE"
-                    ? "border-[#2563EB] bg-blue-50/50 shadow-sm"
+                    ? "border-[#2563EB] bg-blue-50/50 shadow-sm ring-1 ring-blue-500/20"
                     : "border-slate-200 bg-slate-50 hover:bg-slate-100"
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white shadow ${
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white shadow shrink-0 ${
                       salesChannel === "OFFLINE" ? "bg-[#2563EB]" : "bg-slate-400"
                     }`}
                   >
                     <span className="material-symbols-outlined text-[20px]">store</span>
                   </div>
-                  <div>
-                    <h3 className="text-xs font-bold text-slate-900">Alur Sales Offline (Lapangan)</h3>
-                    <span className="text-[11px] text-slate-500 block mt-0.5">
-                      Kunjungan fisik on-site & presentasi langsung ke pemilik UMKM
+                  <div className="min-w-0">
+                    <h3 className="text-xs font-bold text-slate-900 truncate">Alur Sales Offline (Lapangan)</h3>
+                    <span className="text-[11px] text-slate-500 block mt-0.5 line-clamp-1">
+                      Kunjungan fisik on-site & presentasi langsung
                     </span>
                   </div>
                 </div>
@@ -544,24 +579,24 @@ export default function CheckInPage() {
                   setSalesChannel("ONLINE");
                   if (outletCount === 1) setOutletCount(2);
                 }}
-                className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                className={`p-3.5 sm:p-4 rounded-2xl border-2 cursor-pointer transition-all min-h-[56px] ${
                   salesChannel === "ONLINE"
-                    ? "border-[#2563EB] bg-blue-50/50 shadow-sm"
+                    ? "border-[#2563EB] bg-blue-50/50 shadow-sm ring-1 ring-blue-500/20"
                     : "border-slate-200 bg-slate-50 hover:bg-slate-100"
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white shadow ${
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white shadow shrink-0 ${
                       salesChannel === "ONLINE" ? "bg-[#2563EB]" : "bg-slate-400"
                     }`}
                   >
                     <span className="material-symbols-outlined text-[20px]">public</span>
                   </div>
-                  <div>
-                    <h3 className="text-xs font-bold text-slate-900">Alur Sales Online (Outreach Digital)</h3>
-                    <span className="text-[11px] text-slate-500 block mt-0.5">
-                      Prospek multi-cabang via WhatsApp Business, DM Instagram, & medsos
+                  <div className="min-w-0">
+                    <h3 className="text-xs font-bold text-slate-900 truncate">Alur Sales Online (Digital)</h3>
+                    <span className="text-[11px] text-slate-500 block mt-0.5 line-clamp-1">
+                      Prospek multi-cabang via WhatsApp & medsos
                     </span>
                   </div>
                 </div>
@@ -570,7 +605,7 @@ export default function CheckInPage() {
           </div>
 
           {/* Data Identitas Toko & WhatsApp */}
-          <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-5">
+          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-4">
             <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
               <span className="material-symbols-outlined text-[#2563EB] text-[20px]">storefront</span>
               <h2 className="text-sm font-bold text-[#102A43] font-display">
@@ -578,7 +613,7 @@ export default function CheckInPage() {
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
               <div className="space-y-1">
                 <label className="text-xs font-bold text-[#102A43]">
                   Nama Toko / Usaha UMKM <span className="text-red-500">*</span>
@@ -602,58 +637,45 @@ export default function CheckInPage() {
                   required
                   value={ownerName}
                   onChange={(e) => setOwnerName(e.target.value)}
-                  placeholder="Contoh: Ibu Intan Permata"
+                  placeholder="Contoh: Ibu Hj. Nurlela"
                   className="w-full h-11 px-3.5 rounded-xl bg-slate-50 border border-[#CBD5E1] text-xs font-semibold text-[#102A43] focus:bg-white focus:border-[#2563EB] outline-none"
                 />
               </div>
             </div>
 
-            {/* Category Selector */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[#102A43]">Kategori Usaha</label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            {/* Kategori Usaha */}
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-[#102A43]">
+                Kategori Usaha UMKM <span className="text-red-500">*</span>
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {categories.map((cat) => (
                   <button
                     key={cat.id}
                     type="button"
-                    onClick={() => {
-                      setCategory(cat.id);
-                      if (cat.id === "Kafe & Resto") {
-                        setSelectedThemePreset("culinary");
-                        setCustomBrandColor("#ea580c");
-                      } else if (cat.id === "Retail / Minimarket") {
-                        setSelectedThemePreset("retail");
-                        setCustomBrandColor("#10b981");
-                      } else if (cat.id === "Apotek / Klinik") {
-                        setSelectedThemePreset("cafe");
-                        setCustomBrandColor("#0284c7");
-                      } else {
-                        setSelectedThemePreset("minimalist");
-                        setCustomBrandColor("#0ea5e9");
-                      }
-                    }}
-                    className={`flex items-center justify-center gap-2 p-3 rounded-xl text-xs font-bold transition-all border ${
+                    onClick={() => setCategory(cat.id)}
+                    className={`min-h-[44px] p-2 sm:p-2.5 rounded-xl border text-center transition-all flex items-center justify-center gap-1.5 ${
                       category === cat.id
-                        ? "bg-[#2563EB] text-white border-[#2563EB] shadow-sm"
-                        : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                        ? "bg-blue-50 border-[#2563EB] text-[#2563EB] font-bold shadow-xs"
+                        : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 font-semibold"
                     }`}
                   >
-                    <span className="material-symbols-outlined text-[18px]">{cat.icon}</span>
-                    <span>{cat.label}</span>
+                    <span className="material-symbols-outlined text-[16px]">{cat.icon}</span>
+                    <span className="text-xs truncate">{cat.label}</span>
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Nomor WhatsApp & Proteksi Anti-Bentrok */}
-            <div className="space-y-2">
+            {/* WhatsApp + Anti-Bentrok Check */}
+            <div className="space-y-1.5 pt-1">
               <label className="text-xs font-bold text-[#102A43]">
                 Nomor WhatsApp Pemilik (Proteksi Hak Eksklusif Sales 30 Hari) <span className="text-red-500">*</span>
               </label>
               <div className="flex gap-2">
-                <div className="relative flex-1 flex items-center">
-                  <div className="absolute left-3 flex items-center gap-1 text-xs font-bold text-[#102A43] bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
-                    <span>+62</span>
+                <div className="relative flex-1 flex items-center min-w-0">
+                  <div className="absolute left-2.5 sm:left-3 flex items-center text-xs font-bold text-[#102A43] bg-slate-100 px-2 py-1 rounded-lg border border-slate-200 select-none">
+                    +62
                   </div>
                   <input
                     type="tel"
@@ -664,7 +686,7 @@ export default function CheckInPage() {
                       setAvailabilityMessage(null);
                     }}
                     placeholder="81284525304"
-                    className="w-full h-11 pl-20 pr-4 rounded-xl bg-slate-50 border border-[#CBD5E1] text-xs font-semibold text-[#102A43] focus:bg-white focus:border-[#2563EB] outline-none font-mono"
+                    className="w-full h-11 pl-16 sm:pl-20 pr-3 rounded-xl bg-slate-50 border border-[#CBD5E1] text-xs font-semibold text-[#102A43] focus:bg-white focus:border-[#2563EB] outline-none font-mono"
                   />
                 </div>
 
@@ -672,38 +694,39 @@ export default function CheckInPage() {
                   type="button"
                   onClick={handleCheckPhone}
                   disabled={isCheckingPhone || !waNumber.trim()}
-                  className="h-11 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition disabled:opacity-50 shrink-0"
+                  className="h-11 px-3 sm:px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition disabled:opacity-50 shrink-0"
                 >
                   <span className="material-symbols-outlined text-[16px]">verified_user</span>
-                  <span>{isCheckingPhone ? "Mengecek..." : "Cek Anti-Bentrok"}</span>
+                  <span className="hidden sm:inline">{isCheckingPhone ? "Mengecek..." : "Cek Anti-Bentrok"}</span>
+                  <span className="inline sm:hidden">{isCheckingPhone ? "..." : "Cek"}</span>
                 </button>
               </div>
 
               {availabilityMessage && (
                 <div
-                  className={`p-3 rounded-xl text-xs font-semibold flex items-center gap-2 ${
+                  className={`p-2.5 sm:p-3 rounded-xl text-xs font-semibold flex items-center gap-2 ${
                     availabilityMessage.canClaim
                       ? "bg-emerald-50 text-emerald-800 border border-emerald-300"
                       : "bg-red-50 text-red-800 border border-red-300"
                   }`}
                 >
-                  <span className="material-symbols-outlined text-[18px]">
+                  <span className="material-symbols-outlined text-[18px] shrink-0">
                     {availabilityMessage.canClaim ? "check_circle" : "error"}
                   </span>
-                  <span>{availabilityMessage.text}</span>
+                  <span className="leading-tight">{availabilityMessage.text}</span>
                 </div>
               )}
             </div>
 
             {/* Alamat & Jumlah Cabang */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
               <div className="sm:col-span-2 space-y-1">
                 <label className="text-xs font-bold text-[#102A43]">Alamat Operasional Toko</label>
                 <input
                   type="text"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  placeholder="Contoh: Jl. Dago No. 42, Bandung"
+                  placeholder="Contoh: Jl. Merdeka No. 12, Bandung"
                   className="w-full h-11 px-3.5 rounded-xl bg-slate-50 border border-[#CBD5E1] text-xs font-medium text-[#102A43] focus:bg-white focus:border-[#2563EB] outline-none"
                 />
               </div>
@@ -715,7 +738,7 @@ export default function CheckInPage() {
                   min="1"
                   max="50"
                   value={outletCount}
-                  onChange={(e) => setOutletCount(Math.max(1, parseInt(e.target.value) || 1))}
+                  onChange={(e) => setOutletCount(Math.max(1, parseInt(e.target.value, 10) || 1))}
                   className="w-full h-11 px-3.5 rounded-xl bg-slate-50 border border-[#CBD5E1] text-xs font-bold text-center text-[#102A43] focus:bg-white focus:border-[#2563EB] outline-none"
                 />
               </div>
@@ -723,7 +746,7 @@ export default function CheckInPage() {
           </div>
 
           {/* Respon & Minat UMKM */}
-          <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-4">
+          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-3.5">
             <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
               <span className="material-symbols-outlined text-[#2563EB] text-[20px]">handshake</span>
               <h2 className="text-sm font-bold text-[#102A43]">Respon & Minat UMKM</h2>
@@ -731,7 +754,7 @@ export default function CheckInPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <label
-                className={`p-4 rounded-xl border-2 flex items-start gap-3 cursor-pointer transition-all ${
+                className={`p-3.5 sm:p-4 rounded-xl border-2 flex items-start gap-3 cursor-pointer transition-all min-h-[56px] ${
                   agreementStatus === "AGREED"
                     ? "bg-blue-50/70 border-[#2563EB] text-blue-950 shadow-sm"
                     : "bg-slate-50 border-slate-200 text-slate-700"
@@ -742,11 +765,11 @@ export default function CheckInPage() {
                   name="agreementStatus"
                   checked={agreementStatus === "AGREED"}
                   onChange={() => setAgreementStatus("AGREED")}
-                  className="mt-1 accent-[#2563EB]"
+                  className="mt-1 accent-[#2563EB] shrink-0"
                 />
                 <div>
                   <div className="text-xs font-bold text-[#2563EB] flex items-center gap-1">
-                    <span>✨ UMKM Tertarik & Ingin Lihat Referensi UI POS</span>
+                    <span>✨ UMKM Tertarik (Lihat Desain POS)</span>
                   </div>
                   <div className="text-[11px] text-slate-600 mt-1 leading-relaxed">
                     Lanjut langsung ke katalog referensi tema, buatkan UI kasir toko, dan siapkan akun Cloud POS.
@@ -755,7 +778,7 @@ export default function CheckInPage() {
               </label>
 
               <label
-                className={`p-4 rounded-xl border-2 flex items-start gap-3 cursor-pointer transition-all ${
+                className={`p-3.5 sm:p-4 rounded-xl border-2 flex items-start gap-3 cursor-pointer transition-all min-h-[56px] ${
                   agreementStatus === "NOT_AGREED"
                     ? "bg-amber-50 border-amber-500 text-amber-950 shadow-sm"
                     : "bg-slate-50 border-slate-200 text-slate-700"
@@ -766,11 +789,11 @@ export default function CheckInPage() {
                   name="agreementStatus"
                   checked={agreementStatus === "NOT_AGREED"}
                   onChange={() => setAgreementStatus("NOT_AGREED")}
-                  className="mt-1 accent-amber-600"
+                  className="mt-1 accent-amber-600 shrink-0"
                 />
                 <div>
                   <div className="text-xs font-bold text-amber-900 flex items-center gap-1">
-                    <span>⏳ Belum Tertarik / Butuh Waktu Pikir-pikir</span>
+                    <span>⏳ Belum Tertarik (Butuh Pikir-pikir)</span>
                   </div>
                   <div className="text-[11px] text-amber-700 mt-1 leading-relaxed">
                     Catat tanggal follow-up pengingat di pipeline prospek agar tidak direbut sales lain.
@@ -780,7 +803,7 @@ export default function CheckInPage() {
             </div>
 
             {agreementStatus === "NOT_AGREED" && (
-              <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 space-y-3 animate-in fade-in">
+              <div className="p-3.5 sm:p-4 rounded-2xl bg-amber-50 border border-amber-300 space-y-3 animate-in fade-in">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   <div>
                     <label className="block font-bold text-amber-950 mb-1">Alasan Belum Tertarik</label>
@@ -804,8 +827,7 @@ export default function CheckInPage() {
                       value={followUpDate}
                       onChange={(e) => setFollowUpDate(e.target.value)}
                       className="w-full h-10 px-3 rounded-xl bg-white border border-amber-300 text-xs font-bold text-amber-900 outline-none"
-                    >
-                    </input>
+                    />
                   </div>
                 </div>
               </div>
@@ -813,11 +835,11 @@ export default function CheckInPage() {
           </div>
 
           {/* Submit Button Step 1 */}
-          <div className="flex items-center gap-3 pt-2">
+          <div className="pt-2">
             <button
               type="submit"
               disabled={isProvisioning}
-              className="flex-1 h-12 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-[0_4px_14px_rgba(37,99,235,0.35)] active:scale-98 transition-all disabled:opacity-50 cursor-pointer"
+              className="w-full min-h-[48px] rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-[0_4px_14px_rgba(37,99,235,0.35)] active:scale-98 transition-all disabled:opacity-50 cursor-pointer"
             >
               <span className="material-symbols-outlined text-[20px]">
                 {agreementStatus === "AGREED" ? "arrow_forward" : "save"}
@@ -833,21 +855,21 @@ export default function CheckInPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* TAHAP 2: REFERENSI DESAIN UI POS & BUAT UI TOKO                           */}
+      {/* TAHAP 2: REFERENSI DESAIN UI POS & PRATINJAU INTERAKTIF                   */}
       {/* ========================================================================= */}
       {currentStep === 2 && (
-        <div className="space-y-6 animate-in fade-in">
+        <div className="space-y-4 sm:space-y-6 animate-in fade-in">
           {/* Header Card Referensi */}
-          <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#2563EB] text-[22px]">palette</span>
+          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div className="flex items-start sm:items-center gap-2">
+                <span className="material-symbols-outlined text-[#2563EB] text-[22px] shrink-0 mt-0.5 sm:mt-0">palette</span>
                 <div>
-                  <h2 className="text-base font-bold text-[#102A43] font-display">
+                  <h2 className="text-sm sm:text-base font-bold text-[#102A43] font-display">
                     Katalog Referensi Desain UI POS Kasir
                   </h2>
-                  <p className="text-xs text-slate-500">
-                    Pilih tema referensi yang paling sesuai dengan konsep toko <span className="font-bold text-slate-800">{outletName}</span>
+                  <p className="text-[11px] sm:text-xs text-slate-500">
+                    Pilih konsep tema untuk <span className="font-bold text-slate-800">{outletName}</span>
                   </p>
                 </div>
               </div>
@@ -855,14 +877,14 @@ export default function CheckInPage() {
               <button
                 type="button"
                 onClick={() => setCurrentStep(1)}
-                className="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-bold"
+                className="self-start sm:self-auto px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-bold"
               >
                 Ubah Data Toko
               </button>
             </div>
 
             {/* Presets Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {uiPresets.map((preset) => {
                 const isSelected = selectedThemePreset === preset.id;
                 return (
@@ -872,7 +894,7 @@ export default function CheckInPage() {
                       setSelectedThemePreset(preset.id);
                       setCustomBrandColor(preset.color);
                     }}
-                    className={`p-4 rounded-2xl border-2 cursor-pointer transition-all relative ${
+                    className={`p-3.5 sm:p-4 rounded-2xl border-2 cursor-pointer transition-all relative min-h-[52px] ${
                       isSelected
                         ? "border-[#2563EB] bg-blue-50/30 shadow-md ring-2 ring-blue-500/20"
                         : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
@@ -881,13 +903,13 @@ export default function CheckInPage() {
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-2">
                         <span
-                          className="w-4 h-4 rounded-full border border-white shadow-sm"
+                          className="w-4 h-4 rounded-full border border-white shadow-sm shrink-0"
                           style={{ backgroundColor: preset.color }}
                         />
                         <h3 className="text-xs font-bold text-[#102A43]">{preset.title}</h3>
                       </div>
                       {isSelected && (
-                        <span className="material-symbols-outlined text-[#2563EB] text-[18px]">check_circle</span>
+                        <span className="material-symbols-outlined text-[#2563EB] text-[18px] shrink-0">check_circle</span>
                       )}
                     </div>
                     <p className="text-[11px] text-slate-600 mt-2 leading-relaxed">{preset.description}</p>
@@ -902,18 +924,18 @@ export default function CheckInPage() {
             </div>
           </div>
 
-          {/* Kustomisasi Brand & Pratinjau Langsung Layar POS Kasir */}
-          <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          {/* Kustomisasi Brand & Pratinjau Interaktif Layar POS Kasir (Stitch-Style Tablet Device Frame) */}
+          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#2563EB] text-[20px]">devices</span>
-                <h3 className="text-sm font-bold text-[#102A43]">
-                  Pratinjau Interaktif Layar Kasir POS ({outletName || "Nama Toko"})
+                <span className="material-symbols-outlined text-[#2563EB] text-[20px] shrink-0">devices</span>
+                <h3 className="text-xs sm:text-sm font-bold text-[#102A43]">
+                  Pratinjau POS Tablet Mitra ({outletName || "Nama Toko"})
                 </h3>
               </div>
 
               {/* Color Swatches */}
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="text-[11px] text-slate-500 mr-1 font-semibold">Warna Brand:</span>
                 {["#ea580c", "#10b981", "#2563eb", "#e11d48", "#7c3aed", "#0f172a"].map((c) => (
                   <button
@@ -929,169 +951,182 @@ export default function CheckInPage() {
               </div>
             </div>
 
-            {/* Live POS Cashier Screen Mockup */}
-            <div className="rounded-2xl border border-slate-200 overflow-hidden shadow-sm bg-slate-50">
-              {/* POS Top Bar */}
+            {/* Live POS Device Frame (Matching Stitch Mobile/Tablet Screen Specs) */}
+            <div className="rounded-2xl bg-slate-900 border-4 border-slate-800 p-2.5 sm:p-3 shadow-inner text-white transition-all overflow-hidden">
+              {/* Device Status Bar */}
+              <div className="flex justify-between items-center px-1 pb-2 border-b border-slate-700/60 text-[10px] text-slate-400 font-mono">
+                <span className="truncate max-w-[140px] font-bold text-slate-300">
+                  POS-{outletName ? outletName.slice(0, 10).toUpperCase().replace(/[^A-Z0-9]/g, "") : "DEMO"}-01
+                </span>
+                <span className="flex items-center gap-1 text-emerald-400 shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Online • QRIS Siap
+                </span>
+                <span className="shrink-0 hidden xs:inline">14:32 WIB</span>
+              </div>
+
+              {/* POS Brand Header */}
               <div
-                className="px-4 py-3 text-white flex items-center justify-between transition-colors"
+                className="px-3 py-2 rounded-lg mt-2 flex items-center justify-between text-white transition-colors"
                 style={{ backgroundColor: customBrandColor }}
               >
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[20px]">point_of_sale</span>
-                  <div>
-                    <h4 className="text-xs font-bold leading-tight">{outletName || "Cloud POS Store"}</h4>
-                    <span className="text-[10px] opacity-90">{category} &bull; Kasir Utama (Online)</span>
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="material-symbols-outlined text-[18px] shrink-0">point_of_sale</span>
+                  <div className="min-w-0">
+                    <h4 className="text-xs font-bold leading-tight truncate">{outletName || "Cloud POS Store"}</h4>
+                    <span className="text-[10px] opacity-90 truncate block">{category} &bull; Kasir Utama</span>
                   </div>
                 </div>
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-white/20 shrink-0">
+                  Shift 1 Aktif
+                </span>
+              </div>
 
-                <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-white/20">
-                    Shift 1 Aktif
-                  </span>
-                  <div className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse" />
+              {/* Quick Menu Catalog Grid */}
+              <div className="pt-3 pb-2 space-y-2">
+                <div className="flex items-center justify-between text-[11px] text-slate-300 px-1">
+                  <span className="font-bold">Katalog Produk Menu</span>
+                  <span className="text-[10px] text-slate-400">Klik item untuk tambah struk</span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {previewProducts.map((p) => (
+                    <div
+                      key={p.id}
+                      onClick={() => handleAddToCart(p)}
+                      className="bg-slate-800/90 border border-slate-700 p-2.5 rounded-xl flex flex-col justify-between min-h-[76px] cursor-pointer active:scale-95 transition-transform hover:border-slate-500"
+                    >
+                      <div className="min-w-0">
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-700 text-slate-300 inline-block truncate max-w-full">
+                          {p.category}
+                        </span>
+                        <h5 className="text-xs font-bold text-slate-100 mt-1 line-clamp-1">{p.name}</h5>
+                      </div>
+                      <div className="mt-1.5 flex items-center justify-between">
+                        <span className="text-[11px] font-bold font-mono text-emerald-400">
+                          Rp {p.price.toLocaleString("id-ID")}
+                        </span>
+                        <span
+                          className="w-5 h-5 rounded-md flex items-center justify-center text-white text-[12px] font-bold shadow-xs shrink-0"
+                          style={{ backgroundColor: customBrandColor }}
+                        >
+                          +
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              {/* POS Body Layout */}
-              <div className="grid grid-cols-1 md:grid-cols-3 min-h-[300px]">
-                {/* Left 2 Cols: Menu Catalog */}
-                <div className="md:col-span-2 p-4 border-r border-slate-200 bg-white space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-800">Katalog Produk Cepat</span>
-                    <span className="text-[11px] text-slate-400">Klik item untuk menambah ke struk</span>
+              {/* Embedded Mini Cart Sheet Preview (Never breaks mobile layout) */}
+              <div className="mt-2 bg-slate-800 rounded-xl p-2.5 border border-slate-700/80 space-y-2">
+                <div
+                  onClick={() => cartItems.length > 0 && setIsCartDrawerOpen(!isCartDrawerOpen)}
+                  className="flex items-center justify-between cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px] text-emerald-400">shopping_bag</span>
+                    <div className="leading-tight">
+                      <div className="text-[11px] font-bold text-white flex items-center gap-1">
+                        <span>{cartItems.reduce((acc, c) => acc + c.qty, 0)} Pesanan Terpilih</span>
+                        {cartItems.length > 0 && (
+                          <span className="text-[10px] text-slate-400">
+                            ({isCartDrawerOpen ? "Tutup rincian ▲" : "Lihat rincian ▼"})
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[10px] font-mono text-slate-400">
+                        Total: <span className="text-emerald-400 font-bold">Rp {cartTotal.toLocaleString("id-ID")}</span>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2.5">
-                    {previewProducts.map((p) => (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[9px] font-mono bg-slate-700 px-1.5 py-1 rounded text-slate-200">
+                      QRIS STAND
+                    </span>
+                    <span
+                      className="px-2 py-1 rounded text-[10px] font-bold text-white"
+                      style={{ backgroundColor: customBrandColor }}
+                    >
+                      Bayar
+                    </span>
+                  </div>
+                </div>
+
+                {/* Collapsible Cart Items Drawer */}
+                {isCartDrawerOpen && cartItems.length > 0 && (
+                  <div className="pt-2 border-t border-slate-700 space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                    {cartItems.map((c) => (
                       <div
-                        key={p.id}
-                        onClick={() => handleAddToCart(p)}
-                        className="p-3 rounded-xl border border-slate-200 hover:border-slate-300 hover:shadow-sm cursor-pointer transition-all bg-white active:scale-95 flex flex-col justify-between"
+                        key={c.item.id}
+                        className="flex items-center justify-between text-xs bg-slate-900/80 p-2 rounded-lg border border-slate-700"
                       >
-                        <div>
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
-                            {p.category}
-                          </span>
-                          <h5 className="text-xs font-bold text-slate-800 mt-1 line-clamp-1">{p.name}</h5>
-                        </div>
-                        <div className="mt-2 flex items-center justify-between">
-                          <span className="text-xs font-bold text-slate-900">
-                            Rp {p.price.toLocaleString("id-ID")}
-                          </span>
-                          <span
-                            className="w-5 h-5 rounded-md flex items-center justify-center text-white text-[12px] font-bold"
-                            style={{ backgroundColor: customBrandColor }}
-                          >
-                            +
+                        <div className="truncate pr-2">
+                          <p className="font-semibold text-slate-100 truncate text-[11px]">{c.item.name}</p>
+                          <span className="text-[10px] font-mono text-slate-400">
+                            {c.qty}x @ Rp {c.item.price.toLocaleString("id-ID")}
                           </span>
                         </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemoveFromCart(c.item.id);
+                          }}
+                          className="text-red-400 hover:text-red-300 text-sm px-1 shrink-0"
+                        >
+                          &times;
+                        </button>
                       </div>
                     ))}
                   </div>
-                </div>
-
-                {/* Right 1 Col: Active Cart & Total */}
-                <div className="p-4 bg-slate-50 flex flex-col justify-between space-y-3">
-                  <div>
-                    <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                      <span className="text-xs font-bold text-slate-800">Keranjang Kasir</span>
-                      <span className="text-[10px] text-slate-500">{cartItems.length} Produk</span>
-                    </div>
-
-                    <div className="space-y-2 mt-2 max-h-36 overflow-y-auto">
-                      {cartItems.length === 0 ? (
-                        <div className="text-center py-6 text-slate-400 text-xs">
-                          Keranjang masih kosong.<br />Klik menu di samping.
-                        </div>
-                      ) : (
-                        cartItems.map((c) => (
-                          <div key={c.item.id} className="flex items-center justify-between text-xs bg-white p-2 rounded-lg border border-slate-200">
-                            <div className="truncate pr-2">
-                              <p className="font-semibold text-slate-800 truncate">{c.item.name}</p>
-                              <span className="text-[10px] text-slate-500">
-                                {c.qty}x @ Rp {c.item.price.toLocaleString("id-ID")}
-                              </span>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveFromCart(c.item.id)}
-                              className="text-red-400 hover:text-red-600 text-xs shrink-0"
-                            >
-                              &times;
-                            </button>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 pt-2 border-t border-slate-200">
-                    <div className="flex items-center justify-between text-xs font-bold text-slate-900">
-                      <span>Total Transaksi</span>
-                      <span className="text-sm font-mono text-emerald-600">
-                        Rp {cartTotal.toLocaleString("id-ID")}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-1.5 pt-1">
-                      <div className="py-2 text-center rounded-lg bg-emerald-100 text-emerald-800 font-bold text-[11px] flex items-center justify-center gap-1">
-                        <span className="material-symbols-outlined text-[14px]">payments</span>
-                        <span>Tunai Pas</span>
-                      </div>
-                      <div className="py-2 text-center rounded-lg bg-blue-100 text-blue-800 font-bold text-[11px] flex items-center justify-center gap-1">
-                        <span className="material-symbols-outlined text-[14px]">qr_code_scanner</span>
-                        <span>QRIS / E-Wallet</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Checklist Fitur & Modul Cloud POS (Standar Lengkap Tenant) */}
-          <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          {/* Checklist Fitur & Modul Cloud POS (10 Modul Standar Tenant) */}
+          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#2563EB] text-[22px]">checklist</span>
+                <span className="material-symbols-outlined text-[#2563EB] text-[22px] shrink-0">checklist</span>
                 <div>
-                  <h3 className="text-sm font-bold text-[#102A43]">
-                    Checklist Fitur &amp; Modul Cloud POS (Centang Fitur Aktif)
+                  <h3 className="text-xs sm:text-sm font-bold text-[#102A43]">
+                    Checklist Fitur Cloud POS (10 Modul)
                   </h3>
                   <p className="text-[11px] text-slate-500">
-                    Pilih modul yang akan diaktifkan untuk <span className="font-bold text-slate-800">{outletName || "toko ini"}</span>. Standar penuh setara Dimsum Intan tercentang secara default.
+                    Pilih modul untuk <span className="font-bold text-slate-800">{outletName || "toko ini"}</span>
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setEnabledModules({
-                      posCashier: true,
-                      cashReconciliation: true,
-                      menuHpp: true,
-                      pettyCash: true,
-                      factoryBills: true,
-                      fixedExpenses: true,
-                      profitLoss: true,
-                      walletPayout: true,
-                      paymentGateway: true,
-                      multiBranches: true,
-                    })
-                  }
-                  className="px-2.5 py-1 text-[11px] font-bold text-[#2563EB] bg-blue-50 hover:bg-blue-100 rounded-lg transition"
-                >
-                  Centang Semua
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  setEnabledModules({
+                    posCashier: true,
+                    cashReconciliation: true,
+                    menuHpp: true,
+                    pettyCash: true,
+                    factoryBills: true,
+                    fixedExpenses: true,
+                    profitLoss: true,
+                    walletPayout: true,
+                    paymentGateway: true,
+                    multiBranches: true,
+                  })
+                }
+                className="self-start sm:self-auto px-2.5 py-1 text-[11px] font-bold text-[#2563EB] bg-blue-50 hover:bg-blue-100 rounded-lg transition"
+              >
+                Centang Semua
+              </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
               {/* 1. POS Kasir */}
               <label
-                className={`p-3 rounded-xl border-2 flex items-start gap-3 cursor-pointer transition-all ${
+                className={`p-2.5 sm:p-3 rounded-xl border-2 flex items-start gap-2.5 cursor-pointer transition-all min-h-[48px] ${
                   enabledModules.posCashier ? "bg-blue-50/50 border-[#2563EB]" : "bg-slate-50 border-slate-200"
                 }`}
               >
@@ -1099,22 +1134,22 @@ export default function CheckInPage() {
                   type="checkbox"
                   checked={enabledModules.posCashier}
                   onChange={(e) => setEnabledModules((prev) => ({ ...prev, posCashier: e.target.checked }))}
-                  className="mt-1 accent-[#2563EB] w-4 h-4 rounded"
+                  className="mt-0.5 accent-[#2563EB] w-4 h-4 rounded shrink-0"
                 />
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="text-xs font-bold text-slate-900 flex items-center justify-between">
-                    <span>1. Kasir POS &amp; Struk Termal</span>
-                    <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800">Wajib</span>
+                    <span className="truncate">1. Kasir POS &amp; Struk</span>
+                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 shrink-0 ml-1">Wajib</span>
                   </div>
-                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight">
-                    Katalog menu, keranjang belanja, meja, kitchen notes &amp; cetak struk 58/80mm.
+                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight line-clamp-1">
+                    Katalog menu, keranjang, kitchen notes &amp; cetak struk termal.
                   </div>
                 </div>
               </label>
 
               {/* 2. Sesi Shift */}
               <label
-                className={`p-3 rounded-xl border-2 flex items-start gap-3 cursor-pointer transition-all ${
+                className={`p-2.5 sm:p-3 rounded-xl border-2 flex items-start gap-2.5 cursor-pointer transition-all min-h-[48px] ${
                   enabledModules.cashReconciliation ? "bg-blue-50/50 border-[#2563EB]" : "bg-slate-50 border-slate-200"
                 }`}
               >
@@ -1122,19 +1157,19 @@ export default function CheckInPage() {
                   type="checkbox"
                   checked={enabledModules.cashReconciliation}
                   onChange={(e) => setEnabledModules((prev) => ({ ...prev, cashReconciliation: e.target.checked }))}
-                  className="mt-1 accent-[#2563EB] w-4 h-4 rounded"
+                  className="mt-0.5 accent-[#2563EB] w-4 h-4 rounded shrink-0"
                 />
-                <div className="flex-1">
-                  <div className="text-xs font-bold text-slate-900">2. Sesi Shift &amp; Rekonsiliasi Kas</div>
-                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight">
-                    Buka/tutup shift kasir, hitung uang fisik laci kasir, &amp; audit selisih kas.
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-bold text-slate-900 truncate">2. Buka/Tutup Shift Kasir</div>
+                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight line-clamp-1">
+                    Hitung fisik laci kasir &amp; rekonsiliasi selisih kas.
                   </div>
                 </div>
               </label>
 
               {/* 3. Menu & HPP */}
               <label
-                className={`p-3 rounded-xl border-2 flex items-start gap-3 cursor-pointer transition-all ${
+                className={`p-2.5 sm:p-3 rounded-xl border-2 flex items-start gap-2.5 cursor-pointer transition-all min-h-[48px] ${
                   enabledModules.menuHpp ? "bg-blue-50/50 border-[#2563EB]" : "bg-slate-50 border-slate-200"
                 }`}
               >
@@ -1142,19 +1177,19 @@ export default function CheckInPage() {
                   type="checkbox"
                   checked={enabledModules.menuHpp}
                   onChange={(e) => setEnabledModules((prev) => ({ ...prev, menuHpp: e.target.checked }))}
-                  className="mt-1 accent-[#2563EB] w-4 h-4 rounded"
+                  className="mt-0.5 accent-[#2563EB] w-4 h-4 rounded shrink-0"
                 />
-                <div className="flex-1">
-                  <div className="text-xs font-bold text-slate-900">3. Master Menu &amp; Kalkulasi HPP</div>
-                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight">
-                    Harga modal bahan baku per porsi, margin laba kotor %, &amp; upload foto menu.
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-bold text-slate-900 truncate">3. Master Menu &amp; HPP</div>
+                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight line-clamp-1">
+                    Harga modal bahan per porsi &amp; margin laba kotor %.
                   </div>
                 </div>
               </label>
 
               {/* 4. Kas Kecil */}
               <label
-                className={`p-3 rounded-xl border-2 flex items-start gap-3 cursor-pointer transition-all ${
+                className={`p-2.5 sm:p-3 rounded-xl border-2 flex items-start gap-2.5 cursor-pointer transition-all min-h-[48px] ${
                   enabledModules.pettyCash ? "bg-blue-50/50 border-[#2563EB]" : "bg-slate-50 border-slate-200"
                 }`}
               >
@@ -1162,19 +1197,19 @@ export default function CheckInPage() {
                   type="checkbox"
                   checked={enabledModules.pettyCash}
                   onChange={(e) => setEnabledModules((prev) => ({ ...prev, pettyCash: e.target.checked }))}
-                  className="mt-1 accent-[#2563EB] w-4 h-4 rounded"
+                  className="mt-0.5 accent-[#2563EB] w-4 h-4 rounded shrink-0"
                 />
-                <div className="flex-1">
-                  <div className="text-xs font-bold text-slate-900">4. Buku Kas Kecil (Petty Cash)</div>
-                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight">
-                    Catat pengeluaran harian cabang (es batu, gas LPG, kresek) &amp; foto nota.
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-bold text-slate-900 truncate">4. Buku Kas Kecil (Petty Cash)</div>
+                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight line-clamp-1">
+                    Pengeluaran harian cabang (es batu, gas) &amp; foto nota.
                   </div>
                 </div>
               </label>
 
               {/* 5. Tagihan Supplier */}
               <label
-                className={`p-3 rounded-xl border-2 flex items-start gap-3 cursor-pointer transition-all ${
+                className={`p-2.5 sm:p-3 rounded-xl border-2 flex items-start gap-2.5 cursor-pointer transition-all min-h-[48px] ${
                   enabledModules.factoryBills ? "bg-blue-50/50 border-[#2563EB]" : "bg-slate-50 border-slate-200"
                 }`}
               >
@@ -1182,19 +1217,19 @@ export default function CheckInPage() {
                   type="checkbox"
                   checked={enabledModules.factoryBills}
                   onChange={(e) => setEnabledModules((prev) => ({ ...prev, factoryBills: e.target.checked }))}
-                  className="mt-1 accent-[#2563EB] w-4 h-4 rounded"
+                  className="mt-0.5 accent-[#2563EB] w-4 h-4 rounded shrink-0"
                 />
-                <div className="flex-1">
-                  <div className="text-xs font-bold text-slate-900">5. Tagihan Supplier &amp; Bahan (Pabrik)</div>
-                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight">
-                    Pencatatan faktur masuk pasokan bahan baku, jatuh tempo, &amp; hutang vendor.
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-bold text-slate-900 truncate">5. Tagihan Supplier (Pabrik)</div>
+                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight line-clamp-1">
+                    Faktur pasokan bahan, jatuh tempo &amp; hutang vendor.
                   </div>
                 </div>
               </label>
 
               {/* 6. Beban Tetap */}
               <label
-                className={`p-3 rounded-xl border-2 flex items-start gap-3 cursor-pointer transition-all ${
+                className={`p-2.5 sm:p-3 rounded-xl border-2 flex items-start gap-2.5 cursor-pointer transition-all min-h-[48px] ${
                   enabledModules.fixedExpenses ? "bg-blue-50/50 border-[#2563EB]" : "bg-slate-50 border-slate-200"
                 }`}
               >
@@ -1202,19 +1237,19 @@ export default function CheckInPage() {
                   type="checkbox"
                   checked={enabledModules.fixedExpenses}
                   onChange={(e) => setEnabledModules((prev) => ({ ...prev, fixedExpenses: e.target.checked }))}
-                  className="mt-1 accent-[#2563EB] w-4 h-4 rounded"
+                  className="mt-0.5 accent-[#2563EB] w-4 h-4 rounded shrink-0"
                 />
-                <div className="flex-1">
-                  <div className="text-xs font-bold text-slate-900">6. Beban Operasional Tetap Bulanan</div>
-                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight">
-                    Pencatatan sewa ruko/tempat, gaji karyawan, listrik PLN, air, &amp; WiFi.
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-bold text-slate-900 truncate">6. Beban Operasional Tetap</div>
+                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight line-clamp-1">
+                    Sewa ruko, gaji karyawan, listrik PLN &amp; WiFi.
                   </div>
                 </div>
               </label>
 
               {/* 7. Laba Rugi */}
               <label
-                className={`p-3 rounded-xl border-2 flex items-start gap-3 cursor-pointer transition-all ${
+                className={`p-2.5 sm:p-3 rounded-xl border-2 flex items-start gap-2.5 cursor-pointer transition-all min-h-[48px] ${
                   enabledModules.profitLoss ? "bg-blue-50/50 border-[#2563EB]" : "bg-slate-50 border-slate-200"
                 }`}
               >
@@ -1222,19 +1257,19 @@ export default function CheckInPage() {
                   type="checkbox"
                   checked={enabledModules.profitLoss}
                   onChange={(e) => setEnabledModules((prev) => ({ ...prev, profitLoss: e.target.checked }))}
-                  className="mt-1 accent-[#2563EB] w-4 h-4 rounded"
+                  className="mt-0.5 accent-[#2563EB] w-4 h-4 rounded shrink-0"
                 />
-                <div className="flex-1">
-                  <div className="text-xs font-bold text-slate-900">7. Laporan Laba Rugi &amp; Arus Kas (P&amp;L)</div>
-                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight">
-                    Net Revenue, HPP, Gross Profit, Total Beban, Net Profit, &amp; ekspor CSV/PDF.
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-bold text-slate-900 truncate">7. Laporan Laba Rugi (P&amp;L)</div>
+                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight line-clamp-1">
+                    Net Revenue, HPP, Gross/Net Profit &amp; ekspor CSV/PDF.
                   </div>
                 </div>
               </label>
 
               {/* 8. Dompet & Payout */}
               <label
-                className={`p-3 rounded-xl border-2 flex items-start gap-3 cursor-pointer transition-all ${
+                className={`p-2.5 sm:p-3 rounded-xl border-2 flex items-start gap-2.5 cursor-pointer transition-all min-h-[48px] ${
                   enabledModules.walletPayout ? "bg-blue-50/50 border-[#2563EB]" : "bg-slate-50 border-slate-200"
                 }`}
               >
@@ -1242,19 +1277,19 @@ export default function CheckInPage() {
                   type="checkbox"
                   checked={enabledModules.walletPayout}
                   onChange={(e) => setEnabledModules((prev) => ({ ...prev, walletPayout: e.target.checked }))}
-                  className="mt-1 accent-[#2563EB] w-4 h-4 rounded"
+                  className="mt-0.5 accent-[#2563EB] w-4 h-4 rounded shrink-0"
                 />
-                <div className="flex-1">
-                  <div className="text-xs font-bold text-slate-900">8. Dompet Digital &amp; Tarik Saldo (Disbursement)</div>
-                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight">
-                    Monitor saldo QRIS &amp; penarikan uang riil langsung ke rekening bank pemilik.
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-bold text-slate-900 truncate">8. Dompet &amp; Tarik Saldo</div>
+                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight line-clamp-1">
+                    Penarikan uang QRIS langsung ke rekening bank pemilik.
                   </div>
                 </div>
               </label>
 
               {/* 9. Payment Gateway */}
               <label
-                className={`p-3 rounded-xl border-2 flex items-start gap-3 cursor-pointer transition-all ${
+                className={`p-2.5 sm:p-3 rounded-xl border-2 flex items-start gap-2.5 cursor-pointer transition-all min-h-[48px] ${
                   enabledModules.paymentGateway ? "bg-blue-50/50 border-[#2563EB]" : "bg-slate-50 border-slate-200"
                 }`}
               >
@@ -1262,19 +1297,19 @@ export default function CheckInPage() {
                   type="checkbox"
                   checked={enabledModules.paymentGateway}
                   onChange={(e) => setEnabledModules((prev) => ({ ...prev, paymentGateway: e.target.checked }))}
-                  className="mt-1 accent-[#2563EB] w-4 h-4 rounded"
+                  className="mt-0.5 accent-[#2563EB] w-4 h-4 rounded shrink-0"
                 />
-                <div className="flex-1">
-                  <div className="text-xs font-bold text-slate-900">9. Payment Gateway Mandiri (BYOK)</div>
-                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight">
-                    Integrasi kunci API merchant (Duitku / Midtrans) untuk QRIS dinamis mandiri.
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-bold text-slate-900 truncate">9. Payment Gateway (BYOK)</div>
+                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight line-clamp-1">
+                    Integrasi kunci API merchant (Duitku / Midtrans) mandiri.
                   </div>
                 </div>
               </label>
 
               {/* 10. Multi Cabang */}
               <label
-                className={`p-3 rounded-xl border-2 flex items-start gap-3 cursor-pointer transition-all ${
+                className={`p-2.5 sm:p-3 rounded-xl border-2 flex items-start gap-2.5 cursor-pointer transition-all min-h-[48px] ${
                   enabledModules.multiBranches ? "bg-blue-50/50 border-[#2563EB]" : "bg-slate-50 border-slate-200"
                 }`}
               >
@@ -1282,12 +1317,12 @@ export default function CheckInPage() {
                   type="checkbox"
                   checked={enabledModules.multiBranches}
                   onChange={(e) => setEnabledModules((prev) => ({ ...prev, multiBranches: e.target.checked }))}
-                  className="mt-1 accent-[#2563EB] w-4 h-4 rounded"
+                  className="mt-0.5 accent-[#2563EB] w-4 h-4 rounded shrink-0"
                 />
-                <div className="flex-1">
-                  <div className="text-xs font-bold text-slate-900">10. Manajemen Multi-Cabang &amp; Kuota</div>
-                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight">
-                    Kontrol kuota cabang sesuai lisensi paket, target omzet, &amp; switcher outlet.
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-bold text-slate-900 truncate">10. Manajemen Multi-Cabang</div>
+                  <div className="text-[11px] text-slate-500 mt-0.5 leading-tight line-clamp-1">
+                    Kontrol kuota cabang sesuai lisensi paket langganan.
                   </div>
                 </div>
               </label>
@@ -1295,11 +1330,11 @@ export default function CheckInPage() {
           </div>
 
           {/* Action Approval Bar */}
-          <div className="flex items-center gap-3 pt-2">
+          <div className="flex items-center gap-2.5 sm:gap-3 pt-2">
             <button
               type="button"
               onClick={() => setCurrentStep(1)}
-              className="px-5 h-12 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 transition"
+              className="min-h-[48px] px-4 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 transition shrink-0"
             >
               ⬅️ Kembali
             </button>
@@ -1307,10 +1342,10 @@ export default function CheckInPage() {
             <button
               type="button"
               onClick={handleApproveDesign}
-              className="flex-1 h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-[0_4px_14px_rgba(16,185,129,0.35)] active:scale-98 transition-all cursor-pointer"
+              className="flex-1 min-h-[48px] px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-[0_4px_14px_rgba(16,185,129,0.35)] active:scale-98 transition-all cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[20px]">verified</span>
-              <span>✅ UMKM Setuju (Approve Desain) & Input Akun Pemilik ➡️</span>
+              <span className="material-symbols-outlined text-[18px]">verified</span>
+              <span className="truncate">✅ UMKM Setuju (Approve) & Input Akun ➡️</span>
             </button>
           </div>
         </div>
@@ -1320,28 +1355,28 @@ export default function CheckInPage() {
       {/* TAHAP 3: APPROVE & INPUT KREDENSIAL UMKM (USERNAME & PASSWORD)             */}
       {/* ========================================================================= */}
       {currentStep === 3 && (
-        <div className="space-y-6 animate-in fade-in">
+        <div className="space-y-4 sm:space-y-6 animate-in fade-in">
           {/* Card Setup Akun Owner */}
-          <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-5">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-[#E2E8F0] space-y-4 sm:space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#2563EB] text-[22px]">badge</span>
+                <span className="material-symbols-outlined text-[#2563EB] text-[22px] shrink-0">badge</span>
                 <div>
-                  <h2 className="text-base font-bold text-[#102A43] font-display">
-                    Setup Akun Pemilik UMKM & Subdomain Cloud POS
+                  <h2 className="text-sm sm:text-base font-bold text-[#102A43] font-display">
+                    Setup Akun Pemilik & Subdomain POS
                   </h2>
-                  <p className="text-xs text-slate-500">
-                    Desain telah disetujui oleh <span className="font-bold text-slate-800">{ownerName}</span>. Masukkan username dan password login untuk pemilik toko.
+                  <p className="text-[11px] sm:text-xs text-slate-500">
+                    Desain disetujui oleh <span className="font-bold text-slate-800">{ownerName || "Pemilik"}</span>
                   </p>
                 </div>
               </div>
 
-              <span className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span className="self-start sm:self-auto px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                 Status: Deal Approved
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
               {/* Username UMKM */}
               <div className="space-y-1">
                 <label className="text-xs font-bold text-[#102A43]">
@@ -1360,7 +1395,7 @@ export default function CheckInPage() {
                     className="w-full h-11 pl-10 pr-4 rounded-xl bg-slate-50 border border-[#CBD5E1] text-xs font-bold text-[#102A43] focus:bg-white focus:border-[#2563EB] outline-none font-mono"
                   />
                 </div>
-                <span className="text-[10px] text-slate-400 block">Digunakan oleh pemilik toko untuk login ke dashboard kasir.</span>
+                <span className="text-[10px] text-slate-400 block">Digunakan pemilik untuk login ke kasir.</span>
               </div>
 
               {/* Password UMKM */}
@@ -1390,41 +1425,43 @@ export default function CheckInPage() {
                     </span>
                   </button>
                 </div>
-                <span className="text-[10px] text-slate-400 block">Password awal yang dapat dibagikan langsung ke pemilik via WhatsApp.</span>
+                <span className="text-[10px] text-slate-400 block">Password dapat dibagikan langsung via WhatsApp.</span>
               </div>
             </div>
 
-            {/* Subdomain Cloud POS */}
+            {/* Subdomain Cloud POS (Fixed padding and overflow) */}
             <div className="space-y-1 pt-1">
               <label className="text-xs font-bold text-[#102A43]">
                 Alamat Web Subdomain Cloud POS UMKM <span className="text-red-500">*</span>
               </label>
-              <div className="flex items-center">
-                <div className="relative flex-1 flex items-center">
-                  <span className="absolute left-3 text-xs font-bold text-slate-400">https://</span>
+              <div className="flex items-center max-w-full">
+                <div className="relative flex-1 flex items-center min-w-0">
+                  <span className="absolute left-3 text-xs font-bold text-slate-400 select-none pointer-events-none">
+                    https://
+                  </span>
                   <input
                     type="text"
                     required
                     value={subdomain}
                     onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
                     placeholder="dimsumintan"
-                    className="w-full h-11 pl-18 pr-3 rounded-l-xl bg-slate-50 border border-[#CBD5E1] text-xs font-bold text-[#102A43] focus:bg-white focus:border-[#2563EB] outline-none font-mono"
+                    className="w-full h-11 pl-[66px] pr-2 rounded-l-xl bg-slate-50 border border-[#CBD5E1] text-xs font-bold text-[#102A43] focus:bg-white focus:border-[#2563EB] outline-none font-mono truncate"
                   />
                 </div>
-                <div className="h-11 px-4 rounded-r-xl bg-slate-200 border-y border-r border-[#CBD5E1] flex items-center text-xs font-bold text-slate-700">
+                <div className="h-11 px-3 sm:px-4 rounded-r-xl bg-slate-200 border-y border-r border-[#CBD5E1] flex items-center text-xs font-bold text-slate-700 shrink-0 select-none">
                   .vimtk.cloud
                 </div>
               </div>
-              <span className="text-[10px] text-slate-400 block">Domain aktif instan yang akan otomatis di-deploy oleh engine Antigravity.</span>
+              <span className="text-[10px] text-slate-400 block">Domain aktif instan yang otomatis di-deploy server.</span>
             </div>
 
-            {/* Paket Berlangganan SaaS */}
+            {/* Paket Berlangganan SaaS & Hak Royalti Sales 20% Berulang */}
             <div className="space-y-3 pt-2">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                 <label className="text-xs font-bold text-[#102A43]">Pilihan Paket Berlangganan POS</label>
                 <span className="text-[11px] text-emerald-600 font-bold flex items-center gap-1">
                   <span className="material-symbols-outlined text-[14px]">event_repeat</span>
-                  Akumulasi Kuota Fleksibel Bulanan
+                  Akumulasi Kuota Bulanan (Fleksibel)
                 </span>
               </div>
 
@@ -1432,7 +1469,7 @@ export default function CheckInPage() {
               <div className="p-3 rounded-xl bg-blue-50/80 border border-blue-200 text-xs text-blue-900 flex items-start gap-2.5">
                 <span className="material-symbols-outlined text-[#2563EB] text-[18px] shrink-0 mt-0.5">info</span>
                 <div className="leading-relaxed text-[11px]">
-                  <strong>Akumulatif Bulanan Fleksibel:</strong> Seluruh paket dihitung per bulan. Jika pada hari tertentu outlet ramai dan melayani lebih dari batas rata-rata harian (misal lebih dari 100 transaksi), transaksi <strong>tetap aman dan berjalan normal</strong> karena dihitung dari jatah kuota bulanan.
+                  <strong>Akumulatif Bulanan Fleksibel:</strong> Jika hari tertentu outlet ramai dan melayani lebih dari rata-rata harian, transaksi <strong>tetap normal</strong> karena dihitung dari total jatah kuota bulanan.
                 </div>
               </div>
 
@@ -1440,91 +1477,131 @@ export default function CheckInPage() {
                 {/* 1. Paket 50K */}
                 <div
                   onClick={() => setSelectedPlanCode("PAKET_50K")}
-                  className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
+                  className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between min-h-[110px] ${
                     selectedPlanCode === "PAKET_50K"
                       ? "border-[#2563EB] bg-blue-50/50 shadow-sm ring-1 ring-blue-500"
                       : "border-slate-200 hover:bg-slate-50"
                   }`}
                 >
-                  <div className="text-[11px] font-bold text-slate-500">1. Paket 50K (100 Tx/hr)</div>
-                  <div className="text-sm font-extrabold text-[#102A43] mt-0.5">
-                    Rp 50.000<span className="text-[10px] text-slate-400 font-normal">/bln</span>
+                  <div>
+                    <div className="text-[11px] font-bold text-slate-500">1. Paket 50K (100 Tx/hr)</div>
+                    <div className="text-base font-extrabold text-[#102A43] mt-0.5 font-mono">
+                      Rp 50.000<span className="text-[10px] text-slate-400 font-normal">/bln</span>
+                    </div>
+                    <div className="text-[10px] text-slate-600 mt-1 leading-tight">
+                      100 Tx/hari &bull; <strong>3.000 Tx/Bulan</strong>
+                    </div>
                   </div>
-                  <div className="text-[10px] text-slate-600 mt-1 leading-tight">
-                    100 transaksi/hari &bull; <strong>3.000 Tx/Bulan</strong>
+                  <div className="mt-2.5 pt-2 border-t border-slate-200/80 flex items-center justify-between text-[11px]">
+                    <span className="text-slate-500">Royalti Sales (20%):</span>
+                    <span className="font-mono font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
+                      +Rp 10.000/bln
+                    </span>
                   </div>
                 </div>
 
                 {/* 2. Paket 100K */}
                 <div
                   onClick={() => setSelectedPlanCode("PAKET_100K")}
-                  className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
+                  className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between min-h-[110px] ${
                     selectedPlanCode === "PAKET_100K"
                       ? "border-[#2563EB] bg-blue-50/50 shadow-sm ring-1 ring-blue-500"
                       : "border-slate-200 hover:bg-slate-50"
                   }`}
                 >
-                  <div className="text-[11px] font-bold text-slate-500">2. Paket 100K (200 Tx/hr)</div>
-                  <div className="text-sm font-extrabold text-[#102A43] mt-0.5">
-                    Rp 100.000<span className="text-[10px] text-slate-400 font-normal">/bln</span>
+                  <div>
+                    <div className="text-[11px] font-bold text-slate-500">2. Paket 100K (200 Tx/hr)</div>
+                    <div className="text-base font-extrabold text-[#102A43] mt-0.5 font-mono">
+                      Rp 100.000<span className="text-[10px] text-slate-400 font-normal">/bln</span>
+                    </div>
+                    <div className="text-[10px] text-slate-600 mt-1 leading-tight">
+                      200 Tx/hari &bull; <strong>6.000 Tx/Bulan</strong>
+                    </div>
                   </div>
-                  <div className="text-[10px] text-slate-600 mt-1 leading-tight">
-                    200 transaksi/hari &bull; <strong>6.000 Tx/Bulan</strong>
+                  <div className="mt-2.5 pt-2 border-t border-slate-200/80 flex items-center justify-between text-[11px]">
+                    <span className="text-slate-500">Royalti Sales (20%):</span>
+                    <span className="font-mono font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
+                      +Rp 20.000/bln
+                    </span>
                   </div>
                 </div>
 
                 {/* 3. Paket 150K */}
                 <div
                   onClick={() => setSelectedPlanCode("PAKET_150K")}
-                  className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all relative ${
+                  className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all relative flex flex-col justify-between min-h-[110px] ${
                     selectedPlanCode === "PAKET_150K"
                       ? "border-[#2563EB] bg-blue-50/50 shadow-sm ring-1 ring-blue-500"
                       : "border-slate-200 hover:bg-slate-50"
                   }`}
                 >
-                  <span className="absolute -top-2 right-3 px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#2563EB] text-white">
+                  <span className="absolute -top-2.5 right-3 px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#2563EB] text-white shadow-xs">
                     Paling Populer
                   </span>
-                  <div className="text-[11px] font-bold text-[#2563EB]">3. Paket 150K (300 Tx/hr)</div>
-                  <div className="text-sm font-extrabold text-[#102A43] mt-0.5">
-                    Rp 150.000<span className="text-[10px] text-slate-400 font-normal">/bln</span>
+                  <div>
+                    <div className="text-[11px] font-bold text-[#2563EB]">3. Paket 150K (300 Tx/hr)</div>
+                    <div className="text-base font-extrabold text-[#102A43] mt-0.5 font-mono">
+                      Rp 150.000<span className="text-[10px] text-slate-400 font-normal">/bln</span>
+                    </div>
+                    <div className="text-[10px] text-slate-600 mt-1 leading-tight">
+                      300 Tx/hari &bull; <strong>9.000 Tx/Bulan</strong>
+                    </div>
                   </div>
-                  <div className="text-[10px] text-slate-600 mt-1 leading-tight">
-                    300 transaksi/hari &bull; <strong>9.000 Tx/Bulan</strong>
+                  <div className="mt-2.5 pt-2 border-t border-slate-200/80 flex items-center justify-between text-[11px]">
+                    <span className="text-[#2563EB] font-semibold">Royalti Sales (20%):</span>
+                    <span className="font-mono font-bold text-[#2563EB] bg-blue-100/60 px-1.5 py-0.5 rounded">
+                      +Rp 30.000/bln
+                    </span>
                   </div>
                 </div>
 
                 {/* 4. Paket 200K */}
                 <div
                   onClick={() => setSelectedPlanCode("PAKET_200K")}
-                  className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
+                  className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between min-h-[110px] ${
                     selectedPlanCode === "PAKET_200K"
                       ? "border-[#2563EB] bg-blue-50/50 shadow-sm ring-1 ring-blue-500"
                       : "border-slate-200 hover:bg-slate-50"
                   }`}
                 >
-                  <div className="text-[11px] font-bold text-slate-500">4. Paket 200K (500 Tx/hr)</div>
-                  <div className="text-sm font-extrabold text-[#102A43] mt-0.5">
-                    Rp 200.000<span className="text-[10px] text-slate-400 font-normal">/bln</span>
+                  <div>
+                    <div className="text-[11px] font-bold text-slate-500">4. Paket 200K (500 Tx/hr)</div>
+                    <div className="text-base font-extrabold text-[#102A43] mt-0.5 font-mono">
+                      Rp 200.000<span className="text-[10px] text-slate-400 font-normal">/bln</span>
+                    </div>
+                    <div className="text-[10px] text-slate-600 mt-1 leading-tight">
+                      500 Tx/hari &bull; <strong>15.000 Tx/Bulan</strong>
+                    </div>
                   </div>
-                  <div className="text-[10px] text-slate-600 mt-1 leading-tight">
-                    500 transaksi/hari &bull; <strong>15.000 Tx/Bulan</strong>
+                  <div className="mt-2.5 pt-2 border-t border-slate-200/80 flex items-center justify-between text-[11px]">
+                    <span className="text-slate-500">Royalti Sales (20%):</span>
+                    <span className="font-mono font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
+                      +Rp 40.000/bln
+                    </span>
                   </div>
                 </div>
 
                 {/* 5. Paket Custom */}
                 <div
                   onClick={() => setSelectedPlanCode("PAKET_CUSTOM")}
-                  className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
+                  className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all flex flex-col justify-between min-h-[110px] ${
                     selectedPlanCode === "PAKET_CUSTOM"
                       ? "border-[#2563EB] bg-blue-50/50 shadow-sm ring-1 ring-blue-500"
                       : "border-slate-200 hover:bg-slate-50"
                   }`}
                 >
-                  <div className="text-[11px] font-bold text-purple-600">5. Custom Hubungi Kami</div>
-                  <div className="text-sm font-extrabold text-purple-900 mt-0.5">Hubungi Kami</div>
-                  <div className="text-[10px] text-slate-600 mt-1 leading-tight">
-                    Bebas / Unlimited &bull; <strong>Skala Besar &amp; Prioritas</strong>
+                  <div>
+                    <div className="text-[11px] font-bold text-purple-600">5. Custom Prioritas</div>
+                    <div className="text-base font-extrabold text-purple-900 mt-0.5 font-mono">Hubungi Kami</div>
+                    <div className="text-[10px] text-slate-600 mt-1 leading-tight">
+                      Bebas Kuota &bull; <strong>Dedicated Support</strong>
+                    </div>
+                  </div>
+                  <div className="mt-2.5 pt-2 border-t border-slate-200/80 flex items-center justify-between text-[11px]">
+                    <span className="text-purple-700 font-semibold">Royalti Sales:</span>
+                    <span className="font-mono font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded">
+                      20% Negosiasi
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1532,12 +1609,12 @@ export default function CheckInPage() {
           </div>
 
           {/* Antigravity Automation Notice Card */}
-          <div className="bg-gradient-to-r from-blue-900 to-[#102A43] rounded-2xl p-5 text-white space-y-3 shadow-md">
+          <div className="bg-gradient-to-r from-blue-950 to-[#102A43] rounded-2xl p-4 sm:p-5 text-white space-y-3 shadow-md">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-blue-300 text-[24px]">auto_awesome</span>
-              <h3 className="text-sm font-bold font-display">Eksekusi Otomasi Antigravity</h3>
+              <span className="material-symbols-outlined text-blue-300 text-[22px]">auto_awesome</span>
+              <h3 className="text-xs sm:text-sm font-bold font-display">Eksekusi Otomasi Antigravity</h3>
             </div>
-            <p className="text-xs text-blue-100 leading-relaxed">
+            <p className="text-[11px] sm:text-xs text-blue-100 leading-relaxed">
               Begitu Anda menekan tombol di bawah, Antigravity akan otomatis mengeksekusi:
             </p>
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-blue-200">
@@ -1551,46 +1628,46 @@ export default function CheckInPage() {
               </li>
               <li className="flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-emerald-400 text-[14px]">check_circle</span>
-                <span>Terbitkan Akun Owner (Username & Password)</span>
+                <span>Terbitkan Akun Owner (User &amp; Pass)</span>
               </li>
               <li className="flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-emerald-400 text-[14px]">check_circle</span>
-                <span>Terbitkan Lisensi Resmi & Kunci Komisi Sales</span>
+                <span>Terbitkan Lisensi Resmi &amp; Kunci Komisi</span>
               </li>
             </ul>
           </div>
 
           {provisionError && (
-            <div className="p-4 rounded-xl bg-red-100 text-red-900 border border-red-300 text-xs font-bold animate-in fade-in flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px]">error</span>
-              <span>{provisionError}</span>
+            <div className="p-3.5 rounded-xl bg-red-100 text-red-900 border border-red-300 text-xs font-bold animate-in fade-in flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px] shrink-0">error</span>
+              <span className="leading-tight">{provisionError}</span>
             </div>
           )}
 
           {/* Action Buttons Step 3 */}
-          <div className="flex items-center gap-3 pt-2">
+          <div className="flex items-center gap-2.5 sm:gap-3 pt-2">
             <button
               type="button"
               disabled={isProvisioning}
               onClick={() => setCurrentStep(2)}
-              className="px-5 h-12 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 transition"
+              className="min-h-[48px] px-4 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 transition shrink-0"
             >
-              ⬅️ Kembali ke Desain
+              ⬅️ Desain
             </button>
 
             <button
               type="button"
               disabled={isProvisioning}
               onClick={handleExecuteAntigravityProvisioning}
-              className="flex-1 h-12 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(37,99,235,0.4)] active:scale-98 transition-all disabled:opacity-50 cursor-pointer"
+              className="flex-1 min-h-[48px] px-3 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-[0_4px_16px_rgba(37,99,235,0.4)] active:scale-98 transition-all disabled:opacity-50 cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[20px]">
+              <span className="material-symbols-outlined text-[18px]">
                 {isProvisioning ? "sync" : "rocket_launch"}
               </span>
-              <span>
+              <span className="truncate">
                 {isProvisioning
-                  ? "Antigravity Sedang Membuat Sistem Cloud POS..."
-                  : "🚀 Approve & Buat Sistem Cloud POS (Antigravity Engine)"}
+                  ? "Antigravity Sedang Membuat Cloud POS..."
+                  : "🚀 Approve & Buat Sistem Cloud POS"}
               </span>
             </button>
           </div>
@@ -1601,31 +1678,31 @@ export default function CheckInPage() {
       {/* TAHAP 4: HASIL OTOMASI SUKSES (PROVISIONING COMPLETE)                      */}
       {/* ========================================================================= */}
       {currentStep === 4 && provisionResult && (
-        <div className="space-y-6 animate-in fade-in">
-          <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-md border border-emerald-200 space-y-6 text-center">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-sm">
-              <span className="material-symbols-outlined text-[36px]">verified</span>
+        <div className="space-y-4 sm:space-y-6 animate-in fade-in">
+          <div className="bg-white rounded-2xl p-5 sm:p-8 shadow-md border border-emerald-200 space-y-5 text-center">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-sm">
+              <span className="material-symbols-outlined text-[32px] sm:text-[36px]">verified</span>
             </div>
 
             <div className="space-y-1">
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+              <span className="px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold bg-emerald-100 text-emerald-800">
                 Sistem Cloud POS Aktif di Produksi!
               </span>
-              <h2 className="text-xl sm:text-2xl font-bold font-display text-[#102A43] pt-2">
+              <h2 className="text-lg sm:text-2xl font-bold font-display text-[#102A43] pt-2">
                 Selamat! Sistem untuk {provisionResult.tenant.name} Berhasil Dibuat
               </h2>
-              <p className="text-xs text-slate-500 max-w-md mx-auto">
-                Tenant, akun pemilik, cabang utama, lisensi, dan invoice perdana telah aktif di database. Komisi Anda telah terkunci secara otomatis.
+              <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+                Tenant, akun pemilik, cabang utama, dan lisensi telah aktif di database. Hak komisi royalti 20% Anda telah terkunci secara otomatis.
               </p>
             </div>
 
             {/* Credential Card */}
-            <div className="max-w-lg mx-auto bg-slate-50 rounded-2xl p-5 border border-slate-200 text-left space-y-3 font-mono">
+            <div className="max-w-lg mx-auto bg-slate-50 rounded-2xl p-4 sm:p-5 border border-slate-200 text-left space-y-3 font-mono">
               <div>
                 <span className="text-[10px] uppercase font-bold text-slate-400 block font-sans">
                   URL Web Kasir Cloud POS
                 </span>
-                <div className="flex items-center justify-between mt-0.5">
+                <div className="flex items-center justify-between gap-2 mt-0.5">
                   <a
                     href={provisionResult.credentials.loginUrl}
                     target="_blank"
@@ -1637,7 +1714,7 @@ export default function CheckInPage() {
                   <button
                     type="button"
                     onClick={() => handleCopyText(provisionResult.credentials.loginUrl, "url")}
-                    className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1 font-sans"
+                    className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1 font-sans shrink-0 px-2 py-1 rounded-lg bg-slate-200 hover:bg-slate-300"
                   >
                     <span className="material-symbols-outlined text-[14px]">content_copy</span>
                     <span>{copiedField === "url" ? "Disalin!" : "Salin"}</span>
@@ -1645,19 +1722,19 @@ export default function CheckInPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-200">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-200">
                 <div>
                   <span className="text-[10px] uppercase font-bold text-slate-400 block font-sans">
                     Username Pemilik
                   </span>
-                  <div className="flex items-center justify-between mt-0.5">
-                    <span className="text-xs font-bold text-slate-900">
+                  <div className="flex items-center justify-between gap-2 mt-0.5">
+                    <span className="text-xs font-bold text-slate-900 truncate">
                       {provisionResult.credentials.username}
                     </span>
                     <button
                       type="button"
                       onClick={() => handleCopyText(provisionResult.credentials.username, "user")}
-                      className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1 font-sans"
+                      className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1 font-sans shrink-0 px-2 py-1 rounded-lg bg-slate-200 hover:bg-slate-300"
                     >
                       <span className="material-symbols-outlined text-[14px]">content_copy</span>
                       <span>{copiedField === "user" ? "Disalin!" : "Salin"}</span>
@@ -1669,14 +1746,14 @@ export default function CheckInPage() {
                   <span className="text-[10px] uppercase font-bold text-slate-400 block font-sans">
                     Password Pemilik
                   </span>
-                  <div className="flex items-center justify-between mt-0.5">
-                    <span className="text-xs font-bold text-slate-900">
+                  <div className="flex items-center justify-between gap-2 mt-0.5">
+                    <span className="text-xs font-bold text-slate-900 truncate">
                       {provisionResult.credentials.password}
                     </span>
                     <button
                       type="button"
                       onClick={() => handleCopyText(provisionResult.credentials.password, "pass")}
-                      className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1 font-sans"
+                      className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1 font-sans shrink-0 px-2 py-1 rounded-lg bg-slate-200 hover:bg-slate-300"
                     >
                       <span className="material-symbols-outlined text-[14px]">content_copy</span>
                       <span>{copiedField === "pass" ? "Disalin!" : "Salin"}</span>
@@ -1687,12 +1764,14 @@ export default function CheckInPage() {
 
               <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[11px] font-sans">
                 <span className="text-slate-500">Nomor Lisensi Resmi:</span>
-                <span className="font-bold text-slate-800 font-mono">{provisionResult.tenant.licenseKey}</span>
+                <span className="font-bold text-slate-800 font-mono truncate ml-2">
+                  {provisionResult.tenant.licenseKey}
+                </span>
               </div>
             </div>
 
-            {/* Quick Action WhatsApp Button */}
-            <div className="max-w-lg mx-auto flex flex-col sm:flex-row gap-3 pt-2">
+            {/* Quick Action Buttons (Stacked on Mobile with full touch targets >= 44px) */}
+            <div className="max-w-lg mx-auto flex flex-col gap-2.5 pt-2">
               <a
                 href={`https://wa.me/${waNumber.replace(/[^0-9]/g, "")}?text=Halo%20${encodeURIComponent(
                   ownerName || "Bapak/Ibu"
@@ -1707,27 +1786,29 @@ export default function CheckInPage() {
                 )}%0A%0ASilakan%20login%20untuk%20mulai%20menggunakan%20kasir.%20Terima%20kasih.`}
                 target="_blank"
                 rel="noreferrer"
-                className="flex-1 h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition active:scale-98"
+                className="w-full min-h-[48px] rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition active:scale-98"
               >
                 <span className="material-symbols-outlined text-[18px]">chat</span>
                 <span>Kirim Kredensial via WhatsApp Pemilik</span>
               </a>
 
-              <Link
-                href="/leads/check"
-                className="px-4 h-12 rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm"
-              >
-                <span className="material-symbols-outlined text-[18px]">verified_user</span>
-                <span>Lihat Status Terverifikasi</span>
-              </Link>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <Link
+                  href="/leads/check"
+                  className="w-full min-h-[44px] rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm"
+                >
+                  <span className="material-symbols-outlined text-[18px]">verified_user</span>
+                  <span>Lihat Status Terverifikasi</span>
+                </Link>
 
-              <Link
-                href="/outlets"
-                className="px-5 h-12 rounded-xl bg-[#102A43] hover:bg-[#0B1D3A] text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm"
-              >
-                <span className="material-symbols-outlined text-[18px]">storefront</span>
-                <span>Daftar Outlet Saya</span>
-              </Link>
+                <Link
+                  href="/outlets"
+                  className="w-full min-h-[44px] rounded-xl bg-[#102A43] hover:bg-[#0B1D3A] text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm"
+                >
+                  <span className="material-symbols-outlined text-[18px]">storefront</span>
+                  <span>Daftar Outlet Saya</span>
+                </Link>
+              </div>
             </div>
           </div>
         </div>

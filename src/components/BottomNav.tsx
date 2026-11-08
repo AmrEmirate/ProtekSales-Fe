@@ -51,6 +51,40 @@ export const BottomNav: React.FC = () => {
         isActive: pathname.startsWith("/profile"),
       },
     ];
+  } else if (currentUserRole === "ORGANISASI") {
+    navItems = [
+      {
+        href: "/organization",
+        label: "Ringkasan",
+        icon: "corporate_fare",
+        isActive: pathname === "/organization",
+      },
+      {
+        href: "/organization/sales",
+        label: "Tim Sales",
+        icon: "group",
+        isActive: pathname.startsWith("/organization/sales"),
+      },
+      {
+        href: "/commission/wallet",
+        label: "Hak 10%",
+        icon: "account_balance_wallet",
+        isActive: pathname.startsWith("/commission"),
+        highlight: true,
+      },
+      {
+        href: "/organization/outlets",
+        label: "Outlet",
+        icon: "storefront",
+        isActive: pathname.startsWith("/organization/outlets"),
+      },
+      {
+        href: "/profile",
+        label: "Profil",
+        icon: "badge",
+        isActive: pathname.startsWith("/profile"),
+      },
+    ];
   } else {
     // SALES ROLE
     navItems = [
@@ -88,6 +122,20 @@ export const BottomNav: React.FC = () => {
     ];
   }
 
+  const highlightBg =
+    currentUserRole === "ORGANISASI"
+      ? "bg-emerald-700 shadow-[0_4px_14px_rgba(5,150,105,0.4)]"
+      : currentUserRole === "ADMIN"
+      ? "bg-[#2563EB] shadow-[0_4px_14px_rgba(37,99,235,0.4)]"
+      : "bg-[#F97316] shadow-[0_4px_14px_rgba(249,115,22,0.4)]";
+
+  const highlightTextColor =
+    currentUserRole === "ORGANISASI"
+      ? "text-emerald-700"
+      : currentUserRole === "ADMIN"
+      ? "text-[#2563EB]"
+      : "text-[#F97316]";
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E2E8F0] shadow-[0_-2px_10px_rgba(0,0,0,0.05)] lg:hidden">
       <div className="flex items-center justify-around h-16 max-w-md mx-auto px-2">
@@ -99,12 +147,16 @@ export const BottomNav: React.FC = () => {
                 href={item.href}
                 className="flex flex-col items-center justify-center -mt-5 group"
               >
-                <div className="w-12 h-12 rounded-full bg-[#F97316] text-white flex items-center justify-center shadow-[0_4px_14px_rgba(249,115,22,0.4)] group-active:scale-95 transition-transform">
+                <div
+                  className={`w-12 h-12 rounded-full text-white flex items-center justify-center group-active:scale-95 transition-transform ${highlightBg}`}
+                >
                   <span className="material-symbols-outlined text-[24px]">
                     {item.icon}
                   </span>
                 </div>
-                <span className="text-[10px] font-bold text-[#F97316] mt-1">
+                <span
+                  className={`text-[10px] font-bold mt-1 ${highlightTextColor}`}
+                >
                   {item.label}
                 </span>
               </Link>
@@ -117,7 +169,7 @@ export const BottomNav: React.FC = () => {
               href={item.href}
               className={`flex flex-col items-center justify-center w-14 py-1 transition-colors ${
                 item.isActive
-                  ? "text-[#F97316] font-bold"
+                  ? `${highlightTextColor} font-bold`
                   : "text-slate-500 hover:text-slate-900"
               }`}
             >

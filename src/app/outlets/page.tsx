@@ -509,14 +509,15 @@ export default function OutletsListPage() {
                         )}%20agar%20sistem%20bisa%20langsung%20aktif%20kembali.`}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex-1 h-10 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all"
+                        className="flex-1 min-h-[40px] rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all px-2 truncate"
                       >
-                        <span className="material-symbols-outlined text-[16px]">chat</span>
-                        <span>Tagih via WhatsApp</span>
+                        <span className="material-symbols-outlined text-[16px] shrink-0">chat</span>
+                        <span className="hidden sm:inline truncate">Tagih via WhatsApp</span>
+                        <span className="inline sm:hidden">Tagih WA</span>
                       </a>
                       <a
                         href={`tel:${outlet.phone.replace(/[^0-9+]/g, "")}`}
-                        className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors shadow-sm"
+                        className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors shadow-sm shrink-0"
                         title="Telepon Langsung Pemilik"
                       >
                         <span className="material-symbols-outlined text-[18px]">call</span>
@@ -524,7 +525,7 @@ export default function OutletsListPage() {
                       <button
                         type="button"
                         onClick={() => setActiveModalOutlet(outlet)}
-                        className="w-10 h-10 rounded-xl bg-[#e3efff] hover:bg-[#d8eaff] text-[#102A43] flex items-center justify-center transition-colors"
+                        className="w-10 h-10 rounded-xl bg-[#e3efff] hover:bg-[#d8eaff] text-[#102A43] flex items-center justify-center transition-colors shrink-0"
                         title="Buka Kunci (Kirim QRIS)"
                       >
                         <span className="material-symbols-outlined text-[18px]">qr_code_2</span>
@@ -544,14 +545,15 @@ export default function OutletsListPage() {
                         )}.%20Mohon%20segera%20melakukan%20pembayaran%20transfer.`}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex-1 h-10 rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all"
+                        className="flex-1 min-h-[40px] rounded-xl bg-[#F97316] hover:bg-[#EA580C] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all px-2 truncate"
                       >
-                        <span className="material-symbols-outlined text-[16px]">chat</span>
-                        <span>Tagih via WhatsApp (H-3)</span>
+                        <span className="material-symbols-outlined text-[16px] shrink-0">chat</span>
+                        <span className="hidden sm:inline truncate">Tagih via WhatsApp (H-3)</span>
+                        <span className="inline sm:hidden">Tagih WA</span>
                       </a>
                       <a
                         href={`tel:${outlet.phone.replace(/[^0-9+]/g, "")}`}
-                        className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors shadow-sm"
+                        className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors shadow-sm shrink-0"
                         title="Telepon Pemilik"
                       >
                         <span className="material-symbols-outlined text-[18px]">call</span>
@@ -559,7 +561,7 @@ export default function OutletsListPage() {
                       <button
                         type="button"
                         onClick={() => setActiveModalOutlet(outlet)}
-                        className="w-10 h-10 rounded-xl bg-[#e3efff] hover:bg-[#d8eaff] text-[#102A43] flex items-center justify-center transition-colors"
+                        className="w-10 h-10 rounded-xl bg-[#e3efff] hover:bg-[#d8eaff] text-[#102A43] flex items-center justify-center transition-colors shrink-0"
                         title="Kirim Tagihan & QRIS"
                       >
                         <span className="material-symbols-outlined text-[18px]">qr_code_2</span>
@@ -575,26 +577,26 @@ export default function OutletsListPage() {
                         )}.%20Layanan%20kasir%20Anda%20aktif%20normal.`}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex-1 h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all"
+                        className="flex-1 min-h-[40px] rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all px-2 truncate"
                       >
-                        <span className="material-symbols-outlined text-[16px]">chat</span>
-                        <span>Hubungi Toko (WA)</span>
+                        <span className="material-symbols-outlined text-[16px] shrink-0">chat</span>
+                        <span className="hidden sm:inline truncate">Hubungi Pemilik via WA</span>
+                        <span className="inline sm:hidden">Chat WA</span>
                       </a>
                       <a
                         href={`tel:${outlet.phone.replace(/[^0-9+]/g, "")}`}
-                        className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors shadow-sm"
-                        title="Telepon Toko"
+                        className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors shadow-sm shrink-0"
+                        title="Telepon Langsung Pemilik"
                       >
                         <span className="material-symbols-outlined text-[18px]">call</span>
                       </a>
                       <button
                         type="button"
                         onClick={() => setActiveModalOutlet(outlet)}
-                        className="px-3 h-10 rounded-xl bg-[#00152a] hover:bg-[#102A43] text-white font-bold text-xs flex items-center justify-center gap-1 shadow-sm transition-all"
-                        title="Kirim QRIS"
+                        className="w-10 h-10 rounded-xl bg-[#e3efff] hover:bg-[#d8eaff] text-[#102A43] flex items-center justify-center transition-colors shrink-0"
+                        title="Lihat Detail Pembayaran"
                       >
-                        <span className="material-symbols-outlined text-[16px]">qr_code_2</span>
-                        <span>QRIS</span>
+                        <span className="material-symbols-outlined text-[18px]">receipt_long</span>
                       </button>
                     </>
                   )}

@@ -32,6 +32,9 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, isSidebarCollap
   const getPageTitle = () => {
     if (pathname.startsWith("/admin/command-center")) return "Command Center Bisnis & SaaS Multi-Tenant";
     if (pathname.startsWith("/admin")) return "Pusat Kontrol Admin & HQ";
+    if (pathname.startsWith("/organization/sales")) return "Daftar Tim Sales Binaan";
+    if (pathname.startsWith("/organization/outlets")) return "Outlet Hasil Mitra Sales";
+    if (pathname.startsWith("/organization")) return "Portal Organisasi & Hak 10%";
     if (pathname === "/") return "Ringkasan Command Center";
     if (pathname.startsWith("/leads/check")) return "Cek & Kunci Prospek";
     if (pathname.startsWith("/leads/check-in")) return "Check-In & Buat POS UMKM (Antigravity)";
@@ -69,8 +72,20 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, isSidebarCollap
 
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold text-[#F97316] tracking-wider uppercase">
-              PORTAL SALES
+            <span
+              className={`text-[10px] font-bold tracking-wider uppercase ${
+                currentUserRole === "ORGANISASI"
+                  ? "text-emerald-700"
+                  : currentUserRole === "ADMIN"
+                  ? "text-[#2563EB]"
+                  : "text-[#F97316]"
+              }`}
+            >
+              {currentUserRole === "ORGANISASI"
+                ? "PORTAL ORGANISASI"
+                : currentUserRole === "ADMIN"
+                ? "PORTAL ADMIN HQ"
+                : "PORTAL SALES"}
             </span>
             <span className="hidden sm:inline-block text-slate-300">•</span>
             <span className="hidden sm:inline-block text-[11px] font-semibold text-slate-500">
