@@ -54,42 +54,10 @@ export default function LoginPage() {
       window.location.href = targetUrl;
     } catch (err: any) {
       setIsLoading(false);
-
-      // Khusus verifikasi admin amremi (fallback dev & offline resilience)
-      if (
-        (cleanIdentifier === "amremi" || cleanIdentifier === "amremi@protek.id") &&
-        password === "SelviCantik01)"
-      ) {
-        if (typeof window !== "undefined") {
-          localStorage.setItem("protek_user_role", "ADMIN");
-          localStorage.setItem("protek_user_email", cleanIdentifier);
-          localStorage.setItem("protek_user_name", "Amremi (Super Admin ProTek)");
-        }
-        window.location.href = "/admin";
-        return;
-      }
-
-      // Fallback dev mode jika server backend sedang offline saat sales di luar jangkauan jaringan
-      const isConnectionError =
-        err?.message?.includes("Failed to fetch") ||
-        err?.message?.includes("NetworkError") ||
-        err?.message?.includes("500") ||
-        err?.message?.includes("HTTP Error");
-
-      if (isConnectionError) {
-        const resolvedRole: "SALES" | "ADMIN" = isAdminIdentifier ? "ADMIN" : "SALES";
-        if (typeof window !== "undefined") {
-          localStorage.setItem("protek_user_role", resolvedRole);
-          localStorage.setItem("protek_user_email", cleanIdentifier);
-          localStorage.setItem(
-            "protek_user_name",
-            resolvedRole === "ADMIN" ? "Amremi (Super Admin ProTek)" : "Budi Sales (Senior)"
-          );
-        }
-        window.location.href = resolvedRole === "ADMIN" ? "/admin" : "/";
-      } else {
-        setErrorMsg(err.message || "Gagal masuk. Periksa email/username dan kata sandi Anda.");
-      }
+      setErrorMsg(
+        err?.message ||
+          "Gagal masuk. Periksa email/username, kata sandi, atau koneksi internet Anda."
+      );
     }
   };
 
